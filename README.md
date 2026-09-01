@@ -44,15 +44,59 @@ De acuerdo con el Plan de Aseguramiento de la Calidad del Software (SQAP), GitHu
 El repositorio oficial deberá contener únicamente los recursos necesarios para el desarrollo del sistema, incluyendo:
 
 ```text
-PsicoGestion/
-│
-├── src/                  # Código fuente
-├── docs/                 # Documentación del proyecto
-├── tests/                # Pruebas
-├── database/             # Scripts y recursos de base de datos
-├── .gitignore            # Archivos excluidos del control de versiones
-├── README.md             # Información y guía del proyecto
-└── [archivo de dependencias]
+psicogestion/                          Raz del repositorio 
+
+├── frontend/                         Interfaz de usuario (secretaria) 
+
+│   ├── src/ 
+
+│   │   ├── components/              Componentes reutilizables de la UI 
+
+│   │   ├── pages/                   Vistas principales (agenda, pacientes) 
+
+│   │   └── assets/                  Recursos estéticos (imgenes, conos) 
+
+│   └── public/ 
+
+├── backend/                          Lógica del servidor 
+
+│   ├── src/ 
+
+│   │   ├── controllers/             Controladores de cada mdulo 
+
+│   │   ├── models/                  Modelos de datos 
+
+│   │   ├── routes/                  Definición de rutas de la API 
+
+│   │   └── services/                Lógica de negocio y concurrencia 
+
+│   └── config/                      Configuración del servidor 
+
+├── database/                         Scripts y migraciones de BD 
+
+│   ├── migrations/                  Archivos de migración versionados 
+
+│   │   └── PG-BD-v1.0.0.sql 
+
+│   └── seeds/                       Datos de prueba (semilla) 
+
+├── docs/                             Documentación oficial del proyecto 
+
+│   ├── ERS/                         Especificación de Requerimientos 
+
+│   ├── charter/                     Project Charter 
+
+│   ├── ACS/                         Plan de Administración de la Configuracin 
+
+│   ├── manuales/                    Manuales de usuario 
+
+│   └── pruebas/                     Planes y casos de prueba 
+
+├── .env.example                      Plantilla de variables de entorno 
+
+├── .gitignore                        Archivos excluidos del control de versiones 
+
+└── README.md                         Descripción general y gua de inicio 
 ```
 
 La estructura podrá modificarse de acuerdo con las tecnologías utilizadas durante la implementación.
