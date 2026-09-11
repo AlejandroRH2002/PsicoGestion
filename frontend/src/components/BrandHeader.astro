@@ -1,0 +1,36 @@
+---
+import { BrainCircuit } from '@lucide/astro';
+
+interface Props {
+  alignment?: 'left' | 'center';
+  subtitle?: string;
+}
+
+const { alignment = 'left', subtitle = 'UADY' } = Astro.props;
+
+const isCenter = alignment === 'center';
+---
+<header class={`flex ${isCenter ? 'flex-col items-center justify-center gap-1.5 mb-2' : 'items-center justify-between'}`}>
+  <div class="flex items-center gap-2">
+    <div
+      class="w-8 h-8 rounded-lg bg-[#006847] flex items-center justify-center text-white shadow-sm"
+      aria-hidden="true"
+    >
+      <BrainCircuit class="w-[18px] h-[18px]" />
+    </div>
+    <span class="font-extrabold text-[22px] leading-tight text-[#006847] tracking-tight">Psic
+        <span class="text-[#0D9488]">Gestión</span>
+    </span>
+    
+  </div>
+
+  {isCenter ? (
+    <span class="text-[10px] font-bold uppercase tracking-widest text-[#006847]">
+      {subtitle}
+    </span>
+  ) : (
+    <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B] bg-[#F4F7F6] px-2.5 py-1 rounded-md">
+      {subtitle}
+    </span>
+  )}
+</header>
