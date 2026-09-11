@@ -1,0 +1,216 @@
+---
+import '../styles/global.css';
+import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar Sesión - PsicGestión UADY</title>
+    <meta name="description" content="Inicio de sesión en el sistema PsicGestión UADY" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-[#F4F7F6] text-[#0F172A] flex items-center justify-center p-4 sm:p-6 antialiased">
+    <!-- Main Card Container (matching 520px max-width, rounded-2xl, shadow as page.css) -->
+    <main
+      class="w-full max-w-[520px] bg-white rounded-2xl p-6 sm:p-8 shadow-[0px_4px_20px_rgba(15,23,42,0.051)] flex flex-col gap-6"
+    >
+      <!-- Header: PsicGestión Brand Logo -->
+      <header class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div
+            class="w-8 h-8 rounded-lg bg-[#006847] flex items-center justify-center text-white shadow-sm"
+            aria-hidden="true"
+          >
+            <BrainCircuit class="w-[18px] h-[18px]" />
+          </div>
+          <span class="font-extrabold text-[22px] leading-tight text-[#006847] tracking-tight">PsicGestión</span>
+        </div>
+
+        <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B] bg-[#F4F7F6] px-2.5 py-1 rounded-md">
+          UADY
+        </span>
+      </header>
+
+      <!-- Title & Subtitle -->
+      <section class="flex flex-col gap-1">
+        <h1 class="text-2xl font-bold leading-[130%] text-[#0F172A]">Iniciar Sesión</h1>
+        <p class="text-sm leading-[150%] text-[#64748B]">Ingresa tus credenciales del sistema PsicGestión UADY</p>
+      </section>
+
+      <!-- Login Form -->
+      <form id="login-form" class="flex flex-col gap-4" novalidate>
+        <!-- Correo Institucional UADY -->
+        <div class="flex flex-col gap-1.5">
+          <label for="correo" class="text-xs font-semibold uppercase text-[#334155] leading-tight tracking-wider">
+            Correo institucional UADY
+          </label>
+          <input
+            id="correo"
+            name="correo"
+            type="email"
+            placeholder="matricula@correo.uady.mx"
+            class="w-full h-11 px-3.5 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#006847]/20 focus:border-[#006847] transition-all"
+            required
+          />
+          <span id="email-hint" class="text-xs leading-[140%] text-[#64748B]">
+            Debe ser terminación @correo.uady.mx o @uady.mx
+          </span>
+        </div>
+
+        <!-- Contraseña -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between">
+            <label for="password" class="text-xs font-semibold uppercase text-[#334155] leading-tight tracking-wider">
+              Contraseña
+            </label>
+            <a
+              href="#recuperar"
+              id="forgot-password"
+              class="text-xs font-medium text-[#0D9488] hover:text-[#0F766E] hover:underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </a>
+          </div>
+          <div class="relative">
+            <input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="••••••••"
+              class="w-full h-11 pl-3.5 pr-10 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#006847]/20 focus:border-[#006847] transition-all tracking-wider"
+              required
+            />
+            <button
+              type="button"
+              id="toggle-pwd"
+              aria-label="Mostrar u ocultar contraseña"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#334155] p-0.5 focus:outline-none cursor-pointer"
+            >
+              <span id="pwd-eye-open" class="inline-block"><Eye class="w-4 h-4" /></span>
+              <span id="pwd-eye-closed" class="hidden"><EyeOff class="w-4 h-4" /></span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Remember me checkbox -->
+        <div class="flex items-center gap-2">
+          <input
+            id="remember-me"
+            type="checkbox"
+            class="w-4 h-4 text-[#006847] rounded border-[#E2E8F0] focus:ring-[#006847] cursor-pointer"
+          />
+          <label for="remember-me" class="text-xs text-[#334155] select-none cursor-pointer">
+            Recordar mi sesión en este dispositivo
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          id="submit-login"
+          class="w-full h-11 bg-[#0D9488] hover:bg-[#0F766E] text-white font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer mt-1 active:scale-[0.99]"
+        >
+          <LogIn class="w-4 h-4" />
+          <span>Iniciar Sesión</span>
+        </button>
+      </form>
+
+      <!-- Divider -->
+      <div class="relative flex items-center justify-center">
+        <div class="border-t border-[#E2E8F0] w-full"></div>
+        <span class="bg-white px-3 text-xs text-[#64748B] absolute">o</span>
+      </div>
+
+      <!-- Action to Navigate to Register Page (/registro) -->
+      <div class="flex flex-col gap-3 text-center">
+        <p class="text-xs text-[#64748B]">¿Aún no tienes una cuenta en el sistema?</p>
+        <a
+          href="/registro"
+          id="go-to-register"
+          class="w-full h-11 border-2 border-[#006847] text-[#006847] hover:bg-[#006847] hover:text-white font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-sm active:scale-[0.99]"
+        >
+          <UserPlus class="w-4 h-4" />
+          <span>Registrarse / Crear Cuenta</span>
+        </a>
+      </div>
+    </main>
+
+    <!-- Client-side Script with TypeScript -->
+    <script>
+      function initLoginForm(): void {
+        const form = document.getElementById('login-form') as HTMLFormElement | null;
+        const emailInput = document.getElementById('correo') as HTMLInputElement | null;
+        const passwordInput = document.getElementById('password') as HTMLInputElement | null;
+        const togglePwdBtn = document.getElementById('toggle-pwd') as HTMLButtonElement | null;
+        const emailHint = document.getElementById('email-hint') as HTMLElement | null;
+
+        // Toggle password visibility
+        if (togglePwdBtn && passwordInput) {
+          togglePwdBtn.addEventListener('click', () => {
+            const isPassword = passwordInput.type === 'password';
+            passwordInput.type = isPassword ? 'text' : 'password';
+            const openIcon = document.getElementById('pwd-eye-open');
+            const closedIcon = document.getElementById('pwd-eye-closed');
+            if (openIcon && closedIcon) {
+              openIcon.classList.toggle('hidden', isPassword);
+              closedIcon.classList.toggle('hidden', !isPassword);
+            }
+          });
+        }
+
+        // Email hint validation feedback
+        emailInput?.addEventListener('input', () => {
+          const val = emailInput.value.trim();
+          if (!val) {
+            emailHint?.classList.remove('text-red-500', 'text-[#006847]');
+            emailHint?.classList.add('text-[#64748B]');
+            return;
+          }
+          const isValid = val.endsWith('@correo.uady.mx') || val.endsWith('@uady.mx');
+          if (isValid) {
+            emailHint?.classList.remove('text-[#64748B]', 'text-red-500');
+            emailHint?.classList.add('text-[#006847]');
+          } else {
+            emailHint?.classList.remove('text-[#64748B]', 'text-[#006847]');
+            emailHint?.classList.add('text-red-500');
+          }
+        });
+
+        // Form submit
+        form?.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const email = emailInput?.value.trim() || '';
+          const password = passwordInput?.value || '';
+
+          if (!email.endsWith('@correo.uady.mx') && !email.endsWith('@uady.mx')) {
+            alert('Por favor ingresa tu correo institucional de la UADY (@correo.uady.mx o @uady.mx).');
+            emailInput?.focus();
+            return;
+          }
+
+          if (!password) {
+            alert('Por favor ingresa tu contraseña.');
+            passwordInput?.focus();
+            return;
+          }
+
+          alert('Iniciando sesión en PsicGestión UADY...');
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLoginForm);
+      } else {
+        initLoginForm();
+      }
+    </script>
+  </body>
+</html>
