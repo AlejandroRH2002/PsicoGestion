@@ -1,0 +1,49 @@
+---
+import { Mail, Eye, EyeOff } from '@lucide/astro';
+
+interface Props {
+  id: string;
+  name: string;
+  type: 'text' | 'email' | 'password';
+  label: string;
+  placeholder: string;
+  required?: boolean;
+  icon?: 'mail';
+}
+
+const { id, name, type, label, placeholder, required = false, icon } = Astro.props;
+
+const isPassword = type === 'password';
+const hasLeftIcon = icon === 'mail';
+---
+<label for={id} class="text-[11px] font-semibold uppercase text-[#334155] leading-tight tracking-wider">
+  {label}
+</label>
+<div class="relative">
+  {hasLeftIcon && (
+    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+      <Mail class="w-4 h-4 text-[#64748B]" />
+    </div>
+  )}
+  
+  <input
+    id={id}
+    name={name}
+    type={type}
+    placeholder={placeholder}
+    required={required}
+    class={`w-full h-11 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/20 focus:border-[#0D9488] transition-all ${hasLeftIcon ? 'pl-10 pr-3.5' : 'px-3.5'} ${isPassword ? 'pr-10' : ''}`}
+  />
+
+  {isPassword && (
+    <button
+      type="button"
+      id="toggle-pwd"
+      aria-label="Mostrar u ocultar contraseña"
+      class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#334155] p-0.5 focus:outline-none cursor-pointer"
+    >
+      <span id="pwd-eye-open" class="inline-block"><Eye class="w-4 h-4" /></span>
+      <span id="pwd-eye-closed" class="hidden"><EyeOff class="w-4 h-4" /></span>
+    </button>
+  )}
+</div>
