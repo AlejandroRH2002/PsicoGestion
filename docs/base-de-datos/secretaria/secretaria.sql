@@ -10,5 +10,3 @@ CREATE TABLE secretaria (
 
     contrasena_hash VARCHAR(255) NOT NULL
 );
-
-s
