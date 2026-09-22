@@ -25,3 +25,7 @@ replay_pid*
 
 
 /scratch
+
+CLAUDE.md
+requerimientos-trazabilidad.md
+specs/**/*.md
