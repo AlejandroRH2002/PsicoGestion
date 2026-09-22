@@ -8,8 +8,8 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Iniciar Sesión - PsicGestión UADY</title>
-    <meta name="description" content="Inicio de sesión en el sistema PsicGestión UADY" />
+    <title>Iniciar Sesión - PsicoGestión UADY</title>
+    <meta name="description" content="Inicio de sesión en el sistema PsicoGestión UADY" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -22,7 +22,7 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
     <main
       class="w-full max-w-[520px] bg-white rounded-2xl p-6 sm:p-8 shadow-[0px_4px_20px_rgba(15,23,42,0.051)] flex flex-col gap-6"
     >
-      <!-- Header: PsicGestión Brand Logo -->
+      <!-- Header: PsicoGestión Brand Logo -->
       <header class="flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div
@@ -31,7 +31,7 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
           >
             <BrainCircuit class="w-[18px] h-[18px]" />
           </div>
-          <span class="font-extrabold text-[22px] leading-tight text-[#006847] tracking-tight">PsicGestión</span>
+          <span class="font-extrabold text-[22px] leading-tight text-[#006847] tracking-tight">PsicoGestión</span>
         </div>
 
         <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B] bg-[#F4F7F6] px-2.5 py-1 rounded-md">
@@ -42,11 +42,14 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
       <!-- Title & Subtitle -->
       <section class="flex flex-col gap-1">
         <h1 class="text-2xl font-bold leading-[130%] text-[#0F172A]">Iniciar Sesión</h1>
-        <p class="text-sm leading-[150%] text-[#64748B]">Ingresa tus credenciales del sistema PsicGestión UADY</p>
+        <p class="text-sm leading-[150%] text-[#64748B]">Ingresa tus credenciales del sistema PsicoGestión UADY</p>
       </section>
 
       <!-- Login Form -->
       <form id="login-form" class="flex flex-col gap-4" novalidate>
+        <!-- Mensaje de error/éxito del servidor (RNF 1.1.1 / RNF 1.2.2: mensaje claro, sin revelar cuál dato falló) -->
+        <div id="form-message" role="alert" class="hidden text-sm rounded-lg px-3.5 py-2.5"></div>
+
         <!-- Correo Institucional UADY -->
         <div class="flex flex-col gap-1.5">
           <label for="correo" class="text-xs font-semibold uppercase text-[#334155] leading-tight tracking-wider">
@@ -116,10 +119,10 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
         <button
           type="submit"
           id="submit-login"
-          class="w-full h-11 bg-[#0D9488] hover:bg-[#0F766E] text-white font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer mt-1 active:scale-[0.99]"
+          class="w-full h-11 bg-[#0D9488] hover:bg-[#0F766E] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm cursor-pointer mt-1 active:scale-[0.99]"
         >
           <LogIn class="w-4 h-4" />
-          <span>Iniciar Sesión</span>
+          <span id="submit-login-text">Iniciar Sesión</span>
         </button>
       </form>
 
@@ -145,12 +148,18 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
 
     <!-- Client-side Script with TypeScript -->
     <script>
+      const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+
       function initLoginForm(): void {
         const form = document.getElementById('login-form') as HTMLFormElement | null;
         const emailInput = document.getElementById('correo') as HTMLInputElement | null;
         const passwordInput = document.getElementById('password') as HTMLInputElement | null;
         const togglePwdBtn = document.getElementById('toggle-pwd') as HTMLButtonElement | null;
         const emailHint = document.getElementById('email-hint') as HTMLElement | null;
+        const rememberInput = document.getElementById('remember-me') as HTMLInputElement | null;
+        const submitBtn = document.getElementById('submit-login') as HTMLButtonElement | null;
+        const submitBtnText = document.getElementById('submit-login-text') as HTMLElement | null;
+        const formMessage = document.getElementById('form-message') as HTMLElement | null;
 
         // Toggle password visibility
         if (togglePwdBtn && passwordInput) {
@@ -184,25 +193,67 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
           }
         });
 
+        function showMessage(text: string, kind: 'error' | 'success'): void {
+          if (!formMessage) return;
+          formMessage.textContent = text;
+          formMessage.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700');
+          formMessage.classList.add(kind === 'error' ? 'bg-red-50' : 'bg-green-50', kind === 'error' ? 'text-red-700' : 'text-green-700');
+        }
+
+        function hideMessage(): void {
+          formMessage?.classList.add('hidden');
+        }
+
+        function setLoading(isLoading: boolean): void {
+          if (submitBtn) submitBtn.disabled = isLoading;
+          if (submitBtnText) submitBtnText.textContent = isLoading ? 'Iniciando sesión…' : 'Iniciar Sesión';
+        }
+
         // Form submit
-        form?.addEventListener('submit', (e) => {
+        form?.addEventListener('submit', async (e) => {
           e.preventDefault();
+          hideMessage();
+
           const email = emailInput?.value.trim() || '';
           const password = passwordInput?.value || '';
 
           if (!email.endsWith('@correo.uady.mx') && !email.endsWith('@uady.mx')) {
-            alert('Por favor ingresa tu correo institucional de la UADY (@correo.uady.mx o @uady.mx).');
+            showMessage('Por favor ingresa tu correo institucional de la UADY (@correo.uady.mx o @uady.mx).', 'error');
             emailInput?.focus();
             return;
           }
 
           if (!password) {
-            alert('Por favor ingresa tu contraseña.');
+            showMessage('Por favor ingresa tu contraseña.', 'error');
             passwordInput?.focus();
             return;
           }
 
-          alert('Iniciando sesión en PsicGestión UADY...');
+          setLoading(true);
+          try {
+            const response = await fetch(`${API_URL}/auth/login`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ correo: email, password, recordar: rememberInput?.checked ?? false }),
+            });
+
+            const body = await response.json().catch(() => null);
+
+            if (response.ok) {
+              // RF 1.2: sin pantalla de panel principal aún (specs/06-panel-principal/, fuera de
+              // este incremento) — solo confirmamos que la sesión quedó establecida.
+              showMessage('Inicio de sesión exitoso.', 'success');
+              return;
+            }
+
+            // RNF 1.2.2: siempre el mismo mensaje genérico, nunca se distingue el campo que falló.
+            showMessage(body?.error ?? 'Correo o contraseña incorrectos.', 'error');
+          } catch {
+            showMessage('No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.', 'error');
+          } finally {
+            setLoading(false);
+          }
         });
       }
 

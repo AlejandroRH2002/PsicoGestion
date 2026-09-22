@@ -8,8 +8,8 @@ import { ArrowLeft, BrainCircuit, CircleCheck, Eye, EyeOff } from '@lucide/astro
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Registro de Usuario - PsicGestión UADY</title>
-    <meta name="description" content="Crea tu cuenta en el sistema PsicGestión UADY" />
+    <title>Registro de Usuario - PsicoGestión UADY</title>
+    <meta name="description" content="Crea tu cuenta en el sistema PsicoGestión UADY" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -22,7 +22,7 @@ import { ArrowLeft, BrainCircuit, CircleCheck, Eye, EyeOff } from '@lucide/astro
     <main
       class="w-full max-w-[520px] bg-white rounded-2xl p-6 sm:p-8 shadow-[0px_4px_20px_rgba(15,23,42,0.051)] flex flex-col gap-6"
     >
-      <!-- Header Row: Volver al login & PsicGestión Logo -->
+      <!-- Header Row: Volver al login & PsicoGestión Logo -->
       <header class="flex items-center justify-between">
         <!-- Volver al login (lleva a la página inicial) -->
         <a
@@ -42,18 +42,21 @@ import { ArrowLeft, BrainCircuit, CircleCheck, Eye, EyeOff } from '@lucide/astro
           >
             <BrainCircuit class="w-[18px] h-[18px]" />
           </div>
-          <span class="font-extrabold text-[22px] leading-tight text-[#006847] tracking-tight">PsicGestión</span>
+          <span class="font-extrabold text-[22px] leading-tight text-[#006847] tracking-tight">PsicoGestión</span>
         </div>
       </header>
 
       <!-- Title & Subtitle -->
       <section class="flex flex-col gap-1">
         <h1 class="text-2xl font-bold leading-[130%] text-[#0F172A]">Registro de Usuario</h1>
-        <p class="text-sm leading-[150%] text-[#64748B]">Crea tu cuenta del sistema PsicGestión UADY</p>
+        <p class="text-sm leading-[150%] text-[#64748B]">Crea tu cuenta del sistema PsicoGestión UADY</p>
       </section>
 
       <!-- Registration Form -->
       <form id="register-form" class="flex flex-col gap-3.5" novalidate>
+        <!-- Mensaje de error/éxito del servidor (RNF 1.1.1: mensaje claro y accesible) -->
+        <div id="form-message" role="alert" class="hidden text-sm rounded-lg px-3.5 py-2.5"></div>
+
         <!-- Nombre Completo -->
         <div class="flex flex-col gap-1.5">
           <label for="nombre" class="text-xs font-semibold uppercase text-[#334155] leading-tight tracking-wider">
@@ -185,9 +188,9 @@ import { ArrowLeft, BrainCircuit, CircleCheck, Eye, EyeOff } from '@lucide/astro
         <button
           type="submit"
           id="submit-btn"
-          class="w-full h-11 bg-[#0D9488] hover:bg-[#0F766E] text-white font-semibold text-sm rounded-lg flex items-center justify-center transition-colors shadow-sm cursor-pointer mt-1 active:scale-[0.99]"
+          class="w-full h-11 bg-[#0D9488] hover:bg-[#0F766E] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-lg flex items-center justify-center transition-colors shadow-sm cursor-pointer mt-1 active:scale-[0.99]"
         >
-          Registrarse
+          <span id="submit-btn-text">Registrarse</span>
         </button>
       </form>
     </main>
@@ -213,8 +216,16 @@ import { ArrowLeft, BrainCircuit, CircleCheck, Eye, EyeOff } from '@lucide/astro
         };
       }
 
+      const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+
+      interface FieldError {
+        field: string;
+        message: string;
+      }
+
       function initRegistrationForm(): void {
         const form = document.getElementById('register-form') as HTMLFormElement | null;
+        const nombreInput = document.getElementById('nombre') as HTMLInputElement | null;
         const passwordInput = document.getElementById('password') as HTMLInputElement | null;
         const confirmPasswordInput = document.getElementById('confirmPassword') as HTMLInputElement | null;
         const togglePwdBtn = document.getElementById('toggle-pwd') as HTMLButtonElement | null;
@@ -222,6 +233,9 @@ import { ArrowLeft, BrainCircuit, CircleCheck, Eye, EyeOff } from '@lucide/astro
         const emailInput = document.getElementById('correo') as HTMLInputElement | null;
         const emailHint = document.getElementById('email-hint') as HTMLElement | null;
         const phoneInput = document.getElementById('telefono') as HTMLInputElement | null;
+        const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+        const submitBtnText = document.getElementById('submit-btn-text') as HTMLElement | null;
+        const formMessage = document.getElementById('form-message') as HTMLElement | null;
 
         const reqLength = document.getElementById('req-length');
         const reqNumber = document.getElementById('req-number');
@@ -309,34 +323,95 @@ import { ArrowLeft, BrainCircuit, CircleCheck, Eye, EyeOff } from '@lucide/astro
           }
         });
 
-        // Form Submission
-        form?.addEventListener('submit', (e) => {
-          e.preventDefault();
+        const fieldInputs: Record<string, HTMLInputElement | null> = {
+          nombre: nombreInput,
+          telefono: phoneInput,
+          correo: emailInput,
+          password: passwordInput,
+          confirmPassword: confirmPasswordInput,
+        };
 
+        function showMessage(text: string, kind: 'error' | 'success'): void {
+          if (!formMessage) return;
+          formMessage.textContent = text;
+          formMessage.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700');
+          if (kind === 'error') {
+            formMessage.classList.add('bg-red-50', 'text-red-700');
+          } else {
+            formMessage.classList.add('bg-green-50', 'text-green-700');
+          }
+        }
+
+        function hideMessage(): void {
+          formMessage?.classList.add('hidden');
+        }
+
+        function setLoading(isLoading: boolean): void {
+          if (submitBtn) submitBtn.disabled = isLoading;
+          if (submitBtnText) submitBtnText.textContent = isLoading ? 'Creando cuenta…' : 'Registrarse';
+        }
+
+        // Form Submission
+        form?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          hideMessage();
+
+          const nombre = nombreInput?.value.trim() || '';
+          const telefono = phoneInput?.value || '';
           const pwd = passwordInput?.value || '';
           const confirmPwd = confirmPasswordInput?.value || '';
           const email = emailInput?.value.trim() || '';
 
           const { hasLength, hasNumber, hasSpecialAndUpper } = validatePassword(pwd);
           if (!hasLength || !hasNumber || !hasSpecialAndUpper) {
-            alert('Por favor verifica que la contraseña cumpla con todos los requisitos especificados.');
+            showMessage('Por favor verifica que la contraseña cumpla con todos los requisitos especificados.', 'error');
             passwordInput?.focus();
             return;
           }
 
           if (pwd !== confirmPwd) {
-            alert('Las contraseñas no coinciden.');
+            showMessage('Las contraseñas no coinciden.', 'error');
             confirmPasswordInput?.focus();
             return;
           }
 
           if (!email.endsWith('@correo.uady.mx') && !email.endsWith('@uady.mx')) {
-            alert('El correo debe terminar en @correo.uady.mx o @uady.mx.');
+            showMessage('El correo debe terminar en @correo.uady.mx o @uady.mx.', 'error');
             emailInput?.focus();
             return;
           }
 
-          alert('¡Registro exitoso! Tu cuenta ha sido solicitada.');
+          setLoading(true);
+          try {
+            const response = await fetch(`${API_URL}/auth/register`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ nombre, telefono, correo: email, password: pwd, confirmPassword: confirmPwd }),
+            });
+
+            const body = await response.json().catch(() => null);
+
+            if (response.ok) {
+              showMessage('¡Cuenta creada correctamente! Redirigiendo al inicio de sesión…', 'success');
+              form.reset();
+              window.setTimeout(() => {
+                window.location.href = '/';
+              }, 1500);
+              return;
+            }
+
+            const errors: FieldError[] = body?.errors ?? [];
+            if (errors.length > 0) {
+              showMessage(errors[0].message, 'error');
+              fieldInputs[errors[0].field]?.focus();
+            } else {
+              showMessage('No se pudo completar el registro. Intenta de nuevo.', 'error');
+            }
+          } catch {
+            showMessage('No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.', 'error');
+          } finally {
+            setLoading(false);
+          }
         });
       }
 
