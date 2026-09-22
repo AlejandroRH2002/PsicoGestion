@@ -1,0 +1,425 @@
+---
+import '../styles/global.css';
+import { ArrowLeft, BrainCircuit, CircleCheck, Eye, EyeOff } from '@lucide/astro';
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registro de Usuario - PsicoGestión UADY</title>
+    <meta name="description" content="Crea tu cuenta en el sistema PsicoGestión UADY" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-[#F4F7F6] text-[#0F172A] flex items-center justify-center p-4 sm:p-6 antialiased">
+    <!-- Main Card Container (520px width matching page.css) -->
+    <main
+      class="w-full max-w-[520px] bg-white rounded-2xl p-6 sm:p-8 shadow-[0px_4px_20px_rgba(15,23,42,0.051)] flex flex-col gap-6"
+    >
+      <!-- Header Row: Volver al login & PsicoGestión Logo -->
+      <header class="flex items-center justify-between">
+        <!-- Volver al login (lleva a la página inicial) -->
+        <a
+          href="/"
+          id="back-to-login"
+          class="group inline-flex items-center gap-1.5 text-sm font-medium text-[#64748B] hover:text-[#006847] transition-colors"
+        >
+          <ArrowLeft class="w-4 h-4 text-[#64748B] group-hover:text-[#006847] transition-colors" />
+          <span>Volver al login</span>
+        </a>
+
+        <!-- Brand Identity -->
+        <div class="flex items-center gap-2">
+          <div
+            class="w-8 h-8 rounded-lg bg-[#006847] flex items-center justify-center text-white shadow-sm"
+            aria-hidden="true"
+          >
+            <BrainCircuit class="w-[18px] h-[18px]" />
+          </div>
+          <span class="font-extrabold text-[22px] leading-tight text-[#006847] tracking-tight">PsicoGestión</span>
+        </div>
+      </header>
+
+      <!-- Title & Subtitle -->
+      <section class="flex flex-col gap-1">
+        <h1 class="text-2xl font-bold leading-[130%] text-[#0F172A]">Registro de Usuario</h1>
+        <p class="text-sm leading-[150%] text-[#64748B]">Crea tu cuenta del sistema PsicoGestión UADY</p>
+      </section>
+
+      <!-- Registration Form -->
+      <form id="register-form" class="flex flex-col gap-3.5" novalidate>
+        <!-- Mensaje de error/éxito del servidor (RNF 1.1.1: mensaje claro y accesible) -->
+        <div id="form-message" role="alert" class="hidden text-sm rounded-lg px-3.5 py-2.5"></div>
+
+        <!-- Nombre Completo -->
+        <div class="flex flex-col gap-1.5">
+          <label for="nombre" class="text-xs font-semibold uppercase text-[#334155] leading-tight tracking-wider">
+            Nombre completo
+          </label>
+          <input
+            id="nombre"
+            name="nombre"
+            type="text"
+            maxlength="50"
+            placeholder="Juan Perez Gomez"
+            class="w-full h-11 px-3.5 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#006847]/20 focus:border-[#006847] transition-all"
+            required
+          />
+          <span class="text-xs leading-[140%] text-[#64748B]">Máximo 50 caracteres</span>
+        </div>
+
+        <!-- Número Telefónico -->
+        <div class="flex flex-col gap-1.5">
+          <label for="telefono" class="text-xs font-semibold uppercase text-[#334155] leading-tight tracking-wider">
+            Número telefónico
+          </label>
+          <input
+            id="telefono"
+            name="telefono"
+            type="tel"
+            placeholder="999 123 4567"
+            class="w-full h-11 px-3.5 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#006847]/20 focus:border-[#006847] transition-all"
+            required
+          />
+        </div>
+
+        <!-- Correo Institucional UADY -->
+        <div class="flex flex-col gap-1.5">
+          <label for="correo" class="text-xs font-semibold uppercase text-[#334155] leading-tight tracking-wider">
+            Correo institucional UADY
+          </label>
+          <input
+            id="correo"
+            name="correo"
+            type="email"
+            placeholder="matricula@correo.uady.mx"
+            class="w-full h-11 px-3.5 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#006847]/20 focus:border-[#006847] transition-all"
+            required
+          />
+          <span id="email-hint" class="text-xs leading-[140%] text-[#64748B] transition-colors">
+            Debe ser terminación @correo.uady.mx o @uady.mx
+          </span>
+        </div>
+
+        <!-- Contraseñas Row -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <!-- Contraseña -->
+          <div class="flex flex-col gap-1.5">
+            <label for="password" class="text-xs font-semibold uppercase text-[#334155] leading-tight tracking-wider">
+              Contraseña
+            </label>
+            <div class="relative">
+              <input
+                id="password"
+                name="password"
+                type="password"
+                placeholder="••••••••"
+                class="w-full h-11 pl-3.5 pr-10 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#006847]/20 focus:border-[#006847] transition-all tracking-wider"
+                required
+              />
+              <button
+                type="button"
+                id="toggle-pwd"
+                aria-label="Mostrar u ocultar contraseña"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#334155] p-0.5 focus:outline-none cursor-pointer"
+              >
+                <span id="pwd-eye-open" class="inline-block"><Eye class="w-4 h-4" /></span>
+                <span id="pwd-eye-closed" class="hidden"><EyeOff class="w-4 h-4" /></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Confirmar Contraseña -->
+          <div class="flex flex-col gap-1.5">
+            <label for="confirmPassword" class="text-xs font-semibold uppercase text-[#334155] leading-tight tracking-wider">
+              Confirmar contraseña
+            </label>
+            <div class="relative">
+              <input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                class="w-full h-11 pl-3.5 pr-10 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#006847]/20 focus:border-[#006847] transition-all tracking-wider"
+                required
+              />
+              <button
+                type="button"
+                id="toggle-confirm-pwd"
+                aria-label="Mostrar u ocultar confirmación de contraseña"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748B] hover:text-[#334155] p-0.5 focus:outline-none cursor-pointer"
+              >
+                <span id="confirm-pwd-eye-open" class="inline-block"><Eye class="w-4 h-4" /></span>
+                <span id="confirm-pwd-eye-closed" class="hidden"><EyeOff class="w-4 h-4" /></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Requisitos de Contraseña -->
+        <div class="p-3 bg-[#F4F7F6] rounded-lg flex flex-col gap-1.5">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-[#334155]">
+            Requisitos de contraseña:
+          </p>
+
+          <div id="req-length" class="flex items-center gap-2 text-xs text-[#334155] transition-colors">
+            <CircleCheck class="w-3.5 h-3.5 text-[#006847] shrink-0 req-icon" />
+            <span class="req-text">Entre 8 y 25 caracteres</span>
+          </div>
+
+          <div id="req-number" class="flex items-center gap-2 text-xs text-[#334155] transition-colors">
+            <CircleCheck class="w-3.5 h-3.5 text-[#006847] shrink-0 req-icon" />
+            <span class="req-text">Mínimo 1 número</span>
+          </div>
+
+          <div id="req-special-upper" class="flex items-center gap-2 text-xs text-[#334155] transition-colors">
+            <CircleCheck class="w-3.5 h-3.5 text-[#006847] shrink-0 req-icon" />
+            <span class="req-text">Mínimo 1 carácter especial y 1 mayúscula</span>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          id="submit-btn"
+          class="w-full h-11 bg-[#0D9488] hover:bg-[#0F766E] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold text-sm rounded-lg flex items-center justify-center transition-colors shadow-sm cursor-pointer mt-1 active:scale-[0.99]"
+        >
+          <span id="submit-btn-text">Registrarse</span>
+        </button>
+      </form>
+    </main>
+
+    <!-- Interactive Client-side Script with TypeScript -->
+    <script>
+      interface PasswordValidation {
+        hasLength: boolean;
+        hasNumber: boolean;
+        hasSpecialAndUpper: boolean;
+      }
+
+      function validatePassword(password: string): PasswordValidation {
+        const hasLength = password.length >= 8 && password.length <= 25;
+        const hasNumber = /\d/.test(password);
+        const hasUpper = /[A-Z]/.test(password);
+        const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(password);
+
+        return {
+          hasLength,
+          hasNumber,
+          hasSpecialAndUpper: hasUpper && hasSpecial,
+        };
+      }
+
+      const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+
+      interface FieldError {
+        field: string;
+        message: string;
+      }
+
+      function initRegistrationForm(): void {
+        const form = document.getElementById('register-form') as HTMLFormElement | null;
+        const nombreInput = document.getElementById('nombre') as HTMLInputElement | null;
+        const passwordInput = document.getElementById('password') as HTMLInputElement | null;
+        const confirmPasswordInput = document.getElementById('confirmPassword') as HTMLInputElement | null;
+        const togglePwdBtn = document.getElementById('toggle-pwd') as HTMLButtonElement | null;
+        const toggleConfirmPwdBtn = document.getElementById('toggle-confirm-pwd') as HTMLButtonElement | null;
+        const emailInput = document.getElementById('correo') as HTMLInputElement | null;
+        const emailHint = document.getElementById('email-hint') as HTMLElement | null;
+        const phoneInput = document.getElementById('telefono') as HTMLInputElement | null;
+        const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null;
+        const submitBtnText = document.getElementById('submit-btn-text') as HTMLElement | null;
+        const formMessage = document.getElementById('form-message') as HTMLElement | null;
+
+        const reqLength = document.getElementById('req-length');
+        const reqNumber = document.getElementById('req-number');
+        const reqSpecialUpper = document.getElementById('req-special-upper');
+
+        // Toggle Password Visibility
+        const setupToggleVisibility = (
+          btn: HTMLButtonElement | null,
+          input: HTMLInputElement | null,
+          openId: string,
+          closedId: string
+        ): void => {
+          if (!btn || !input) return;
+          btn.addEventListener('click', () => {
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            const openIcon = document.getElementById(openId);
+            const closedIcon = document.getElementById(closedId);
+            if (openIcon && closedIcon) {
+              openIcon.classList.toggle('hidden', isPassword);
+              closedIcon.classList.toggle('hidden', !isPassword);
+            }
+          });
+        };
+
+        setupToggleVisibility(togglePwdBtn, passwordInput, 'pwd-eye-open', 'pwd-eye-closed');
+        setupToggleVisibility(toggleConfirmPwdBtn, confirmPasswordInput, 'confirm-pwd-eye-open', 'confirm-pwd-eye-closed');
+
+        // Auto-format phone input for Mexican 10-digit format
+        phoneInput?.addEventListener('input', (e) => {
+          const target = e.target as HTMLInputElement;
+          const cleaned = target.value.replace(/\D/g, '').slice(0, 10);
+          if (cleaned.length > 6) {
+            target.value = `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
+          } else if (cleaned.length > 3) {
+            target.value = `${cleaned.slice(0, 3)} ${cleaned.slice(3)}`;
+          } else {
+            target.value = cleaned;
+          }
+        });
+
+        // Dynamic Password Requirement updates
+        const updateRequirementUI = (element: HTMLElement | null, isValid: boolean, isDirty: boolean): void => {
+          if (!element) return;
+          const icon = element.querySelector('.req-icon');
+          if (icon) {
+            if (isValid) {
+              icon.classList.remove('text-[#64748B]', 'opacity-40');
+              icon.classList.add('text-[#006847]', 'opacity-100');
+            } else if (isDirty) {
+              icon.classList.remove('text-[#006847]', 'opacity-100');
+              icon.classList.add('text-[#64748B]', 'opacity-40');
+            } else {
+              icon.classList.remove('opacity-40', 'text-[#64748B]');
+              icon.classList.add('text-[#006847]', 'opacity-100');
+            }
+          }
+        };
+
+        passwordInput?.addEventListener('input', () => {
+          const val = passwordInput.value;
+          const isDirty = val.length > 0;
+          const { hasLength, hasNumber, hasSpecialAndUpper } = validatePassword(val);
+
+          updateRequirementUI(reqLength, hasLength, isDirty);
+          updateRequirementUI(reqNumber, hasNumber, isDirty);
+          updateRequirementUI(reqSpecialUpper, hasSpecialAndUpper, isDirty);
+        });
+
+        // Email validation feedback
+        emailInput?.addEventListener('input', () => {
+          const val = emailInput.value.trim();
+          if (!val) {
+            emailHint?.classList.remove('text-red-500', 'text-[#006847]');
+            emailHint?.classList.add('text-[#64748B]');
+            return;
+          }
+          const isValidUadyEmail = val.endsWith('@correo.uady.mx') || val.endsWith('@uady.mx');
+          if (isValidUadyEmail) {
+            emailHint?.classList.remove('text-[#64748B]', 'text-red-500');
+            emailHint?.classList.add('text-[#006847]');
+          } else {
+            emailHint?.classList.remove('text-[#64748B]', 'text-[#006847]');
+            emailHint?.classList.add('text-red-500');
+          }
+        });
+
+        const fieldInputs: Record<string, HTMLInputElement | null> = {
+          nombre: nombreInput,
+          telefono: phoneInput,
+          correo: emailInput,
+          password: passwordInput,
+          confirmPassword: confirmPasswordInput,
+        };
+
+        function showMessage(text: string, kind: 'error' | 'success'): void {
+          if (!formMessage) return;
+          formMessage.textContent = text;
+          formMessage.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700');
+          if (kind === 'error') {
+            formMessage.classList.add('bg-red-50', 'text-red-700');
+          } else {
+            formMessage.classList.add('bg-green-50', 'text-green-700');
+          }
+        }
+
+        function hideMessage(): void {
+          formMessage?.classList.add('hidden');
+        }
+
+        function setLoading(isLoading: boolean): void {
+          if (submitBtn) submitBtn.disabled = isLoading;
+          if (submitBtnText) submitBtnText.textContent = isLoading ? 'Creando cuenta…' : 'Registrarse';
+        }
+
+        // Form Submission
+        form?.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          hideMessage();
+
+          const nombre = nombreInput?.value.trim() || '';
+          const telefono = phoneInput?.value || '';
+          const pwd = passwordInput?.value || '';
+          const confirmPwd = confirmPasswordInput?.value || '';
+          const email = emailInput?.value.trim() || '';
+
+          const { hasLength, hasNumber, hasSpecialAndUpper } = validatePassword(pwd);
+          if (!hasLength || !hasNumber || !hasSpecialAndUpper) {
+            showMessage('Por favor verifica que la contraseña cumpla con todos los requisitos especificados.', 'error');
+            passwordInput?.focus();
+            return;
+          }
+
+          if (pwd !== confirmPwd) {
+            showMessage('Las contraseñas no coinciden.', 'error');
+            confirmPasswordInput?.focus();
+            return;
+          }
+
+          if (!email.endsWith('@correo.uady.mx') && !email.endsWith('@uady.mx')) {
+            showMessage('El correo debe terminar en @correo.uady.mx o @uady.mx.', 'error');
+            emailInput?.focus();
+            return;
+          }
+
+          setLoading(true);
+          try {
+            const response = await fetch(`${API_URL}/auth/register`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ nombre, telefono, correo: email, password: pwd, confirmPassword: confirmPwd }),
+            });
+
+            const body = await response.json().catch(() => null);
+
+            if (response.ok) {
+              showMessage('¡Cuenta creada correctamente! Redirigiendo al inicio de sesión…', 'success');
+              form.reset();
+              window.setTimeout(() => {
+                window.location.href = '/';
+              }, 1500);
+              return;
+            }
+
+            const errors: FieldError[] = body?.errors ?? [];
+            if (errors.length > 0) {
+              showMessage(errors[0].message, 'error');
+              fieldInputs[errors[0].field]?.focus();
+            } else {
+              showMessage('No se pudo completar el registro. Intenta de nuevo.', 'error');
+            }
+          } catch {
+            showMessage('No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.', 'error');
+          } finally {
+            setLoading(false);
+          }
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRegistrationForm);
+      } else {
+        initRegistrationForm();
+      }
+    </script>
+  </body>
+</html>

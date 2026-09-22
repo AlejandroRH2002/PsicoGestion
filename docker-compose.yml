@@ -1,0 +1,18 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: psicogestion-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: psicogestion
+      POSTGRES_PASSWORD: psicogestion
+      POSTGRES_DB: psicogestion
+    ports:
+      # 5434 en el host: evita chocar con instalaciones nativas de PostgreSQL
+      # que ya puedan estar corriendo en 5432/5433 (ej. como servicio de Windows).
+      - "5434:5432"
+    volumes:
+      - psicogestion-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  psicogestion-postgres-data:
