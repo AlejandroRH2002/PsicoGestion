@@ -197,6 +197,8 @@ import { ArrowLeft, BrainCircuit, CircleCheck, Eye, EyeOff } from '@lucide/astro
 
     <!-- Interactive Client-side Script with TypeScript -->
     <script>
+      import { isUadyEmail } from '../utils/email';
+
       interface PasswordValidation {
         hasLength: boolean;
         hasNumber: boolean;
@@ -313,7 +315,7 @@ import { ArrowLeft, BrainCircuit, CircleCheck, Eye, EyeOff } from '@lucide/astro
             emailHint?.classList.add('text-[#64748B]');
             return;
           }
-          const isValidUadyEmail = val.endsWith('@correo.uady.mx') || val.endsWith('@uady.mx');
+          const isValidUadyEmail = isUadyEmail(val);
           if (isValidUadyEmail) {
             emailHint?.classList.remove('text-[#64748B]', 'text-red-500');
             emailHint?.classList.add('text-[#006847]');
@@ -375,7 +377,7 @@ import { ArrowLeft, BrainCircuit, CircleCheck, Eye, EyeOff } from '@lucide/astro
             return;
           }
 
-          if (!email.endsWith('@correo.uady.mx') && !email.endsWith('@uady.mx')) {
+          if (!isUadyEmail(email)) {
             showMessage('El correo debe terminar en @correo.uady.mx o @uady.mx.', 'error');
             emailInput?.focus();
             return;

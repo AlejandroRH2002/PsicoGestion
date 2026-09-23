@@ -12,11 +12,13 @@ import { ArrowLeft } from '@lucide/astro';
   <section class="flex flex-col gap-1.5 mt-2">
     <h1 class="text-xl sm:text-2xl font-bold leading-[130%] text-[#0F172A]">Recuperar contraseña</h1>
     <p class="text-sm leading-[150%] text-[#64748B]">
-      Ingresa tu correo electrónico institucional para enviarte un enlace de restauración.
+      Ingresa tu correo electrónico institucional para enviarte un código de verificación.
     </p>
   </section>
 
   <form id="recover-form" class="flex flex-col gap-5 mt-4" novalidate>
+    <div id="form-message" role="alert" class="hidden text-sm rounded-lg px-3.5 py-2.5 bg-red-50 text-red-700"></div>
+
     <div class="flex flex-col gap-1.5">
       <FormInput
         id="correo"
@@ -34,7 +36,7 @@ import { ArrowLeft } from '@lucide/astro';
     </div>
 
     <PrimaryButton type="submit" id="submit-recover">
-      Enviar enlace de recuperación
+      Enviar código de verificación
     </PrimaryButton>
   </form>
 
@@ -50,10 +52,29 @@ import { ArrowLeft } from '@lucide/astro';
 </AuthLayout>
 
 <script>
+  import { isUadyEmail } from '../utils/email';
+
+  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+
   function initRecoverForm() {
     const form = document.getElementById('recover-form') as HTMLFormElement | null;
     const emailInput = document.getElementById('correo') as HTMLInputElement | null;
     const emailHint = document.getElementById('email-hint') as HTMLElement | null;
+    const submitBtn = document.getElementById('submit-recover') as HTMLButtonElement | null;
+    const formMessage = document.getElementById('form-message') as HTMLElement | null;
+    const submitText = submitBtn?.textContent?.trim() ?? '';
+
+    const showError = (text: string) => {
+      if (!formMessage) return;
+      formMessage.textContent = text;
+      formMessage.classList.remove('hidden');
+    };
+
+    const setLoading = (isLoading: boolean) => {
+      if (!submitBtn) return;
+      submitBtn.disabled = isLoading;
+      submitBtn.textContent = isLoading ? 'Enviando código…' : submitText;
+    };
 
     emailInput?.addEventListener('input', () => {
       const val = emailInput.value.trim();
@@ -65,7 +86,7 @@ import { ArrowLeft } from '@lucide/astro';
       }
       
       emailHint?.classList.remove('hidden');
-      const isValid = val.endsWith('@correo.uady.mx') || val.endsWith('@uady.mx');
+      const isValid = isUadyEmail(val);
       
       if (isValid) {
         emailHint?.classList.remove('text-[#64748B]', 'text-red-500');
@@ -76,17 +97,36 @@ import { ArrowLeft } from '@lucide/astro';
       }
     });
 
-    form?.addEventListener('submit', (e) => {
+    form?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = emailInput?.value.trim() || '';
+      formMessage?.classList.add('hidden');
+      const email = emailInput?.value.trim().toLowerCase() || '';
 
-      if (!email.endsWith('@correo.uady.mx') && !email.endsWith('@uady.mx')) {
-        alert('Por favor ingresa tu correo institucional de la UADY válido.');
+      if (!isUadyEmail(email)) {
+        showError('Por favor ingresa tu correo institucional de la UADY válido.');
         emailInput?.focus();
         return;
       }
 
-      alert(`Se ha enviado un enlace de recuperación a: ${email}`);
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/auth/recover/request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo: email }),
+        });
+
+        if (response.ok) {
+          window.location.href = `/verificar-correo?correo=${encodeURIComponent(email)}`;
+          return;
+        }
+
+        const body = await response.json().catch(() => null);
+        showError(body?.errors?.[0]?.message ?? body?.error ?? 'No se pudo enviar el código. Intenta de nuevo.');
+      } catch {
+        showError('No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.');
+      }
+      setLoading(false);
     });
   }
 
