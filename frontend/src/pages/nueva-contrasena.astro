@@ -1,0 +1,173 @@
+---
+import AuthLayout from '../layouts/AuthLayout.astro';
+import BrandHeader from '../components/BrandHeader.astro';
+import PrimaryButton from '../components/PrimaryButton.astro';
+import { ArrowLeft, CircleCheck } from '@lucide/astro';
+
+const inputClass =
+  'w-full h-11 px-3.5 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/20 focus:border-[#0D9488] transition-all tracking-wider';
+const labelClass = 'text-[11px] font-semibold uppercase text-[#334155] leading-tight tracking-wider';
+const requirements = [
+  { id: 'req-length', text: 'Entre 8 y 25 caracteres' },
+  { id: 'req-number', text: 'Mínimo 1 número' },
+  { id: 'req-special-upper', text: 'Mínimo 1 carácter especial y 1 mayúscula' },
+];
+---
+
+<AuthLayout title="Nueva contraseña">
+  <BrandHeader alignment="center" subtitle="UADY • Facultad de Psicología" />
+
+  <section class="flex flex-col gap-1.5 mt-2">
+    <h1 class="text-xl sm:text-2xl font-bold leading-[130%] text-[#0F172A]">Crea una nueva contraseña</h1>
+    <p class="text-sm leading-[150%] text-[#64748B]">
+      Tu código fue verificado. Escribe la contraseña que usarás para iniciar sesión.
+    </p>
+  </section>
+
+  <form id="reset-form" class="flex flex-col gap-4" novalidate>
+    <div id="form-message" role="alert" class="hidden text-sm rounded-lg px-3.5 py-2.5"></div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="password" class={labelClass}>Nueva contraseña</label>
+      <input id="password" name="password" type="password" placeholder="••••••••" class={inputClass} required />
+    </div>
+
+    <div class="flex flex-col gap-1.5">
+      <label for="confirmPassword" class={labelClass}>Confirmar contraseña</label>
+      <input id="confirmPassword" name="confirmPassword" type="password" placeholder="••••••••" class={inputClass} required />
+    </div>
+
+    <div class="p-3 bg-[#F4F7F6] rounded-lg flex flex-col gap-1.5">
+      <p class="text-[11px] font-bold uppercase tracking-wider text-[#334155]">Requisitos de contraseña:</p>
+      {requirements.map((req) => (
+        <div id={req.id} class="flex items-center gap-2 text-xs text-[#334155]">
+          <CircleCheck class="w-3.5 h-3.5 text-[#64748B] opacity-40 shrink-0 req-icon transition-all" />
+          <span>{req.text}</span>
+        </div>
+      ))}
+    </div>
+
+    <PrimaryButton type="submit" id="submit-reset">
+      Guardar contraseña
+    </PrimaryButton>
+  </form>
+
+  <div class="flex justify-center">
+    <a
+      href="/"
+      class="flex items-center gap-2 text-sm font-medium text-[#64748B] hover:text-[#334155] transition-colors"
+    >
+      <ArrowLeft class="w-4 h-4" />
+      <span>Volver al inicio de sesión</span>
+    </a>
+  </div>
+</AuthLayout>
+
+<script>
+  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+
+  function validatePassword(password: string) {
+    return {
+      hasLength: password.length >= 8 && password.length <= 25,
+      hasNumber: /\d/.test(password),
+      hasSpecialAndUpper: /[A-Z]/.test(password) && /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~`]/.test(password),
+    };
+  }
+
+  function initResetForm() {
+    const form = document.getElementById('reset-form') as HTMLFormElement | null;
+    const passwordInput = document.getElementById('password') as HTMLInputElement | null;
+    const confirmInput = document.getElementById('confirmPassword') as HTMLInputElement | null;
+    const submitBtn = document.getElementById('submit-reset') as HTMLButtonElement | null;
+    const formMessage = document.getElementById('form-message') as HTMLElement | null;
+    const submitText = submitBtn?.textContent?.trim() ?? '';
+    const token = sessionStorage.getItem('resetToken');
+
+    const showMessage = (text: string, kind: 'error' | 'success') => {
+      if (!formMessage) return;
+      formMessage.textContent = text;
+      formMessage.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700');
+      formMessage.classList.add(...(kind === 'error' ? ['bg-red-50', 'text-red-700'] : ['bg-green-50', 'text-green-700']));
+    };
+
+    const setLoading = (isLoading: boolean) => {
+      if (!submitBtn) return;
+      submitBtn.disabled = isLoading;
+      submitBtn.textContent = isLoading ? 'Guardando…' : submitText;
+    };
+
+    if (!token) {
+      showMessage('Tu solicitud de recuperación no es válida o expiró. Vuelve a solicitar un código.', 'error');
+      if (submitBtn) submitBtn.disabled = true;
+      return;
+    }
+
+    const setRequirement = (id: string, isValid: boolean) => {
+      const icon = document.getElementById(id)?.querySelector('.req-icon');
+      icon?.classList.toggle('text-[#006847]', isValid);
+      icon?.classList.toggle('opacity-100', isValid);
+      icon?.classList.toggle('text-[#64748B]', !isValid);
+      icon?.classList.toggle('opacity-40', !isValid);
+    };
+
+    passwordInput?.addEventListener('input', () => {
+      const { hasLength, hasNumber, hasSpecialAndUpper } = validatePassword(passwordInput.value);
+      setRequirement('req-length', hasLength);
+      setRequirement('req-number', hasNumber);
+      setRequirement('req-special-upper', hasSpecialAndUpper);
+    });
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      formMessage?.classList.add('hidden');
+
+      const password = passwordInput?.value ?? '';
+      const confirmPassword = confirmInput?.value ?? '';
+      const { hasLength, hasNumber, hasSpecialAndUpper } = validatePassword(password);
+
+      if (!hasLength || !hasNumber || !hasSpecialAndUpper) {
+        showMessage('Por favor verifica que la contraseña cumpla con todos los requisitos especificados.', 'error');
+        passwordInput?.focus();
+        return;
+      }
+      if (password !== confirmPassword) {
+        showMessage('Las contraseñas no coinciden.', 'error');
+        confirmInput?.focus();
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/auth/recover/reset`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token, password, confirmPassword }),
+        });
+        const body = await response.json().catch(() => null);
+
+        if (response.ok) {
+          sessionStorage.removeItem('resetToken');
+          showMessage('¡Contraseña actualizada! Redirigiendo al inicio de sesión…', 'success');
+          window.setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
+          return;
+        }
+
+        showMessage(body?.errors?.[0]?.message ?? body?.error ?? 'No se pudo actualizar la contraseña.', 'error');
+      } catch {
+        showMessage('No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.', 'error');
+      }
+      setLoading(false);
+    });
+  }
+
+  // Soporte para View Transitions de Astro (si las habilitas)
+  document.addEventListener('astro:page-load', initResetForm);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initResetForm);
+  } else {
+    initResetForm();
+  }
+</script>

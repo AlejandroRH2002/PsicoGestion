@@ -75,7 +75,7 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
               Contraseña
             </label>
             <a
-              href="#recuperar"
+              href="recuperar"
               id="forgot-password"
               class="text-xs font-medium text-[#0D9488] hover:text-[#0F766E] hover:underline"
             >
@@ -148,6 +148,8 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
 
     <!-- Client-side Script with TypeScript -->
     <script>
+      import { isUadyEmail } from '../utils/email';
+
       const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
 
       function initLoginForm(): void {
@@ -183,7 +185,7 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
             emailHint?.classList.add('text-[#64748B]');
             return;
           }
-          const isValid = val.endsWith('@correo.uady.mx') || val.endsWith('@uady.mx');
+          const isValid = isUadyEmail(val);
           if (isValid) {
             emailHint?.classList.remove('text-[#64748B]', 'text-red-500');
             emailHint?.classList.add('text-[#006847]');
@@ -217,7 +219,7 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
           const email = emailInput?.value.trim() || '';
           const password = passwordInput?.value || '';
 
-          if (!email.endsWith('@correo.uady.mx') && !email.endsWith('@uady.mx')) {
+          if (!isUadyEmail(email)) {
             showMessage('Por favor ingresa tu correo institucional de la UADY (@correo.uady.mx o @uady.mx).', 'error');
             emailInput?.focus();
             return;

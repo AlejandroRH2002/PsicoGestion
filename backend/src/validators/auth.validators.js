@@ -1,4 +1,11 @@
-const EMAIL_UADY_REGEX = /^[^\s@]+@(correo\.uady\.mx|uady\.mx)$/i;
+import { env } from '../config/env.js';
+
+// RF 1.1.7: dominios institucionales, más los extra de EXTRA_EMAIL_DOMAINS (solo para pruebas locales).
+const ALLOWED_EMAIL_DOMAINS = ['correo.uady.mx', 'uady.mx', ...env.extraEmailDomains];
+const EMAIL_UADY_REGEX = new RegExp(
+  `^[^\\s@]+@(${ALLOWED_EMAIL_DOMAINS.map((d) => d.replace(/\./g, '\\.')).join('|')})$`,
+  'i'
+);
 const SPECIAL_CHAR_REGEX = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?~`]/;
 
 export function normalizeCorreo(correo) {
@@ -64,6 +71,59 @@ export function validateRegistration(body = {}) {
     errors,
     data: { nombre, telefono, correo, password },
   };
+}
+
+/** RF 1.4: solicitud de código de recuperación. */
+export function validateRecoveryRequest(body = {}) {
+  const errors = [];
+  const correo = normalizeCorreo(body.correo);
+
+  if (!correo) {
+    errors.push({ field: 'correo', message: 'El correo institucional es obligatorio.' });
+  } else if (correo.length > 100 || !EMAIL_UADY_REGEX.test(correo)) {
+    errors.push({ field: 'correo', message: 'El correo debe terminar en @correo.uady.mx o @uady.mx.' });
+  }
+
+  return { errors, data: { correo } };
+}
+
+/** RF 1.4: verificación del código enviado por correo. */
+export function validateRecoveryVerify(body = {}, codeLength = 6) {
+  const errors = [];
+  const correo = normalizeCorreo(body.correo);
+  const codigo = typeof body.codigo === 'string' ? body.codigo.trim() : '';
+
+  if (!correo) {
+    errors.push({ field: 'correo', message: 'El correo es obligatorio.' });
+  }
+  if (!new RegExp(`^\\d{${codeLength}}$`).test(codigo)) {
+    errors.push({ field: 'codigo', message: `El código debe tener ${codeLength} dígitos.` });
+  }
+
+  return { errors, data: { correo, codigo } };
+}
+
+/** RF 1.4, RNF 1.4.4: nueva contraseña con las mismas reglas que el registro. */
+export function validatePasswordReset(body = {}) {
+  const errors = [];
+  const token = typeof body.token === 'string' ? body.token : '';
+  const password = typeof body.password === 'string' ? body.password : '';
+  const confirmPassword = typeof body.confirmPassword === 'string' ? body.confirmPassword : '';
+
+  if (!token) {
+    errors.push({ field: 'token', message: 'La solicitud de recuperación no es válida.' });
+  }
+  if (!isPasswordValid(password)) {
+    errors.push({
+      field: 'password',
+      message: 'La contraseña debe tener entre 8 y 25 caracteres, con al menos 1 número, 1 mayúscula y 1 carácter especial.',
+    });
+  }
+  if (password !== confirmPassword) {
+    errors.push({ field: 'confirmPassword', message: 'Las contraseñas no coinciden.' });
+  }
+
+  return { errors, data: { token, password } };
 }
 
 /** RF 1.2.1-1.2.2 (specs/01-autenticacion/spec.md). */

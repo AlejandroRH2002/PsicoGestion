@@ -1,0 +1,34 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  pageLabel?: string;
+}
+
+const { title, pageLabel } = Astro.props;
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} - PsicGestión UADY</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="min-h-screen bg-[#F4F7F6] text-[#0F172A] flex flex-col items-center justify-center p-4 sm:p-6 antialiased relative">
+    {pageLabel && (
+      <div class="absolute top-4 left-4 sm:top-6 sm:left-6 text-[#cbd5e1] text-sm font-medium">
+        {pageLabel}
+      </div>
+    )}
+    <main class="w-full max-w-[480px] bg-white rounded-2xl p-6 sm:p-8 sm:px-10 shadow-[0px_4px_20px_rgba(15,23,42,0.051)] flex flex-col gap-6 mt-4">
+      <slot />
+    </main>
+  </body>
+</html>

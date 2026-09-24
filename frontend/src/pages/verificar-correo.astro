@@ -1,0 +1,241 @@
+---
+import AuthLayout from '../layouts/AuthLayout.astro';
+import OtpInput from '../components/OtpInput.astro';
+import PrimaryButton from '../components/PrimaryButton.astro';
+import { ArrowLeft, Mail } from '@lucide/astro';
+
+const CODE_LENGTH = 6;
+---
+
+<AuthLayout title="Verifica tu correo">
+  <div class="flex justify-center">
+    <div class="w-14 h-14 rounded-full bg-[#CCFBF1] flex items-center justify-center shrink-0" aria-hidden="true">
+      <Mail class="w-6 h-6 text-[#0D9488]" />
+    </div>
+  </div>
+
+  <section class="flex flex-col items-center gap-2 text-center break-words">
+    <h1 class="text-xl sm:text-2xl font-bold leading-[130%] text-[#0F172A]">Verifica tu correo</h1>
+    <p class="text-sm leading-[150%] text-[#334155]">
+      Hemos enviado un código de verificación de {CODE_LENGTH} dígitos a tu correo institucional
+      <strong id="verify-email" class="font-bold text-[#0F172A]">@correo.uady.mx</strong>
+    </p>
+  </section>
+
+  <form id="verify-form" class="flex flex-col gap-5" data-length={CODE_LENGTH} novalidate>
+    <OtpInput name="codigo" length={CODE_LENGTH} />
+
+    <p id="verify-error" role="alert" class="hidden -mt-2 text-xs leading-[140%] text-red-500 text-center"></p>
+
+    <PrimaryButton type="submit" id="submit-verify" disabled>
+      Verificar código
+    </PrimaryButton>
+  </form>
+
+  <div class="flex flex-col items-center gap-1 whitespace-nowrap">
+    <p class="text-xs leading-[140%] text-[#64748B]">¿No recibiste el código?</p>
+    <button
+      type="button"
+      id="resend-code"
+      class="text-sm font-semibold leading-[150%] text-[#0D9488] hover:underline disabled:text-[#64748B] disabled:no-underline disabled:cursor-default cursor-pointer"
+    >
+      Reenviar código
+    </button>
+  </div>
+
+  <div class="flex justify-center">
+    <a
+      href="/"
+      class="flex items-center gap-2 text-sm font-medium text-[#64748B] hover:text-[#334155] transition-colors"
+    >
+      <ArrowLeft class="w-4 h-4" />
+      <span>Volver al inicio de sesión</span>
+    </a>
+  </div>
+</AuthLayout>
+
+<script>
+  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+  const RESEND_COOLDOWN = 30;
+
+  function initVerifyForm() {
+    const form = document.getElementById('verify-form') as HTMLFormElement | null;
+    if (!form) return;
+
+    const inputs = Array.from(form.querySelectorAll<HTMLInputElement>('[data-otp-input]'));
+    const hidden = form.querySelector<HTMLInputElement>('[data-otp-value]');
+    const submitBtn = document.getElementById('submit-verify') as HTMLButtonElement | null;
+    const resendBtn = document.getElementById('resend-code') as HTMLButtonElement | null;
+    const errorMsg = document.getElementById('verify-error') as HTMLElement | null;
+    const emailLabel = document.getElementById('verify-email') as HTMLElement | null;
+    const codeLength = Number(form.dataset.length ?? inputs.length);
+    const submitText = submitBtn?.textContent?.trim() ?? '';
+
+    // El correo llega como query param desde el registro: /verificar-correo?correo=...
+    const correo = new URLSearchParams(window.location.search).get('correo');
+    if (correo && emailLabel) emailLabel.textContent = correo;
+
+    const showError = (text: string) => {
+      if (!errorMsg) return;
+      errorMsg.textContent = text;
+      errorMsg.classList.remove('hidden');
+    };
+
+    const hideError = () => errorMsg?.classList.add('hidden');
+
+    const update = () => {
+      const code = inputs.map((i) => i.value).join('');
+      if (hidden) hidden.value = code;
+      if (submitBtn) submitBtn.disabled = code.length !== codeLength;
+      hideError();
+    };
+
+    const fillFrom = (start: number, text: string) => {
+      const numbers = text.replace(/\D/g, '').split('');
+      let idx = start;
+      for (const n of numbers) {
+        if (idx >= inputs.length) break;
+        inputs[idx++].value = n;
+      }
+      inputs[Math.min(idx, inputs.length - 1)].focus();
+      update();
+    };
+
+    inputs.forEach((input, i) => {
+      input.addEventListener('input', () => {
+        const value = input.value.replace(/\D/g, '');
+        if (value.length > 1) {
+          // Autocompletado del SO o varios dígitos a la vez
+          input.value = '';
+          fillFrom(i, value);
+          return;
+        }
+        input.value = value;
+        if (value && i < inputs.length - 1) inputs[i + 1].focus();
+        update();
+      });
+
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !input.value && i > 0) {
+          inputs[i - 1].value = '';
+          inputs[i - 1].focus();
+          update();
+          e.preventDefault();
+        } else if (e.key === 'ArrowLeft' && i > 0) {
+          inputs[i - 1].focus();
+          e.preventDefault();
+        } else if (e.key === 'ArrowRight' && i < inputs.length - 1) {
+          inputs[i + 1].focus();
+          e.preventDefault();
+        }
+      });
+
+      input.addEventListener('focus', () => input.select());
+
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        fillFrom(i, e.clipboardData?.getData('text') ?? '');
+      });
+    });
+
+    const setLoading = (isLoading: boolean) => {
+      if (!submitBtn) return;
+      submitBtn.disabled = isLoading;
+      submitBtn.textContent = isLoading ? 'Verificando…' : submitText;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const code = hidden?.value ?? '';
+
+      if (code.length !== codeLength) {
+        showError(`Ingresa los ${codeLength} dígitos del código.`);
+        return;
+      }
+
+      if (!correo) {
+        showError('No sabemos a qué correo enviaste el código. Vuelve a solicitarlo.');
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_URL}/auth/recover/verify`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo, codigo: code }),
+        });
+        const body = await response.json().catch(() => null);
+
+        if (response.ok && body?.resetToken) {
+          sessionStorage.setItem('resetToken', body.resetToken);
+          window.location.href = '/nueva-contrasena';
+          return;
+        }
+
+        showError(body?.errors?.[0]?.message ?? body?.error ?? 'No se pudo verificar el código. Intenta de nuevo.');
+      } catch {
+        showError('No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.');
+      }
+      setLoading(false);
+    });
+
+    const originalText = resendBtn?.textContent?.trim() ?? 'Reenviar código';
+
+    const startCooldown = () => {
+      if (!resendBtn) return;
+      let remaining = RESEND_COOLDOWN;
+      resendBtn.disabled = true;
+      const tick = () => {
+        if (remaining <= 0) {
+          resendBtn.disabled = false;
+          resendBtn.textContent = originalText;
+          return;
+        }
+        resendBtn.textContent = `Reenviar en ${remaining}s`;
+        remaining--;
+        window.setTimeout(tick, 1000);
+      };
+      tick();
+    };
+
+    // El código se acaba de enviar desde /recuperar; el backend ignora reenvíos durante la espera.
+    startCooldown();
+
+    resendBtn?.addEventListener('click', async () => {
+      if (resendBtn.disabled) return;
+      if (!correo) {
+        showError('No sabemos a qué correo enviar el código. Vuelve a solicitarlo.');
+        return;
+      }
+      try {
+        const response = await fetch(`${API_URL}/auth/recover/request`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ correo }),
+        });
+        if (!response.ok) {
+          const body = await response.json().catch(() => null);
+          showError(body?.errors?.[0]?.message ?? body?.error ?? 'No pudimos reenviar el código. Inténtalo de nuevo.');
+          return;
+        }
+      } catch {
+        showError('No pudimos reenviar el código. Inténtalo de nuevo.');
+        return;
+      }
+      inputs.forEach((i) => (i.value = ''));
+      update();
+      inputs[0]?.focus();
+      startCooldown();
+    });
+  }
+
+  // Soporte para View Transitions de Astro (si las habilitas)
+  document.addEventListener('astro:page-load', initVerifyForm);
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initVerifyForm);
+  } else {
+    initVerifyForm();
+  }
+</script>

@@ -1,0 +1,28 @@
+---
+interface Props {
+  name: string;
+  length?: number;
+  label?: string;
+}
+
+const { name, length = 6, label = 'Código de verificación' } = Astro.props;
+
+const digits = Array.from({ length }, (_, i) => i);
+---
+<fieldset class="flex justify-center gap-2 sm:gap-2.5 w-full min-w-0 m-0 p-0 border-0" data-otp>
+  <legend class="sr-only">{label}</legend>
+  {digits.map((i) => (
+    <input
+      type="text"
+      inputmode="numeric"
+      pattern="[0-9]"
+      maxlength="1"
+      autocomplete={i === 0 ? 'one-time-code' : 'off'}
+      aria-label={`Dígito ${i + 1} de ${length}`}
+      autofocus={i === 0}
+      data-otp-input
+      class="flex-[0_1_48px] min-w-0 w-12 h-[52px] p-0 text-center text-xl font-bold text-[#0F172A] bg-[#F4F7F6] border border-[#E2E8F0] rounded-lg caret-[#0D9488] focus:outline-none focus:border-[#0D9488] focus:ring-1 focus:ring-inset focus:ring-[#0D9488] transition-all"
+    />
+  ))}
+  <input type="hidden" name={name} data-otp-value />
+</fieldset>
