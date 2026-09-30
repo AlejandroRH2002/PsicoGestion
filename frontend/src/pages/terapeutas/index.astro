@@ -1,0 +1,28 @@
+---
+import { UserPlus } from '@lucide/astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+---
+<AppLayout title="Terapeutas" activo="terapeutas">
+  <section class="flex flex-col items-center gap-4 w-full max-w-[640px] p-8 bg-white rounded-2xl shadow-[0px_4px_12px_rgba(15,23,42,0.03)] text-center">
+    <div id="registrado-message" role="status" class="hidden w-full text-sm rounded-lg px-3.5 py-2.5 bg-green-50 text-green-700">
+      Terapeuta registrado correctamente.
+    </div>
+    <h2 class="text-lg font-bold text-[#0F172A]">Terapeutas de la clínica</h2>
+    <!-- La lista y la vista de detalle (RF 2.2) se construyen en el siguiente incremento. -->
+    <p class="text-[13px] text-[#64748B]">La lista de terapeutas estará disponible próximamente.</p>
+    <a
+      href="/terapeutas/nuevo"
+      class="inline-flex items-center gap-2 px-6 py-3 bg-[#0D9488] hover:bg-[#0F766E] rounded-lg text-sm font-semibold text-white transition-colors"
+    >
+      <UserPlus class="size-4" />
+      Registrar terapeuta
+    </a>
+  </section>
+</AppLayout>
+
+<script>
+  if (new URLSearchParams(window.location.search).has('registrado')) {
+    document.getElementById('registrado-message')?.classList.remove('hidden');
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+</script>

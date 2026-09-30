@@ -1,0 +1,42 @@
+---
+import { ArrowLeft, BellDot } from '@lucide/astro';
+
+interface Props {
+  titulo: string;
+  volverHref?: string;
+  volverEtiqueta?: string;
+}
+
+const { titulo, volverHref, volverEtiqueta } = Astro.props;
+---
+<header class="flex items-center justify-between gap-4 w-full px-4 sm:px-10 py-[18px] bg-white border-b border-[#E2E8F0]">
+  <div class="flex items-center gap-4 min-w-0">
+    {volverHref && (
+      <a
+        href={volverHref}
+        class="group hidden sm:inline-flex items-center gap-2 text-sm font-medium text-[#64748B] hover:text-[#006847] transition-colors shrink-0"
+      >
+        <ArrowLeft class="size-5" />
+        {volverEtiqueta}
+      </a>
+    )}
+    <h1 class="text-[22px] font-bold text-[#0F172A] truncate">{titulo}</h1>
+  </div>
+
+  <div class="flex items-center gap-4 shrink-0">
+    <span class="flex items-center justify-center size-10 rounded-full bg-[#F4F7F6] text-[#0F172A]" aria-hidden="true">
+      <BellDot class="size-[18px]" />
+    </span>
+    <div class="flex items-center gap-2.5">
+      <span
+        id="usuario-iniciales"
+        class="flex items-center justify-center size-10 rounded-full bg-[#DCFCE7] text-sm font-bold text-[#006847]"
+        aria-hidden="true"
+      ></span>
+      <div class="hidden md:flex flex-col gap-0.5">
+        <span id="usuario-nombre" class="text-sm font-semibold leading-normal text-[#0F172A]"></span>
+        <span class="text-[11px] font-bold text-[#006847]">SECRETARÍA</span>
+      </div>
+    </div>
+  </div>
+</header>
