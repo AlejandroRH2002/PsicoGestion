@@ -48,6 +48,17 @@ export async function registerSecretaria({ nombre, telefono, correo, password })
   return { id: row.id_secretaria, nombre: row.nombre_completo, correo: row.correo_electronico };
 }
 
+/** Datos de la secretaria con sesión activa (header de la app). Devuelve null si ya no existe. */
+export async function obtenerSecretaria(id) {
+  const { rows } = await pool.query(
+    'SELECT id_secretaria, nombre_completo, correo_electronico FROM secretaria WHERE id_secretaria = $1',
+    [id]
+  );
+  if (rows.length === 0) return null;
+  const row = rows[0];
+  return { id: row.id_secretaria, nombre: row.nombre_completo, correo: row.correo_electronico };
+}
+
 /** RF 1.2.1-1.2.2, RNF 1.2.2: mismo error sin importar cuál dato falló. */
 export async function loginSecretaria({ correo, password }) {
   const { rows } = await pool.query(
