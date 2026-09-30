@@ -1,0 +1,112 @@
+---
+import '../styles/global.css';
+import Sidebar from '../components/Sidebar.astro';
+import Header from '../components/Header.astro';
+
+interface Props {
+  title: string;
+  headerTitle?: string;
+  subtitle?: string;
+  backUrl?: string | null;
+  backText?: string;
+  showBack?: boolean;
+  userName?: string;
+  userRole?: string;
+}
+
+const { 
+  title, 
+  headerTitle,
+  subtitle,
+  backUrl,
+  backText,
+  showBack,
+  userName,
+  userRole = 'Secretaría UADY'
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <title>{title} | PsicoGestión UADY</title>
+
+    <!-- Guardián de Autenticación Inmediato (Previene parpadeo de contenido protegido) -->
+    <script is:inline>
+      (function() {
+        try {
+          var user = localStorage.getItem('user') || localStorage.getItem('psico_user');
+          if (!user) {
+            window.location.replace('/');
+          }
+        } catch (e) {
+          window.location.replace('/');
+        }
+      })();
+    </script>
+  </head>
+  <body class="min-h-screen flex bg-[#f8fafc]">
+    <!-- Sidebar Modular -->
+    <Sidebar />
+
+    <!-- Contenido principal -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Header Modular Adaptable para todo el programa -->
+      <Header 
+        title={headerTitle ?? title}
+        subtitle={subtitle}
+        backUrl={backUrl} 
+        backText={backText} 
+        showBack={showBack}
+        userName={userName}
+        userRole={userRole}
+      />
+
+      <!-- Main Canvas -->
+      <main class="flex-1 p-8 overflow-y-auto">
+        <slot />
+      </main>
+    </div>
+
+    <!-- Validación profunda de sesión con el servidor -->
+    <script>
+      const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+
+      async function verifyBackendSession(): Promise<void> {
+        try {
+          const res = await fetch(`${API_URL}/auth/me`, {
+            method: 'GET',
+            credentials: 'include',
+          });
+
+          if (!res.ok) {
+            // Cookie de sesión expirada, inválida o ausente
+            localStorage.removeItem('user');
+            localStorage.removeItem('psico_user');
+            window.location.replace('/');
+            return;
+          }
+
+          const data = await res.json().catch(() => null);
+          if (data?.usuario) {
+            localStorage.setItem('user', JSON.stringify(data.usuario));
+            window.dispatchEvent(new CustomEvent('psico:user-loaded', { detail: data.usuario }));
+          }
+        } catch (err) {
+          console.warn('No se pudo verificar la sesión con el servidor:', err);
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', verifyBackendSession);
+      } else {
+        verifyBackendSession();
+      }
+    </script>
+  </body>
+</html>

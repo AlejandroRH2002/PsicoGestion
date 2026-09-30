@@ -10,6 +10,10 @@
   --color-subtext: #64748B;
   --color-title: #0F172A;
   --color-border-input: #E2E8F0;
+  --color-sidebar-active: #DCFCE7;
+  --color-dropzone-bg: #F0FDFA;
+  --color-dropzone-border: #5EEAD4;
+  --color-error: #EF4444;
 }
 
 body {

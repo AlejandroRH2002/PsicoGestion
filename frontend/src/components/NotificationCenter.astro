@@ -1,0 +1,292 @@
+---
+import { Bell, BellOff, CheckCheck } from 'lucide-astro';
+
+export interface NotificationItem {
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  unread: boolean;
+}
+
+interface Props {
+  class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<div class={`relative ${className}`} id="notification-center-container">
+  <!-- Botón de la Campana -->
+  <button 
+    type="button" 
+    id="notification-bell-btn"
+    class="p-2.5 rounded-full text-subtext hover:bg-slate-100 hover:text-title transition-all relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-uady-green/30"
+    aria-label="Centro de notificaciones"
+    aria-expanded="false"
+    aria-haspopup="true"
+  >
+    <Bell class="w-5 h-5 transition-transform duration-150" />
+    
+    <!-- Indicador Verde Iluminado: SOLO se muestra si hay notificaciones sin leer -->
+    <span 
+      id="notification-badge" 
+      class="absolute top-2 right-2 hidden h-2.5 w-2.5"
+      aria-hidden="true"
+    >
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 ring-2 ring-white shadow-xs"></span>
+    </span>
+  </button>
+
+  <!-- Menú Desplegable -->
+  <div 
+    id="notification-dropdown"
+    class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-border-input overflow-hidden z-50 transform origin-top-right transition-all duration-150"
+    role="region"
+    aria-label="Notificaciones"
+  >
+    <!-- Cabecera -->
+    <div class="px-5 py-3.5 border-b border-border-input flex items-center justify-between bg-slate-50/80">
+      <div class="flex items-center gap-2">
+        <h3 class="text-sm font-bold text-title">Notificaciones</h3>
+        <span 
+          id="notif-count-badge" 
+          class="hidden px-2 py-0.5 text-[11px] font-bold bg-emerald-100 text-uady-green rounded-full border border-emerald-200"
+        >
+          0 nuevas
+        </span>
+      </div>
+      
+      <button 
+        type="button" 
+        id="notif-mark-all-read" 
+        class="text-xs font-semibold text-subtext hover:text-uady-green transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+        disabled
+      >
+        <CheckCheck class="w-3.5 h-3.5" />
+        <span>Marcar leídas</span>
+      </button>
+    </div>
+
+    <!-- Estado Vacío (Mensaje cuando no hay notificaciones nuevas) -->
+    <div id="notif-empty-state" class="py-10 px-6 flex flex-col items-center justify-center text-center">
+      <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3 ring-4 ring-slate-50">
+        <BellOff class="w-6 h-6 text-slate-400" />
+      </div>
+      <h4 class="text-sm font-bold text-title">No hay notificaciones nuevas</h4>
+      <p class="text-xs text-subtext mt-1 max-w-[240px] leading-relaxed">
+        Estás al día. Te avisaremos cuando recibas nuevas solicitudes, citas o avisos institucionales.
+      </p>
+    </div>
+
+    <!-- Lista de Notificaciones -->
+    <div id="notif-list-state" class="hidden">
+      <ul id="notif-items-list" class="max-h-80 overflow-y-auto divide-y divide-slate-100 text-left">
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  interface NotificationData {
+    id: string;
+    title: string;
+    message: string;
+    time: string;
+    unread: boolean;
+  }
+
+  const NOTIF_STORAGE_KEY = 'psico_notifications';
+
+  function setupNotificationCenter(): void {
+    const container = document.getElementById('notification-center-container');
+    const bellBtn = document.getElementById('notification-bell-btn') as HTMLButtonElement | null;
+    const badge = document.getElementById('notification-badge') as HTMLElement | null;
+    const dropdown = document.getElementById('notification-dropdown') as HTMLElement | null;
+    const emptyState = document.getElementById('notif-empty-state') as HTMLElement | null;
+    const listState = document.getElementById('notif-list-state') as HTMLElement | null;
+    const itemsList = document.getElementById('notif-items-list') as HTMLUListElement | null;
+    const countBadge = document.getElementById('notif-count-badge') as HTMLElement | null;
+    const markAllBtn = document.getElementById('notif-mark-all-read') as HTMLButtonElement | null;
+
+    if (!container || !bellBtn || !badge || !dropdown || !emptyState || !listState || !itemsList) return;
+
+    // Obtener notificaciones reales sin inyecciones fijas
+    function getStoredNotifications(): NotificationData[] {
+      try {
+        const raw = localStorage.getItem(NOTIF_STORAGE_KEY);
+        if (raw) return JSON.parse(raw);
+      } catch {
+        // vacio por defecto
+      }
+      return [];
+    }
+
+    function saveNotifications(notifs: NotificationData[]): void {
+      try {
+        localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notifs));
+      } catch (err) {
+        console.error('Error al guardar notificaciones:', err);
+      }
+    }
+
+    function renderNotifications(): void {
+      const notifs = getStoredNotifications();
+      const unreadCount = notifs.filter(n => n.unread).length;
+
+      // Iluminación Verde: SOLO si hay notificaciones nuevas sin leer
+      if (unreadCount > 0) {
+        badge.classList.remove('hidden');
+        bellBtn.setAttribute('aria-label', `${unreadCount} notificaciones nuevas`);
+      } else {
+        badge.classList.add('hidden');
+        bellBtn.setAttribute('aria-label', 'No hay notificaciones nuevas');
+      }
+
+      if (countBadge) {
+        if (unreadCount > 0) {
+          countBadge.textContent = `${unreadCount} ${unreadCount === 1 ? 'nueva' : 'nuevas'}`;
+          countBadge.classList.remove('hidden');
+        } else {
+          countBadge.classList.add('hidden');
+        }
+      }
+
+      if (markAllBtn) {
+        markAllBtn.disabled = unreadCount === 0;
+      }
+
+      // Si no hay notificaciones o ninguna está sin leer, mostrar estado vacío
+      if (unreadCount === 0) {
+        listState.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      emptyState.classList.remove('flex');
+      listState.classList.remove('hidden');
+      itemsList.innerHTML = '';
+
+      notifs.forEach((item) => {
+        const li = document.createElement('li');
+        li.className = `p-4 transition-colors hover:bg-slate-50 cursor-pointer flex gap-3 items-start ${item.unread ? 'bg-emerald-50/30' : 'opacity-75'}`;
+        
+        li.innerHTML = `
+          <div class="mt-0.5 shrink-0">
+            ${item.unread 
+              ? '<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100"></span>' 
+              : '<span class="inline-block w-2.5 h-2.5 rounded-full bg-slate-300"></span>'
+            }
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center justify-between gap-2 mb-1">
+              <h5 class="text-xs font-bold text-title truncate ${item.unread ? 'text-title' : 'text-slate-600'}">${escapeHtml(item.title)}</h5>
+              <span class="text-[10px] text-slate-400 font-medium whitespace-nowrap">${escapeHtml(item.time)}</span>
+            </div>
+            <p class="text-xs text-subtext leading-relaxed line-clamp-2">${escapeHtml(item.message)}</p>
+          </div>
+        `;
+
+        li.addEventListener('click', () => {
+          markAsRead(item.id);
+        });
+
+        itemsList.appendChild(li);
+      });
+    }
+
+    function escapeHtml(text: string): string {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function markAsRead(id: string): void {
+      const notifs = getStoredNotifications().map(n => {
+        if (n.id === id) return { ...n, unread: false };
+        return n;
+      });
+      saveNotifications(notifs);
+      renderNotifications();
+    }
+
+    function markAllAsRead(): void {
+      const notifs = getStoredNotifications().map(n => ({ ...n, unread: false }));
+      saveNotifications(notifs);
+      renderNotifications();
+    }
+
+    const openDropdown = () => {
+      dropdown.classList.remove('hidden');
+      bellBtn.setAttribute('aria-expanded', 'true');
+      requestAnimationFrame(() => {
+        dropdown.classList.remove('opacity-0', 'scale-95');
+        dropdown.classList.add('opacity-100', 'scale-100');
+      });
+    };
+
+    const closeDropdown = () => {
+      dropdown.classList.remove('opacity-100', 'scale-100');
+      dropdown.classList.add('opacity-0', 'scale-95');
+      bellBtn.setAttribute('aria-expanded', 'false');
+      setTimeout(() => {
+        dropdown.classList.add('hidden');
+      }, 150);
+    };
+
+    bellBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isClosed = dropdown.classList.contains('hidden');
+      if (isClosed) {
+        openDropdown();
+      } else {
+        closeDropdown();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!container.contains(e.target as Node)) {
+        if (!dropdown.classList.contains('hidden')) {
+          closeDropdown();
+        }
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !dropdown.classList.contains('hidden')) {
+        closeDropdown();
+      }
+    });
+
+    markAllBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      markAllAsRead();
+    });
+
+    // Render inicial
+    renderNotifications();
+
+    // API global para que otras partes de la app envíen notificaciones reales
+    (window as any).addPsicoNotification = (title: string, message: string) => {
+      const current = getStoredNotifications();
+      const notif: NotificationData = {
+        id: 'notif-' + Date.now(),
+        title,
+        message,
+        time: 'Justo ahora',
+        unread: true
+      };
+      saveNotifications([notif, ...current]);
+      renderNotifications();
+    };
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupNotificationCenter);
+  } else {
+    setupNotificationCenter();
+  }
+</script>

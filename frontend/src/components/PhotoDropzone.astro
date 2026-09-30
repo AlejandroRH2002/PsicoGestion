@@ -1,0 +1,51 @@
+---
+import { Camera } from 'lucide-astro';
+
+interface Props {
+  id?: string;
+  name?: string;
+  minWidth?: number;
+  minHeight?: number;
+  label?: string;
+}
+
+const { 
+  id = 'avatar', 
+  name = 'avatar', 
+  minWidth = 200, 
+  minHeight = 200, 
+  label = 'Foto de perfil' 
+} = Astro.props;
+---
+
+<div>
+  <label class="block text-sm font-semibold text-label mb-2">{label}</label>
+  <div 
+    id="dropzone"
+    data-min-w={minWidth}
+    data-min-h={minHeight}
+    class="border-2 border-dashed border-dropzone-border bg-dropzone-bg rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-colors relative"
+  >
+    <input 
+      type="file" 
+      id={id} 
+      name={name} 
+      accept="image/png, image/jpeg" 
+      class="hidden" 
+    />
+    
+    <div id="dropzone-idle" class="flex flex-col items-center">
+      <div class="w-12 h-12 rounded-full bg-teal-100/80 text-brand-teal flex items-center justify-center mb-3">
+        <Camera class="w-6 h-6" />
+      </div>
+      <p class="text-sm font-bold text-brand-teal">Haz clic para subir foto</p>
+      <p class="text-xs text-subtext mt-1">Mínimo {minWidth}x{minHeight} px • JPG o PNG</p>
+    </div>
+
+    <div id="dropzone-preview" class="hidden flex-col items-center">
+      <img id="preview-img" src="#" alt="Vista previa del avatar" class="w-24 h-24 rounded-full object-cover shadow-sm mb-2.5 border-2 border-white ring-2 ring-brand-teal" />
+      <button type="button" id="change-avatar-btn" class="text-xs text-rose-600 hover:underline font-semibold cursor-pointer">Cambiar imagen</button>
+    </div>
+  </div>
+  <p id="error-avatar" class="hidden text-xs text-error mt-1.5 font-medium"></p>
+</div>

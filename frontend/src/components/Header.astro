@@ -1,0 +1,59 @@
+---
+import { ArrowLeft } from 'lucide-astro';
+import NotificationCenter from './NotificationCenter.astro';
+import UserBadge from './UserBadge.astro';
+
+interface Props {
+  title?: string;
+  subtitle?: string;
+  backUrl?: string | null;
+  backText?: string;
+  showBack?: boolean;
+  userName?: string;
+  userRole?: string;
+  class?: string;
+}
+
+const { 
+  title = 'PsicoGestión',
+  subtitle,
+  backUrl, 
+  backText = 'Volver',
+  showBack = Boolean(backUrl),
+  userName,
+  userRole = 'Secretaría UADY',
+  class: className = '',
+} = Astro.props;
+---
+
+<header class={`h-20 bg-white border-b border-border-input px-6 md:px-8 flex items-center justify-between sticky top-0 z-20 ${className}`}>
+  <!-- Navegación, Flecha de Retorno Dinámica y Título de Ruta -->
+  <div class="flex items-center gap-3 md:gap-4 min-w-0">
+    {showBack && backUrl && (
+      <>
+        <a 
+          href={backUrl} 
+          class="flex items-center gap-2 text-sm font-semibold text-subtext hover:text-uady-green transition-colors group shrink-0"
+          aria-label={backText}
+        >
+          <ArrowLeft class="w-4 h-4 text-subtext group-hover:text-uady-green transition-colors" />
+          <span class="hidden sm:inline">{backText}</span>
+        </a>
+        <span class="text-slate-300 font-light select-none shrink-0" aria-hidden="true">|</span>
+      </>
+    )}
+    
+    <div class="flex flex-col min-w-0">
+      <h2 class="text-lg md:text-xl font-bold text-title truncate">{title}</h2>
+      {subtitle && (
+        <p class="text-xs text-subtext truncate font-medium">{subtitle}</p>
+      )}
+    </div>
+  </div>
+
+  <!-- Centro de Notificaciones Modular & Perfil de Usuario -->
+  <div class="flex items-center gap-3 md:gap-5 shrink-0">
+    <NotificationCenter />
+    <UserBadge userName={userName} userRole={userRole} />
+  </div>
+</header>

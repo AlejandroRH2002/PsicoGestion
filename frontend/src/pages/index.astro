@@ -243,9 +243,13 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
             const body = await response.json().catch(() => null);
 
             if (response.ok) {
-              // RF 1.2: sin pantalla de panel principal aún (specs/06-panel-principal/, fuera de
-              // este incremento) — solo confirmamos que la sesión quedó establecida.
+              if (body?.usuario) {
+                localStorage.setItem('user', JSON.stringify(body.usuario));
+              }
               showMessage('Inicio de sesión exitoso.', 'success');
+              setTimeout(() => {
+                window.location.href = '/terapeutas/registro-terapeuta';
+              }, 400);
               return;
             }
 

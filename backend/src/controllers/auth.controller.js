@@ -8,6 +8,7 @@ import {
 import {
   registerSecretaria,
   loginSecretaria,
+  getSecretariaById,
   ConflictError,
   InvalidCredentialsError,
 } from '../services/auth.service.js';
@@ -58,6 +59,24 @@ export async function login(req, res, next) {
       // RNF 1.2.2: mensaje genérico, nunca revela cuál dato falló.
       return res.status(401).json({ error: err.message });
     }
+    return next(err);
+  }
+}
+
+export async function logout(req, res) {
+  res.clearCookie('session', sessionCookieOptions());
+  return res.status(200).json({ message: 'Sesión cerrada correctamente.' });
+}
+
+export async function getMe(req, res, next) {
+  try {
+    const usuario = await getSecretariaById(req.user?.sub);
+    if (!usuario) {
+      res.clearCookie('session', sessionCookieOptions());
+      return res.status(401).json({ error: 'Usuario no encontrado o sesión inválida.' });
+    }
+    return res.status(200).json({ ok: true, usuario });
+  } catch (err) {
     return next(err);
   }
 }
