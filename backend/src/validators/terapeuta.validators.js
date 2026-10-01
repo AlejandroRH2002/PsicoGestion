@@ -33,7 +33,8 @@ export function parseFechaNacimiento(valor, hoy = new Date()) {
 }
 
 /**
- * RF 2.1.1-2.1.9 (SPEC.md § 2.1). Devuelve { errors, data } con los campos normalizados.
+ * RF 2.1.1-2.1.9 y RF 2.2.4 (registro y edición usan las mismas reglas).
+ * Devuelve { errors, data } con los campos normalizados.
  * La foto de perfil se valida aparte (utils/imagen.js) porque llega como archivo.
  */
 export function validateTerapeuta(body = {}, { hoy } = {}) {
@@ -81,4 +82,22 @@ export function validateTerapeuta(body = {}, { hoy } = {}) {
     errors,
     data: { nombre, telefono, correo, fechaNacimiento, cedula },
   };
+}
+
+const ESTADOS = ['activos', 'inactivos', 'todos'];
+const ORDENES = ['nombre', 'registro'];
+
+/** Parámetros de GET /terapeutas. Los valores desconocidos toman el predeterminado. */
+export function validateListado(query = {}) {
+  const q = typeof query.q === 'string' ? query.q.trim().slice(0, 100) : '';
+  const estado = ESTADOS.includes(query.estado) ? query.estado : 'activos';
+  const orden = ORDENES.includes(query.orden) ? query.orden : 'nombre';
+  return { q, estado, orden };
+}
+
+/** Id de ruta como entero positivo, o null si no es válido (el controlador responde 404). */
+export function parseId(param) {
+  if (typeof param !== 'string' || !/^\d{1,9}$/.test(param)) return null;
+  const id = Number(param);
+  return id > 0 ? id : null;
 }

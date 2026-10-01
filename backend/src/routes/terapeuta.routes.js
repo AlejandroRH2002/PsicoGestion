@@ -1,7 +1,13 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { requireAuth } from '../middleware/requireAuth.js';
-import { registrar } from '../controllers/terapeuta.controller.js';
+import {
+  registrar,
+  listar,
+  obtener,
+  actualizar,
+  cambiarEstadoTerapeuta,
+} from '../controllers/terapeuta.controller.js';
 import { FOTO_MAX_BYTES } from '../utils/imagen.js';
 
 const TIPOS_FOTO = ['image/jpeg', 'image/png'];
@@ -33,4 +39,10 @@ function subirFoto(req, res, next) {
 
 export const terapeutaRouter = Router();
 
-terapeutaRouter.post('/', requireAuth, subirFoto, registrar);
+terapeutaRouter.use(requireAuth);
+
+terapeutaRouter.get('/', listar);
+terapeutaRouter.post('/', subirFoto, registrar);
+terapeutaRouter.get('/:id', obtener);
+terapeutaRouter.put('/:id', subirFoto, actualizar);
+terapeutaRouter.patch('/:id/estado', cambiarEstadoTerapeuta);

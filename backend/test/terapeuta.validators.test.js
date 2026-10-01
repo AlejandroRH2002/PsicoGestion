@@ -76,3 +76,24 @@ test('cédula: 7 u 8 dígitos', () => {
   assert.deepEqual(erroresDe({ cedula: '123456789' }), ['cedula']);
   assert.deepEqual(erroresDe({ cedula: '1234567' }), []);
 });
+
+const { validateListado, parseId } = await import('../src/validators/terapeuta.validators.js');
+
+test('listado: valores por defecto y valores desconocidos', () => {
+  assert.deepEqual(validateListado({}), { q: '', estado: 'activos', orden: 'nombre' });
+  assert.deepEqual(validateListado({ estado: 'borrados', orden: 'edad' }), { q: '', estado: 'activos', orden: 'nombre' });
+  assert.deepEqual(validateListado({ q: '  maria ', estado: 'todos', orden: 'registro' }), {
+    q: 'maria',
+    estado: 'todos',
+    orden: 'registro',
+  });
+  assert.equal(validateListado({ q: 'x'.repeat(150) }).q.length, 100);
+  assert.equal(validateListado({ q: ['a', 'b'] }).q, '');
+});
+
+test('parseId: solo enteros positivos', () => {
+  assert.equal(parseId('12'), 12);
+  for (const invalido of ['0', '-1', 'abc', '1.5', '', undefined, '1e3']) {
+    assert.equal(parseId(invalido), null, String(invalido));
+  }
+});
