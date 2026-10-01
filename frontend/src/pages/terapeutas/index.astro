@@ -1,28 +1,295 @@
 ---
-import { UserPlus } from '@lucide/astro';
+import { ChevronRight, Funnel, Mail, Phone, Plus, Search, User, UserPlus } from '@lucide/astro';
 import AppLayout from '../../layouts/AppLayout.astro';
+
+const ordenes = [
+  { valor: 'nombre', etiqueta: 'Nombre (A–Z)' },
+  { valor: 'registro', etiqueta: 'Fecha de registro (recientes primero)' },
+];
+const estados = [
+  { valor: 'activos', etiqueta: 'Solo activos' },
+  { valor: 'inactivos', etiqueta: 'Solo dados de baja' },
+  { valor: 'todos', etiqueta: 'Activos y dados de baja' },
+];
 ---
 <AppLayout title="Terapeutas" activo="terapeutas">
-  <section class="flex flex-col items-center gap-4 w-full max-w-[640px] p-8 bg-white rounded-2xl shadow-[0px_4px_12px_rgba(15,23,42,0.03)] text-center">
-    <div id="registrado-message" role="status" class="hidden w-full text-sm rounded-lg px-3.5 py-2.5 bg-green-50 text-green-700">
-      Terapeuta registrado correctamente.
+  <a
+    slot="acciones"
+    href="/terapeutas/nuevo"
+    class="flex items-center gap-2 sm:gap-6 px-3 sm:px-[18px] py-2.5 bg-[#0D9488] hover:bg-[#0F766E] rounded-lg text-sm font-semibold text-white transition-colors"
+  >
+    <Plus class="size-[18px]" />
+    <span class="hidden sm:inline">Nuevo Terapeuta</span>
+  </a>
+
+  <div class="flex flex-col gap-6 w-full">
+    <!-- Búsqueda y filtros (RF 2.2.1) -->
+    <div class="flex items-center gap-3 sm:gap-4 p-4 bg-white border border-[#E2E8F0] rounded-xl">
+      <label class="flex flex-1 items-center gap-2.5 min-w-0 px-3.5 py-2.5 bg-[#F4F7F6] rounded-lg focus-within:ring-2 focus-within:ring-[#0D9488]/20">
+        <Search class="size-[18px] shrink-0 text-[#64748B]" />
+        <span class="sr-only">Buscar terapeutas</span>
+        <input
+          id="busqueda"
+          type="search"
+          maxlength="100"
+          autocomplete="off"
+          placeholder="Buscar terapeutas por nombre, cédula o correo..."
+          class="flex-1 min-w-0 bg-transparent text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none"
+        />
+      </label>
+
+      <div class="relative">
+        <button
+          type="button"
+          id="filtros-btn"
+          aria-expanded="false"
+          aria-controls="filtros-panel"
+          class="relative flex items-center gap-2 px-4 py-2.5 border border-[#E2E8F0] rounded-lg text-sm font-medium text-[#334155] hover:bg-[#F4F7F6] transition-colors cursor-pointer"
+        >
+          <Funnel class="size-4" />
+          <span class="hidden sm:inline">Filtros</span>
+          <span id="filtros-indicador" class="hidden absolute -top-1 -right-1 size-2.5 rounded-full bg-[#0D9488] ring-2 ring-white" aria-hidden="true"></span>
+        </button>
+
+        <form
+          id="filtros-panel"
+          class="hidden absolute right-0 top-full mt-2 z-10 flex-col gap-4 w-72 p-4 bg-white border border-[#E2E8F0] rounded-xl shadow-lg"
+        >
+          <fieldset class="flex flex-col gap-2">
+            <legend class="mb-2 text-xs font-bold uppercase tracking-wider text-[#64748B]">Ordenar por</legend>
+            {ordenes.map(({ valor, etiqueta }) => (
+              <label class="flex items-center gap-2.5 text-sm text-[#334155] cursor-pointer">
+                <input type="radio" name="orden" value={valor} class="accent-[#0D9488]" />
+                {etiqueta}
+              </label>
+            ))}
+          </fieldset>
+          <fieldset class="flex flex-col gap-2">
+            <legend class="mb-2 text-xs font-bold uppercase tracking-wider text-[#64748B]">Estado</legend>
+            {estados.map(({ valor, etiqueta }) => (
+              <label class="flex items-center gap-2.5 text-sm text-[#334155] cursor-pointer">
+                <input type="radio" name="estado" value={valor} class="accent-[#0D9488]" />
+                {etiqueta}
+              </label>
+            ))}
+          </fieldset>
+          <button type="button" id="filtros-restablecer" class="self-start text-xs font-semibold text-[#0D9488] hover:underline cursor-pointer">
+            Restablecer filtros
+          </button>
+        </form>
+      </div>
     </div>
-    <h2 class="text-lg font-bold text-[#0F172A]">Terapeutas de la clínica</h2>
-    <!-- La lista y la vista de detalle (RF 2.2) se construyen en el siguiente incremento. -->
-    <p class="text-[13px] text-[#64748B]">La lista de terapeutas estará disponible próximamente.</p>
+
+    <p id="resumen" class="hidden -mb-2 text-[13px] text-[#64748B]" aria-live="polite"></p>
+
+    <div id="lista" class="grid grid-cols-1 lg:grid-cols-2 gap-4" aria-busy="true">
+      {[1, 2, 3, 4].map(() => (
+        <div data-skeleton class="h-[128px] rounded-xl bg-white border border-[#E2E8F0] animate-pulse"></div>
+      ))}
+    </div>
+
+    <div id="vacio" class="hidden flex-col items-center gap-3 p-10 bg-white border border-[#E2E8F0] rounded-xl text-center">
+      <span class="flex items-center justify-center size-14 rounded-full bg-[#CCFBF1] text-[#0D9488]">
+        <UserPlus class="size-7" />
+      </span>
+      <p id="vacio-texto" class="text-sm text-[#64748B]"></p>
+    </div>
+
+    <div id="error" class="hidden flex-col items-center gap-3 p-10 bg-white border border-[#E2E8F0] rounded-xl text-center">
+      <p class="text-sm text-[#64748B]">No se pudo cargar la lista de terapeutas. Verifica tu conexión.</p>
+      <button type="button" id="reintentar" class="text-sm font-semibold text-[#0D9488] hover:underline cursor-pointer">Reintentar</button>
+    </div>
+  </div>
+
+  <template id="tarjeta-template">
     <a
-      href="/terapeutas/nuevo"
-      class="inline-flex items-center gap-2 px-6 py-3 bg-[#0D9488] hover:bg-[#0F766E] rounded-lg text-sm font-semibold text-white transition-colors"
+      class="flex flex-col gap-4 p-6 bg-white border border-[#E2E8F0] rounded-xl shadow-[0px_2px_4px_rgba(15,23,42,0.02)] hover:border-[#0D9488]/50 hover:shadow-md transition-all"
     >
-      <UserPlus class="size-4" />
-      Registrar terapeuta
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex items-center gap-4 min-w-0">
+          <span class="relative flex items-center justify-center size-14 shrink-0 rounded-full bg-[#CCFBF1] text-[#0D9488] overflow-hidden">
+            <User class="size-7" />
+            <img data-foto alt="" class="hidden absolute inset-0 size-full object-cover" />
+          </span>
+          <div class="flex flex-col gap-1 min-w-0">
+            <div class="flex flex-wrap items-center gap-2">
+              <span data-nombre class="text-base font-bold text-[#0F172A] truncate"></span>
+              <span data-baja class="hidden px-2 py-0.5 rounded-md bg-red-50 text-[11px] font-bold text-red-700">DADO DE BAJA</span>
+            </div>
+            <span data-cedula class="text-[13px] text-[#64748B]"></span>
+          </div>
+        </div>
+        <ChevronRight class="size-5 shrink-0 text-[#64748B]" />
+      </div>
+      <hr class="border-[#E2E8F0]" />
+      <div class="flex flex-col gap-2 text-[13px] text-[#334155]">
+        <span class="flex items-center gap-2 min-w-0">
+          <Mail class="size-4 shrink-0 text-[#64748B]" />
+          <span data-correo class="truncate"></span>
+        </span>
+        <span class="flex items-center gap-2">
+          <Phone class="size-4 shrink-0 text-[#64748B]" />
+          <span data-telefono></span>
+        </span>
+      </div>
     </a>
-  </section>
+  </template>
 </AppLayout>
 
 <script>
-  if (new URLSearchParams(window.location.search).has('registrado')) {
-    document.getElementById('registrado-message')?.classList.remove('hidden');
-    window.history.replaceState(null, '', window.location.pathname);
+  import {
+    formatearTelefono,
+    listarTerapeutas,
+    urlFoto,
+    type EstadoFiltro,
+    type OrdenFiltro,
+    type Terapeuta,
+  } from '../../utils/terapeuta';
+
+  const PREDETERMINADOS = { estado: 'activos' as EstadoFiltro, orden: 'nombre' as OrdenFiltro };
+
+  const lista = document.getElementById('lista')!;
+  const vacio = document.getElementById('vacio')!;
+  const error = document.getElementById('error')!;
+  const resumen = document.getElementById('resumen')!;
+  const busqueda = document.getElementById('busqueda') as HTMLInputElement;
+  const filtrosBtn = document.getElementById('filtros-btn') as HTMLButtonElement;
+  const filtrosPanel = document.getElementById('filtros-panel') as HTMLFormElement;
+  const plantilla = document.getElementById('tarjeta-template') as HTMLTemplateElement;
+
+  // Los filtros viven en la URL para conservarlos al volver desde la ficha.
+  const params = new URLSearchParams(window.location.search);
+  const filtros = {
+    q: params.get('q') ?? '',
+    estado: (['activos', 'inactivos', 'todos'].includes(params.get('estado') ?? '') ? params.get('estado') : PREDETERMINADOS.estado) as EstadoFiltro,
+    orden: (['nombre', 'registro'].includes(params.get('orden') ?? '') ? params.get('orden') : PREDETERMINADOS.orden) as OrdenFiltro,
+  };
+
+  busqueda.value = filtros.q;
+  (filtrosPanel.elements.namedItem('orden') as RadioNodeList).value = filtros.orden;
+  (filtrosPanel.elements.namedItem('estado') as RadioNodeList).value = filtros.estado;
+
+  function guardarEnUrl(): void {
+    const nuevos = new URLSearchParams();
+    if (filtros.q) nuevos.set('q', filtros.q);
+    if (filtros.estado !== PREDETERMINADOS.estado) nuevos.set('estado', filtros.estado);
+    if (filtros.orden !== PREDETERMINADOS.orden) nuevos.set('orden', filtros.orden);
+    const query = nuevos.toString();
+    window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
+    document
+      .getElementById('filtros-indicador')!
+      .classList.toggle('hidden', filtros.estado === PREDETERMINADOS.estado && filtros.orden === PREDETERMINADOS.orden);
   }
+
+  function tarjeta(t: Terapeuta): DocumentFragment {
+    const nodo = plantilla.content.cloneNode(true) as DocumentFragment;
+    const enlace = nodo.querySelector('a')!;
+    enlace.href = `/terapeutas/ver?id=${t.id}`;
+    enlace.classList.toggle('opacity-70', !t.activo);
+    nodo.querySelector('[data-nombre]')!.textContent = t.nombre;
+    nodo.querySelector('[data-cedula]')!.textContent = `Cédula: ${t.cedula}`;
+    nodo.querySelector('[data-correo]')!.textContent = t.correo;
+    nodo.querySelector('[data-telefono]')!.textContent = formatearTelefono(t.telefono);
+    nodo.querySelector('[data-baja]')!.classList.toggle('hidden', t.activo);
+    const src = urlFoto(t);
+    if (src) {
+      const img = nodo.querySelector<HTMLImageElement>('[data-foto]')!;
+      img.src = src;
+      img.alt = `Foto de ${t.nombre}`;
+      img.classList.remove('hidden');
+    }
+    return nodo;
+  }
+
+  function mostrar(seccion: 'lista' | 'vacio' | 'error'): void {
+    lista.classList.toggle('hidden', seccion !== 'lista');
+    for (const [el, nombre] of [[vacio, 'vacio'], [error, 'error']] as const) {
+      el.classList.toggle('hidden', seccion !== nombre);
+      el.classList.toggle('flex', seccion === nombre);
+    }
+  }
+
+  const TEXTO_ESTADO: Record<EstadoFiltro, string> = {
+    activos: 'activos',
+    inactivos: 'dados de baja',
+    todos: '',
+  };
+
+  // Solo se pinta la respuesta de la petición más reciente.
+  let peticion = 0;
+  async function cargar(): Promise<void> {
+    const actual = ++peticion;
+    lista.setAttribute('aria-busy', 'true');
+    let terapeutas: Terapeuta[];
+    try {
+      terapeutas = await listarTerapeutas(filtros);
+    } catch {
+      if (actual === peticion) mostrar('error');
+      return;
+    }
+    if (actual !== peticion) return;
+
+    lista.replaceChildren(...terapeutas.map(tarjeta));
+    lista.setAttribute('aria-busy', 'false');
+
+    const tipo = TEXTO_ESTADO[filtros.estado];
+    resumen.textContent = `${terapeutas.length} terapeuta${terapeutas.length === 1 ? '' : 's'}${tipo ? ` ${tipo}` : ''}`;
+    resumen.classList.toggle('hidden', terapeutas.length === 0);
+
+    if (terapeutas.length === 0) {
+      document.getElementById('vacio-texto')!.textContent = filtros.q
+        ? `No hay terapeutas que coincidan con "${filtros.q}".`
+        : filtros.estado === 'inactivos'
+          ? 'No hay terapeutas dados de baja.'
+          : 'Aún no hay terapeutas registrados.';
+      mostrar('vacio');
+    } else {
+      mostrar('lista');
+    }
+  }
+
+  let espera: number | undefined;
+  busqueda.addEventListener('input', () => {
+    window.clearTimeout(espera);
+    espera = window.setTimeout(() => {
+      filtros.q = busqueda.value.trim();
+      guardarEnUrl();
+      cargar();
+    }, 300);
+  });
+
+  // --- Panel de filtros ---
+
+  function abrirFiltros(abrir: boolean): void {
+    filtrosPanel.classList.toggle('hidden', !abrir);
+    filtrosPanel.classList.toggle('flex', abrir);
+    filtrosBtn.setAttribute('aria-expanded', String(abrir));
+  }
+
+  filtrosBtn.addEventListener('click', () => abrirFiltros(filtrosPanel.classList.contains('hidden')));
+  document.addEventListener('click', (e) => {
+    const objetivo = e.target as Node;
+    if (!filtrosPanel.contains(objetivo) && !filtrosBtn.contains(objetivo)) abrirFiltros(false);
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') abrirFiltros(false);
+  });
+
+  filtrosPanel.addEventListener('change', () => {
+    filtros.orden = (filtrosPanel.elements.namedItem('orden') as RadioNodeList).value as OrdenFiltro;
+    filtros.estado = (filtrosPanel.elements.namedItem('estado') as RadioNodeList).value as EstadoFiltro;
+    guardarEnUrl();
+    cargar();
+  });
+
+  document.getElementById('filtros-restablecer')!.addEventListener('click', () => {
+    (filtrosPanel.elements.namedItem('orden') as RadioNodeList).value = PREDETERMINADOS.orden;
+    (filtrosPanel.elements.namedItem('estado') as RadioNodeList).value = PREDETERMINADOS.estado;
+    filtrosPanel.dispatchEvent(new Event('change'));
+  });
+
+  document.getElementById('reintentar')!.addEventListener('click', cargar);
+
+  guardarEnUrl();
+  cargar();
 </script>
