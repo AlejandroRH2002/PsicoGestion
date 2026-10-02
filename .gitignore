@@ -29,3 +29,5 @@ replay_pid*
 CLAUDE.md
 requerimientos-trazabilidad.md
 specs/**/*.md
+
+.vscode

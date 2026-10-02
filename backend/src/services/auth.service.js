@@ -79,3 +79,17 @@ export async function loginSecretaria({ correo, password }) {
 
   return { id: row.id_secretaria, nombre: row.nombre_completo, correo: row.correo_electronico };
 }
+
+export async function getSecretariaById(id) {
+  const { rows } = await pool.query(
+    'SELECT id_secretaria, nombre_completo, correo_electronico FROM secretaria WHERE id_secretaria = $1',
+    [id]
+  );
+
+  if (rows.length === 0) {
+    return null;
+  }
+
+  const row = rows[0];
+  return { id: row.id_secretaria, nombre: row.nombre_completo, correo: row.correo_electronico };
+}

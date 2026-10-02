@@ -1,0 +1,61 @@
+---
+import { ChevronDown } from 'lucide-astro';
+
+interface Option {
+  value: string;
+  label: string;
+}
+
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  options: Option[];
+  placeholder?: string;
+  helperText?: string;
+  required?: boolean;
+}
+
+const {
+  id,
+  name,
+  label,
+  options,
+  placeholder = 'Seleccione opción',
+  helperText,
+  required = true,
+} = Astro.props;
+---
+
+<div>
+  <label for={id} class="block text-sm font-semibold text-label mb-2">
+    {label}
+  </label>
+
+  <div class="relative">
+    <select
+      id={id}
+      name={name}
+      required={required}
+      class="w-full appearance-none px-4 py-3 rounded-xl border border-border-input bg-white text-title focus:outline-none focus:ring-2 focus:ring-uady-green/20 focus:border-uady-green transition-all cursor-pointer pr-10"
+    >
+      <option value="" disabled selected class="text-slate-400">
+        {placeholder}
+      </option>
+      {options.map((opt) => (
+        <option value={opt.value} class="text-title">
+          {opt.label}
+        </option>
+      ))}
+    </select>
+
+    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-subtext">
+      <ChevronDown class="w-4 h-4" />
+    </div>
+  </div>
+
+  <div class="flex justify-between items-center mt-1.5 gap-2">
+    {helperText && <p class="text-xs text-subtext">{helperText}</p>}
+    <p id={`error-${id}`} class="hidden text-xs text-error font-medium"></p>
+  </div>
+</div>

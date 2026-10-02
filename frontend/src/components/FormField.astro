@@ -1,0 +1,49 @@
+---
+interface Props {
+  id: string;
+  name: string;
+  label: string;
+  type?: 'text' | 'tel' | 'email';
+  placeholder?: string;
+  helperText?: string;
+  maxlength?: number;
+  showCounter?: boolean;
+  required?: boolean;
+}
+
+const {
+  id,
+  name,
+  label,
+  type = 'text',
+  placeholder,
+  helperText,
+  maxlength,
+  showCounter = false,
+  required = true,
+} = Astro.props;
+---
+
+<div>
+  <div class="flex justify-between items-center mb-2">
+    <label for={id} class="text-sm font-semibold text-label">{label}</label>
+    {showCounter && maxlength && (
+      <span id={`${id}-counter`} class="text-xs text-subtext">0 / {maxlength}</span>
+    )}
+  </div>
+
+  <input 
+    type={type} 
+    id={id} 
+    name={name} 
+    placeholder={placeholder}
+    maxlength={maxlength}
+    required={required}
+    class="w-full px-4 py-3 rounded-xl border border-border-input text-title placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-uady-green/20 focus:border-uady-green transition-all"
+  />
+
+  <div class="flex justify-between items-center mt-1.5">
+    {helperText && <p class="text-xs text-subtext">{helperText}</p>}
+    <p id={`error-${id}`} class="hidden text-xs text-error font-medium"></p>
+  </div>
+</div>

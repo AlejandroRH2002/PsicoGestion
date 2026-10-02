@@ -1,0 +1,105 @@
+---
+import { formatUserDisplayName, getInitials } from '../utils/user';
+
+interface Props {
+  userName?: string;
+  userRole?: string;
+  class?: string;
+}
+
+const { 
+  userName = '', 
+  userRole = 'Secretario UADY',
+  class: className = '' 
+} = Astro.props;
+
+const formattedInitialName = userName ? formatUserDisplayName(userName) : '';
+const initialLetters = formattedInitialName ? getInitials(formattedInitialName) : 'SU';
+---
+
+<div class={`flex items-center gap-3 pl-2 sm:pl-3 border-l border-border-input ${className}`} id="header-user-profile">
+  <!-- Iniciales institucionales UADY en lugar de foto externa -->
+  <div 
+    id="header-user-avatar"
+    class="w-10 h-10 rounded-full bg-emerald-50 text-uady-green border border-emerald-200/90 flex items-center justify-center font-bold text-sm tracking-wider shadow-2xs shrink-0 select-none transition-transform hover:scale-105"
+    aria-hidden="true"
+  >
+    <span id="header-user-initials">{initialLetters}</span>
+  </div>
+
+  <!-- Primer Nombre y Apellido del Usuario & Rol Secretaría UADY -->
+  <div class="text-left leading-tight min-w-0">
+    <p id="header-user-name" class="text-sm font-bold text-title truncate">
+      {formattedInitialName}
+    </p>
+    <p id="header-user-role" class="text-[11px] font-bold text-uady-green uppercase tracking-wide truncate">
+      {userRole}
+    </p>
+  </div>
+</div>
+
+<script>
+  import { formatUserDisplayName, getInitials } from '../utils/user';
+
+  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+
+  function updateUserDOM(user: any): void {
+    const nameEl = document.getElementById('header-user-name');
+    const initialsEl = document.getElementById('header-user-initials');
+    if (!nameEl) return;
+
+    const displayName = formatUserDisplayName(user);
+    if (displayName) {
+      nameEl.textContent = displayName;
+      if (initialsEl) {
+        initialsEl.textContent = getInitials(displayName);
+      }
+    }
+  }
+
+  async function syncUserProfile(): Promise<void> {
+    // 1. Intentar leer de almacenamiento local
+    let storedUser: any = null;
+    try {
+      const raw = localStorage.getItem('user') || localStorage.getItem('psico_user') || sessionStorage.getItem('user');
+      if (raw) storedUser = JSON.parse(raw);
+    } catch {
+      storedUser = null;
+    }
+
+    if (storedUser) {
+      updateUserDOM(storedUser);
+      return;
+    }
+
+    // 2. Si no está en storage, consultar sesión activa en el backend
+    try {
+      const res = await fetch(`${API_URL}/auth/me`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data?.usuario) {
+          localStorage.setItem('user', JSON.stringify(data.usuario));
+          updateUserDOM(data.usuario);
+        }
+      }
+    } catch (err) {
+      console.warn('No se pudo sincronizar el perfil con el backend:', err);
+    }
+  }
+
+  // Escuchar evento personalizado emitido tras login o verificación de layout
+  window.addEventListener('psico:user-loaded', (e: any) => {
+    if (e?.detail) {
+      updateUserDOM(e.detail);
+    }
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', syncUserProfile);
+  } else {
+    syncUserProfile();
+  }
+</script>

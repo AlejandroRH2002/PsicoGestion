@@ -1,0 +1,328 @@
+---
+import DasboardLayout from '../../layouts/DasboardLayout.astro';
+import PhotoDropzone from '../../components/PhotoDropzone.astro';
+import FormField from '../../components/FormField.astro';
+---
+
+<DasboardLayout 
+  title="Registrar Nuevo Terapeuta"
+  backUrl="/terapeutas"
+  backText="Volver a terapeutas"
+>
+  <div class="max-w-3xl mx-auto bg-white rounded-2xl border border-border-input p-8 md:p-10 shadow-xs">
+    <div class="mb-8">
+      <h3 class="text-xl font-bold text-title">Información Profesional y de Contacto</h3>
+      <p class="text-sm text-subtext mt-1">Complete el formulario para dar de alta al nuevo terapeuta en el sistema.</p>
+    </div>
+
+    <form id="therapist-form" class="space-y-6" novalidate>
+      <!-- Subida de Foto Modular -->
+      <PhotoDropzone id="avatar" name="avatar" minWidth={200} minHeight={200} />
+
+      <!-- Nombre Completo con Contador -->
+      <FormField 
+        id="fullName" 
+        name="fullName" 
+        label="Nombre completo" 
+        placeholder="Ej. María García López" 
+        maxlength={50} 
+        showCounter={true} 
+        helperText="Máximo 50 caracteres" 
+      />
+
+      <!-- Teléfono y Fecha de Nacimiento en Cuadrícula -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField 
+          id="phone" 
+          name="phone" 
+          type="tel" 
+          label="Teléfono" 
+          placeholder="Ej. +52 999 123 4567" 
+          helperText="Debe ser de 10 dígitos" 
+        />
+        <FormField 
+          id="birthDate" 
+          name="birthDate" 
+          label="Fecha de nacimiento" 
+          placeholder="dd/mm/aaaa" 
+          maxlength={10} 
+          helperText="Formato: dd/mm/aaaa" 
+        />
+      </div>
+
+      <!-- Correo Electrónico Institucional -->
+      <FormField 
+        id="email" 
+        name="email" 
+        type="email" 
+        label="Correo electrónico" 
+        placeholder="Ej. maria.garcia@correo.uady.mx" 
+        helperText="Debe ser único e institucional" 
+      />
+
+      <!-- Cédula Profesional -->
+      <FormField 
+        id="licenseId" 
+        name="licenseId" 
+        label="Cédula profesional" 
+        placeholder="Ej. CED-12345678" 
+        helperText="Cédula federal emitida por la SEP" 
+      />
+
+      <!-- Banner de Feedback General -->
+      <div id="status-banner" class="hidden p-4 rounded-xl text-sm font-medium"></div>
+
+      <!-- Acciones del Formulario -->
+      <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
+        <button 
+          type="button" 
+          id="cancel-btn"
+          class="px-6 py-2.5 rounded-xl border border-border-input text-label hover:bg-slate-50 font-semibold transition-colors cursor-pointer"
+        >
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          id="submit-btn"
+          class="px-6 py-2.5 rounded-xl bg-brand-teal hover:bg-brand-teal-hover text-white font-semibold transition-colors shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Guardar Terapeuta
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('therapist-form') as HTMLFormElement;
+    const dropzone = document.getElementById('dropzone') as HTMLDivElement;
+    const avatarInput = document.getElementById('avatar') as HTMLInputElement;
+    const dropzoneIdle = document.getElementById('dropzone-idle') as HTMLDivElement;
+    const dropzonePreview = document.getElementById('dropzone-preview') as HTMLDivElement;
+    const previewImg = document.getElementById('preview-img') as HTMLImageElement;
+    const changeAvatarBtn = document.getElementById('change-avatar-btn') as HTMLButtonElement;
+    const nameCounter = document.getElementById('fullName-counter') as HTMLSpanElement;
+    const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+    const statusBanner = document.getElementById('status-banner') as HTMLDivElement;
+    const cancelBtn = document.getElementById('cancel-btn') as HTMLButtonElement;
+
+    const fullNameInput = document.getElementById('fullName') as HTMLInputElement;
+    const phoneInput = document.getElementById('phone') as HTMLInputElement;
+    const birthDateInput = document.getElementById('birthDate') as HTMLInputElement;
+    const emailInput = document.getElementById('email') as HTMLInputElement;
+    const licenseInput = document.getElementById('licenseId') as HTMLInputElement;
+
+    let validatedImageBase64: string | null = null;
+    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+
+    // Contador de caracteres de Nombre
+    fullNameInput?.addEventListener('input', () => {
+      if (nameCounter) {
+        nameCounter.textContent = `${fullNameInput.value.length} / 50`;
+      }
+      clearError('fullName');
+    });
+
+    // Formato automático de fecha dd/mm/aaaa
+    birthDateInput?.addEventListener('input', (e) => {
+      let val = (e.target as HTMLInputElement).value.replace(/\D/g, '');
+      if (val.length > 8) val = val.slice(0, 8);
+      if (val.length >= 5) {
+        val = `${val.slice(0, 2)}/${val.slice(2, 4)}/${val.slice(4)}`;
+      } else if (val.length >= 3) {
+        val = `${val.slice(0, 2)}/${val.slice(2)}`;
+      }
+      birthDateInput.value = val;
+      clearError('birthDate');
+    });
+
+    phoneInput?.addEventListener('input', () => clearError('phone'));
+    emailInput?.addEventListener('input', () => clearError('email'));
+    licenseInput?.addEventListener('input', () => clearError('licenseId'));
+
+    // Drag & Drop y Comprobación de resolución en memoria
+    dropzone?.addEventListener('click', () => avatarInput?.click());
+
+    ['dragenter', 'dragover'].forEach((eventName) => {
+      dropzone?.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.add('bg-teal-50/80');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach((eventName) => {
+      dropzone?.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        dropzone.classList.remove('bg-teal-50/80');
+      });
+    });
+
+    dropzone?.addEventListener('drop', (e) => {
+      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+        inspectAndSetImage(e.dataTransfer.files[0]);
+      }
+    });
+
+    avatarInput?.addEventListener('change', () => {
+      if (avatarInput.files && avatarInput.files.length > 0) {
+        inspectAndSetImage(avatarInput.files[0]);
+      }
+    });
+
+    changeAvatarBtn?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      validatedImageBase64 = null;
+      if (avatarInput) avatarInput.value = '';
+      dropzonePreview?.classList.add('hidden');
+      dropzoneIdle?.classList.remove('hidden');
+    });
+
+    function inspectAndSetImage(file: File) {
+      clearError('avatar');
+      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+        showError('avatar', 'Solo se admiten formatos JPG o PNG.');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (readerEvent) => {
+        const img = new Image();
+        img.src = readerEvent.target?.result as string;
+        img.onload = () => {
+          if (img.width < 200 || img.height < 200) {
+            showError('avatar', `La resolución mínima es 200x200 px (actual: ${img.width}x${img.height} px).`);
+            validatedImageBase64 = null;
+            return;
+          }
+          validatedImageBase64 = readerEvent.target?.result as string;
+          if (previewImg) previewImg.src = img.src;
+          dropzoneIdle?.classList.add('hidden');
+          dropzonePreview?.classList.remove('hidden');
+        };
+      };
+      reader.readAsDataURL(file);
+    }
+
+    // Funciones de Error UI
+    function showError(field: string, msg: string) {
+      const errorEl = document.getElementById(`error-${field}`);
+      const inputEl = document.getElementById(field);
+      if (errorEl) {
+        errorEl.textContent = msg;
+        errorEl.classList.remove('hidden');
+      }
+      if (inputEl && field !== 'avatar') {
+        inputEl.classList.add('border-error');
+      }
+    }
+
+    function clearError(field: string) {
+      const errorEl = document.getElementById(`error-${field}`);
+      const inputEl = document.getElementById(field);
+      if (errorEl) errorEl.classList.add('hidden');
+      if (inputEl) inputEl.classList.remove('border-error');
+    }
+
+    cancelBtn?.addEventListener('click', () => {
+      window.location.href = '/terapeutas';
+    });
+
+    // Envío Asíncrono
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (statusBanner) statusBanner.className = 'hidden p-4 rounded-xl text-sm font-medium';
+
+      let hasErrors = false;
+
+      if (!fullNameInput.value.trim()) {
+        showError('fullName', 'El nombre completo es requerido.');
+        hasErrors = true;
+      }
+
+      const cleanPhone = phoneInput.value.replace(/\D/g, '');
+      if (cleanPhone.length < 10) {
+        showError('phone', 'Debe contener un número válido de 10 dígitos.');
+        hasErrors = true;
+      }
+
+      const datePattern = /^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/;
+      if (!datePattern.test(birthDateInput.value)) {
+        showError('birthDate', 'Ingrese una fecha válida en formato dd/mm/aaaa.');
+        hasErrors = true;
+      }
+
+      const emailValue = emailInput.value.trim().toLowerCase();
+      const isInstitutional = emailValue.endsWith('@correo.uady.mx') || emailValue.endsWith('@uady.mx');
+      if (!emailValue || !emailValue.includes('@')) {
+        showError('email', 'Ingrese un correo electrónico válido.');
+        hasErrors = true;
+      } else if (!isInstitutional) {
+        showError('email', 'Debe ser un correo institucional (@correo.uady.mx o @uady.mx).');
+        hasErrors = true;
+      }
+
+      if (!licenseInput.value.trim()) {
+        showError('licenseId', 'La cédula profesional es requerida.');
+        hasErrors = true;
+      }
+
+      if (hasErrors) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+
+      try {
+        const response = await fetch(`${API_URL}/terapeutas`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            nombre_completo: fullNameInput.value.trim(),
+            telefono: cleanPhone,
+            fecha_nacimiento: birthDateInput.value.trim(),
+            correo_electronico: emailValue,
+            cedula_profesional: licenseInput.value.trim(),
+            foto_perfil: validatedImageBase64,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          if (Array.isArray(result.errors)) {
+            result.errors.forEach((err: { field: string; message: string }) => {
+              if (err.field === 'nombre_completo') showError('fullName', err.message);
+              if (err.field === 'telefono') showError('phone', err.message);
+              if (err.field === 'fecha_nacimiento') showError('birthDate', err.message);
+              if (err.field === 'correo_electronico') showError('email', err.message);
+              if (err.field === 'cedula_profesional') showError('licenseId', err.message);
+              if (err.field === 'foto_perfil') showError('avatar', err.message);
+            });
+          } else {
+            throw new Error(result.error || result.message || 'Error en el servidor al registrar el terapeuta.');
+          }
+          return;
+        }
+
+        if (statusBanner) {
+          statusBanner.textContent = 'Terapeuta registrado con éxito. Redirigiendo...';
+          statusBanner.className = 'block p-4 rounded-xl text-sm font-semibold bg-emerald-50 text-uady-green border border-emerald-200';
+        }
+        form.reset();
+
+        setTimeout(() => {
+          window.location.href = '/terapeutas';
+        }, 1500);
+
+      } catch (err: any) {
+        if (statusBanner) {
+          statusBanner.textContent = err.message || 'Ocurrió un error inesperado de conexión.';
+          statusBanner.className = 'block p-4 rounded-xl text-sm font-semibold bg-rose-50 text-rose-700 border border-rose-200';
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Guardar Terapeuta';
+      }
+    });
+  </script>
+</DasboardLayout>

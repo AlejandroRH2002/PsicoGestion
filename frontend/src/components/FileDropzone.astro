@@ -1,0 +1,56 @@
+---
+import { Upload, FileText, Image as ImageIcon, X } from 'lucide-astro';
+
+interface Props {
+  id?: string;
+  name?: string;
+  maxSizeMB?: number;
+  acceptedFormats?: string;
+}
+
+const {
+  id = 'attachments',
+  name = 'attachments',
+  maxSizeMB = 5,
+  acceptedFormats = 'application/pdf, image/jpeg, image/png',
+} = Astro.props;
+---
+
+<div>
+  <div class="flex justify-between items-center mb-2">
+    <span class="text-xs font-bold text-label uppercase tracking-wider">
+      ARCHIVOS ADJUNTOS
+    </span>
+    <span class="text-xs text-subtext font-medium">Mínimo 1 archivo requerido</span>
+  </div>
+
+  <div
+    id="file-dropzone"
+    class="border-2 border-dashed border-dropzone-border/80 bg-dropzone-bg rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all hover:border-brand-teal group text-center"
+  >
+    <input
+      type="file"
+      id={id}
+      name={name}
+      accept={acceptedFormats}
+      multiple
+      class="hidden"
+    />
+
+    <div class="w-12 h-12 rounded-full bg-teal-100/60 text-brand-teal flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+      <Upload class="w-6 h-6 stroke-[2.2]" />
+    </div>
+
+    <p class="text-sm font-semibold text-title">
+      Arrastra archivos aquí o <span class="text-brand-teal font-bold hover:underline">haz clic para seleccionar</span>
+    </p>
+  </div>
+
+  <p class="text-xs text-subtext mt-1.5">
+    Formatos permitidos: PDF, JPG, PNG • Máx. {maxSizeMB} MB por archivo
+  </p>
+  <p id="error-attachments" class="hidden text-xs text-error mt-1 font-medium"></p>
+
+  <!-- Lista de archivos seleccionados -->
+  <div id="file-list-container" class="mt-3 space-y-2 hidden"></div>
+</div>

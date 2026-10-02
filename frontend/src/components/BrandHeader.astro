@@ -1,36 +1,63 @@
----
-import { BrainCircuit } from '@lucide/astro';
+  ---
+import { BrainCircuit } from 'lucide-astro';
 
 interface Props {
-  alignment?: 'left' | 'center';
+  alignment?: 'left' | 'center' | 'sidebar';
   subtitle?: string;
+  class?: string;
 }
 
-const { alignment = 'left', subtitle = 'UADY' } = Astro.props;
+const { 
+  alignment = 'left', 
+  subtitle = 'UADY',
+  class: className = '' 
+} = Astro.props;
 
 const isCenter = alignment === 'center';
+const isSidebar = alignment === 'sidebar';
 ---
-<header class={`flex ${isCenter ? 'flex-col items-center justify-center gap-1.5 mb-2' : 'items-center justify-between'}`}>
-  <div class="flex items-center gap-2">
+
+{isSidebar ? (
+  <div class={`flex items-center gap-3 ${className}`}>
     <div
-      class="w-8 h-8 rounded-lg bg-[#006847] flex items-center justify-center text-white shadow-sm"
+      class="w-10 h-10 rounded-xl bg-uady-green flex items-center justify-center text-white shrink-0 shadow-xs"
       aria-hidden="true"
     >
-      <BrainCircuit class="w-[18px] h-[18px]" />
+      <BrainCircuit class="w-6 h-6" />
     </div>
-    <span class="font-extrabold text-[22px] leading-tight text-[#006847] tracking-tight">Psic
-        <span class="text-[#0D9488]">Gestión</span>
-    </span>
-    
+    <div class="leading-tight">
+      <span class="text-xl font-bold tracking-tight text-uady-green block">
+        Psic<span class="text-brand-teal">Gestión</span>
+      </span>
+      <p class="text-[11px] font-semibold text-subtext flex items-center gap-1.5 mt-0.5">
+        <span class="text-uady-green font-bold">UADY</span>
+        <span class="inline-block w-1 h-1 rounded-full bg-slate-300"></span>
+        <span>{subtitle}</span>
+      </p>
+    </div>
   </div>
+) : (
+  <header class={`flex ${isCenter ? 'flex-col items-center justify-center gap-1.5 mb-2' : 'items-center justify-between'} ${className}`}>
+    <div class="flex items-center gap-2">
+      <div
+        class="w-8 h-8 rounded-lg bg-[#006847] flex items-center justify-center text-white shadow-sm"
+        aria-hidden="true"
+      >
+        <BrainCircuit class="w-[18px] h-[18px]" />
+      </div>
+      <span class="font-extrabold text-[22px] leading-tight text-[#006847] tracking-tight">
+        Psic<span class="text-[#0D9488]">Gestión</span>
+      </span>
+    </div>
 
-  {isCenter ? (
-    <span class="text-[10px] font-bold uppercase tracking-widest text-[#006847]">
-      {subtitle}
-    </span>
-  ) : (
-    <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B] bg-[#F4F7F6] px-2.5 py-1 rounded-md">
-      {subtitle}
-    </span>
-  )}
-</header>
+    {isCenter ? (
+      <span class="text-[10px] font-bold uppercase tracking-widest text-[#006847]">
+        {subtitle}
+      </span>
+    ) : (
+      <span class="text-xs font-semibold uppercase tracking-wider text-[#64748B] bg-[#F4F7F6] px-2.5 py-1 rounded-md">
+        {subtitle}
+      </span>
+    )}
+  </header>
+)}
