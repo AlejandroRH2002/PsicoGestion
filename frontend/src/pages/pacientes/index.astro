@@ -1,0 +1,102 @@
+---
+import DasboardLayout from '../../layouts/DasboardLayout.astro';
+---
+
+<DasboardLayout
+  title="Pacientes"
+  headerTitle="Pacientes"
+  subtitle="Consulta y edición de pacientes"
+>
+  <div class="max-w-6xl mx-auto space-y-6">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 class="text-2xl font-bold text-title">Listado de pacientes</h2>
+        <p class="text-sm text-subtext">Consulta la información registrada y edita los datos en cualquier momento.</p>
+      </div>
+      <a
+        href="/pacientes/registro-paciente"
+        class="inline-flex items-center justify-center rounded-xl bg-brand-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-teal-hover transition-colors"
+      >
+        Registrar paciente
+      </a>
+    </div>
+
+    <div class="rounded-2xl border border-border-input bg-white shadow-xs overflow-hidden">
+      <div id="status-banner" class="hidden border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm text-subtext"></div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-slate-200 text-left">
+          <thead class="bg-slate-50 text-xs uppercase tracking-[0.08em] text-subtext">
+            <tr>
+              <th class="px-5 py-3 font-semibold">Nombre</th>
+              <th class="px-5 py-3 font-semibold">CURP</th>
+              <th class="px-5 py-3 font-semibold">Sexo</th>
+              <th class="px-5 py-3 font-semibold">Nacimiento</th>
+              <th class="px-5 py-3 font-semibold">Teléfono</th>
+              <th class="px-5 py-3 font-semibold text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="patients-table-body" class="divide-y divide-slate-200 bg-white text-sm text-title"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+    const tbody = document.getElementById('patients-table-body');
+    const statusBanner = document.getElementById('status-banner');
+
+    async function loadPatients() {
+      try {
+        const response = await fetch(`${API_URL}/pacientes`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(result?.error || 'No se pudo cargar la lista de pacientes.');
+        }
+
+        renderPatients(result.pacientes || []);
+      } catch (err) {
+        if (statusBanner) {
+          statusBanner.textContent = err instanceof Error ? err.message : 'Ocurrió un error inesperado.';
+          statusBanner.className = 'block border-b border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700';
+        }
+      }
+    }
+
+    function renderPatients(patients) {
+      if (!tbody) return;
+
+      if (!patients.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="px-5 py-8 text-center text-subtext">
+              No hay pacientes registrados todavía.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = patients.map((paciente) => `
+        <tr class="hover:bg-slate-50">
+          <td class="px-5 py-4 font-medium">${paciente.nombre_completo}</td>
+          <td class="px-5 py-4">${paciente.curp}</td>
+          <td class="px-5 py-4">${paciente.sexo}</td>
+          <td class="px-5 py-4">${paciente.fecha_nacimiento || '-'}</td>
+          <td class="px-5 py-4">${paciente.telefono}</td>
+          <td class="px-5 py-4 text-right">
+            <a href="/pacientes/editar-paciente?id=${paciente.id_paciente}" class="inline-flex items-center rounded-lg border border-border-input px-3 py-2 text-xs font-semibold text-title hover:bg-slate-50 transition-colors">
+              Editar
+            </a>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    loadPatients();
+  </script>
+</DasboardLayout>

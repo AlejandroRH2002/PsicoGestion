@@ -1,0 +1,269 @@
+---
+import DasboardLayout from '../../layouts/DasboardLayout.astro';
+import FormField from '../../components/FormField.astro';
+import SelectField from '../../components/SelectField.astro';
+
+const sexOptions = [
+  { value: 'F', label: 'Femenino' },
+  { value: 'M', label: 'Masculino' },
+  { value: 'O', label: 'Otro' },
+];
+
+const patientId = Astro.url.searchParams.get('id') ?? '';
+---
+
+<DasboardLayout
+  title="Editar paciente"
+  backUrl="/pacientes"
+  backText="Volver a pacientes"
+  showBack={true}
+>
+  <div class="max-w-3xl mx-auto bg-white rounded-2xl border border-border-input p-8 md:p-10 shadow-xs">
+    <div class="mb-8">
+      <h3 class="text-xl font-bold text-title">Editar datos del paciente</h3>
+      <p class="text-sm text-subtext mt-1">Actualiza la información del paciente y guarda los cambios.</p>
+    </div>
+
+    <form id="patient-form" class="space-y-6" novalidate>
+      <FormField id="fullName" name="fullName" label="Nombre completo" placeholder="Ej. Carlos Ramírez Mendoza" maxlength={50} showCounter={true} helperText="Máximo 50 caracteres" />
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField id="curp" name="curp" label="CURP" placeholder="Ej. RAMC950320HDFMNN02" maxlength={18} helperText="18 caracteres alfanuméricos oficiales" />
+        <SelectField id="gender" name="gender" label="Sexo" placeholder="Seleccione opción" options={sexOptions} />
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <FormField id="birthDate" name="birthDate" label="Fecha de nacimiento" placeholder="dd/mm/aaaa" maxlength={10} helperText="Formato: dd/mm/aaaa" />
+        <FormField id="phone" name="phone" type="tel" label="Teléfono" placeholder="Ej. 999 123 4567" maxlength={10} helperText="Debe ser de 10 dígitos numéricos" />
+      </div>
+
+      <div id="status-banner" class="hidden p-4 rounded-xl text-sm font-medium" role="alert"></div>
+
+      <div class="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
+        <button type="button" id="cancel-btn" class="px-6 py-2.5 rounded-xl border border-border-input text-label hover:bg-slate-50 font-semibold transition-colors cursor-pointer">
+          Cancelar
+        </button>
+        <button type="submit" id="submit-btn" class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-brand-teal hover:bg-brand-teal-hover text-white font-semibold transition-colors shadow-xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
+          <span id="submit-text">Guardar cambios</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script define:vars={{ patientId }}>
+    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+    const form = document.getElementById('patient-form');
+    const fullNameInput = document.getElementById('fullName');
+    const nameCounter = document.getElementById('fullName-counter');
+    const curpInput = document.getElementById('curp');
+    const genderSelect = document.getElementById('gender');
+    const birthDateInput = document.getElementById('birthDate');
+    const phoneInput = document.getElementById('phone');
+    const statusBanner = document.getElementById('status-banner');
+    const cancelBtn = document.getElementById('cancel-btn');
+    const submitBtn = document.getElementById('submit-btn');
+
+    function showError(field, msg) {
+      const errorEl = document.getElementById(`error-${field}`);
+      const inputEl = document.getElementById(field);
+      if (errorEl) {
+        errorEl.textContent = msg;
+        errorEl.classList.remove('hidden');
+      }
+      if (inputEl) inputEl.classList.add('border-error');
+    }
+
+    function clearError(field) {
+      const errorEl = document.getElementById(`error-${field}`);
+      const inputEl = document.getElementById(field);
+      if (errorEl) errorEl.classList.add('hidden');
+      if (inputEl) inputEl.classList.remove('border-error');
+    }
+
+    fullNameInput?.addEventListener('input', () => {
+      if (nameCounter) nameCounter.textContent = `${fullNameInput.value.length} / 50`;
+      clearError('fullName');
+    });
+
+    curpInput?.addEventListener('input', () => {
+      curpInput.value = curpInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 18);
+      clearError('curp');
+    });
+
+    phoneInput?.addEventListener('input', () => {
+      phoneInput.value = phoneInput.value.replace(/\D/g, '').slice(0, 10);
+      clearError('phone');
+    });
+
+    genderSelect?.addEventListener('change', () => clearError('gender'));
+
+    birthDateInput?.addEventListener('input', () => {
+      let val = birthDateInput.value.replace(/\D/g, '');
+      if (val.length > 8) val = val.slice(0, 8);
+      if (val.length >= 5) {
+        val = `${val.slice(0, 2)}/${val.slice(2, 4)}/${val.slice(4)}`;
+      } else if (val.length >= 3) {
+        val = `${val.slice(0, 2)}/${val.slice(2)}`;
+      }
+      birthDateInput.value = val;
+      clearError('birthDate');
+    });
+
+    cancelBtn?.addEventListener('click', () => {
+      window.location.href = '/pacientes';
+    });
+
+    async function loadPatient() {
+      if (!patientId) {
+        if (statusBanner) {
+          statusBanner.textContent = 'No se especificó un paciente para editar.';
+          statusBanner.className = 'block p-4 rounded-xl text-sm font-semibold bg-rose-50 text-rose-700 border border-rose-200';
+          statusBanner.setAttribute('role', 'alert');
+        }
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/pacientes/${patientId}`, {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        const result = await response.json().catch(() => null);
+        if (!response.ok) {
+          throw new Error(result?.error || 'No se pudo obtener el paciente.');
+        }
+
+        const paciente = result.paciente;
+        if (!paciente) return;
+
+        fullNameInput.value = paciente.nombre_completo || '';
+        curpInput.value = paciente.curp || '';
+        genderSelect.value = paciente.sexo || '';
+        birthDateInput.value = paciente.fecha_nacimiento ? formatDate(paciente.fecha_nacimiento) : '';
+        phoneInput.value = paciente.telefono || '';
+
+        if (nameCounter) nameCounter.textContent = `${(paciente.nombre_completo || '').length} / 50`;
+      } catch (err) {
+        if (statusBanner) {
+          statusBanner.textContent = err instanceof Error ? err.message : 'Error al cargar el paciente.';
+          statusBanner.className = 'block p-4 rounded-xl text-sm font-semibold bg-rose-50 text-rose-700 border border-rose-200';
+          statusBanner.setAttribute('role', 'alert');
+        }
+      }
+    }
+
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      const [year, month, day] = dateString.split('-');
+      return `${day}/${month}/${year}`;
+    }
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (statusBanner) {
+        statusBanner.className = 'hidden p-4 rounded-xl text-sm font-medium';
+        statusBanner.textContent = '';
+      }
+
+      let hasErrors = false;
+      const fullNameVal = fullNameInput.value.trim();
+      const curpVal = curpInput.value.trim().toUpperCase();
+      const genderVal = genderSelect.value;
+      const birthDateVal = birthDateInput.value.trim();
+      const phoneVal = phoneInput.value.replace(/\D/g, '');
+
+      if (!fullNameVal) {
+        showError('fullName', 'El nombre completo es obligatorio.');
+        hasErrors = true;
+      }
+
+      if (!curpVal || curpVal.length !== 18 || !/^[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d$/.test(curpVal)) {
+        showError('curp', 'Ingresa una CURP oficial válida de 18 caracteres.');
+        hasErrors = true;
+      }
+
+      if (!genderVal) {
+        showError('gender', 'Debes seleccionar el sexo del paciente.');
+        hasErrors = true;
+      }
+
+      if (!birthDateVal || !/^\d{2}\/\d{2}\/\d{4}$/.test(birthDateVal)) {
+        showError('birthDate', 'Ingrese una fecha válida en formato dd/mm/aaaa.');
+        hasErrors = true;
+      } else {
+        const [day, month, year] = birthDateVal.split('/').map(Number);
+        const date = new Date(year, month - 1, day);
+        const today = new Date();
+        if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day || date >= today) {
+          showError('birthDate', 'La fecha de nacimiento debe ser anterior a la fecha actual.');
+          hasErrors = true;
+        }
+      }
+
+      if (!phoneVal || phoneVal.length !== 10) {
+        showError('phone', 'Debe contener un número telefónico válido de 10 dígitos.');
+        hasErrors = true;
+      }
+
+      if (hasErrors) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Guardando...';
+
+      try {
+        const response = await fetch(`${API_URL}/pacientes/${patientId}`, {
+          method: 'PUT',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre_completo: fullNameVal,
+            curp: curpVal,
+            sexo: genderVal,
+            fecha_nacimiento: birthDateVal,
+            telefono: phoneVal,
+          }),
+        });
+
+        const result = await response.json().catch(() => null);
+        if (!response.ok) {
+          if (result?.errors && Array.isArray(result.errors)) {
+            result.errors.forEach((err) => {
+              const fieldMap = {
+                nombre_completo: 'fullName',
+                curp: 'curp',
+                sexo: 'gender',
+                fecha_nacimiento: 'birthDate',
+                telefono: 'phone',
+              };
+              showError(fieldMap[err.field] || err.field, err.message);
+            });
+            return;
+          }
+          throw new Error(result?.error || result?.message || 'No se pudo actualizar el paciente.');
+        }
+
+        if (statusBanner) {
+          statusBanner.textContent = 'Paciente actualizado correctamente.';
+          statusBanner.className = 'block p-4 rounded-xl text-sm font-semibold bg-emerald-50 text-uady-green border border-emerald-200';
+          statusBanner.setAttribute('role', 'status');
+        }
+
+        setTimeout(() => {
+          window.location.href = '/pacientes';
+        }, 1000);
+      } catch (err) {
+        if (statusBanner) {
+          statusBanner.textContent = err instanceof Error ? err.message : 'Ocurrió un error inesperado.';
+          statusBanner.className = 'block p-4 rounded-xl text-sm font-semibold bg-rose-50 text-rose-700 border border-rose-200';
+          statusBanner.setAttribute('role', 'alert');
+        }
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Guardar cambios';
+      }
+    });
+
+    loadPatient();
+  </script>
+</DasboardLayout>
