@@ -2,7 +2,7 @@ import { env } from '../config/env.js';
 
 // RF 1.1.7: dominios institucionales, más los extra de EXTRA_EMAIL_DOMAINS (solo para pruebas locales).
 const ALLOWED_EMAIL_DOMAINS = ['correo.uady.mx', 'uady.mx', ...env.extraEmailDomains];
-const EMAIL_UADY_REGEX = new RegExp(
+export const EMAIL_UADY_REGEX = new RegExp(
   `^[^\\s@]+@(${ALLOWED_EMAIL_DOMAINS.map((d) => d.replace(/\./g, '\\.')).join('|')})$`,
   'i'
 );

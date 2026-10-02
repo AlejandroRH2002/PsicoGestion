@@ -1,0 +1,63 @@
+---
+import '../styles/global.css';
+import Sidebar, { type SeccionApp } from '../components/Sidebar.astro';
+import TopBar from '../components/TopBar.astro';
+
+interface Props {
+  title: string;
+  activo: SeccionApp;
+  volverHref?: string;
+  volverEtiqueta?: string;
+}
+
+const { title, activo, volverHref, volverEtiqueta } = Astro.props;
+---
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} - PsicoGestión UADY</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <!-- Oculto hasta confirmar la sesión, para no mostrar la app a quien no inició sesión. -->
+  <body class="h-screen flex bg-[#F4F7F6] text-[#0F172A] antialiased invisible" data-app>
+    <Sidebar activo={activo} />
+    <div class="flex flex-col flex-1 min-w-0 h-full">
+      <TopBar titulo={title} volverHref={volverHref} volverEtiqueta={volverEtiqueta}>
+        {Astro.slots.has('acciones') && <slot name="acciones" slot="acciones" />}
+      </TopBar>
+      <main class="flex flex-col items-center flex-1 min-h-0 overflow-y-auto p-4 sm:p-10">
+        <slot />
+      </main>
+    </div>
+
+    <script>
+      import { obtenerSesion, iniciales } from '../utils/sesion';
+
+      async function verificarSesion(): Promise<void> {
+        try {
+          const usuario = await obtenerSesion();
+          if (!usuario) {
+            window.location.replace('/');
+            return;
+          }
+          const nombre = document.getElementById('usuario-nombre');
+          const avatar = document.getElementById('usuario-iniciales');
+          if (nombre) nombre.textContent = usuario.nombre;
+          if (avatar) avatar.textContent = iniciales(usuario.nombre);
+        } catch {
+          // Sin conexión con el servidor: se muestra la página y cada acción informará el error.
+        }
+        document.body.classList.remove('invisible');
+      }
+
+      verificarSesion();
+    </script>
+  </body>
+</html>

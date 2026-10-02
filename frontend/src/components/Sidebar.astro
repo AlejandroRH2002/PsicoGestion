@@ -1,0 +1,79 @@
+---
+import { CalendarDays, DoorOpen, LayoutGrid, LogOut, Stethoscope, Users } from '@lucide/astro';
+
+export type SeccionApp = 'inicio' | 'pacientes' | 'terapeutas' | 'salas' | 'citas';
+
+interface Props {
+  activo: SeccionApp;
+}
+
+const { activo } = Astro.props;
+
+// Solo las secciones con href están construidas; el resto se muestra deshabilitado.
+const secciones = [
+  { clave: 'inicio', etiqueta: 'Inicio', icono: LayoutGrid },
+  { clave: 'pacientes', etiqueta: 'Pacientes', icono: Users },
+  { clave: 'terapeutas', etiqueta: 'Terapeutas', icono: Stethoscope, href: '/terapeutas' },
+  { clave: 'salas', etiqueta: 'Salas', icono: DoorOpen },
+  { clave: 'citas', etiqueta: 'Citas', icono: CalendarDays },
+] as const;
+---
+<aside class="hidden lg:flex flex-col justify-between w-[260px] shrink-0 h-full p-6 bg-white border-r border-[#E2E8F0]">
+  <div class="flex flex-col gap-8">
+    <div class="flex flex-col items-center gap-0.5">
+      <div class="flex items-center gap-2">
+        <img src="/logo-psicogestion.svg" alt="" width="32" height="32" class="size-8" />
+        <span class="text-[22px] font-extrabold leading-tight">
+          <span class="text-[#006847]">Psico</span><span class="text-[#0D9488]">Gestión</span>
+        </span>
+      </div>
+      <div class="flex items-center gap-1 text-[10px]">
+        <span class="font-bold uppercase text-[#006847]">UADY</span>
+        <span class="size-[3px] rounded-[2px] bg-[#64748B]" aria-hidden="true"></span>
+        <span class="font-semibold text-[#64748B]">Facultad de Psicología</span>
+      </div>
+    </div>
+
+    <nav aria-label="Secciones" class="flex flex-col gap-1">
+      {secciones.map(({ clave, etiqueta, icono: Icono, ...resto }) => {
+        const esActivo = clave === activo;
+        const href = 'href' in resto ? resto.href : undefined;
+        const clases = `flex items-center gap-3 h-10 px-4 rounded-lg text-sm font-semibold transition-colors ${
+          esActivo ? 'bg-[#DCFCE7] text-[#006847]' : 'text-[#334155]'
+        }`;
+        return href ? (
+          <a href={href} aria-current={esActivo ? 'page' : undefined} class={`${clases} ${esActivo ? '' : 'hover:bg-[#F4F7F6]'}`}>
+            <Icono class="size-[18px]" />
+            {etiqueta}
+          </a>
+        ) : (
+          <span aria-disabled="true" title="Disponible próximamente" class={`${clases} cursor-not-allowed`}>
+            <Icono class="size-[18px]" />
+            {etiqueta}
+          </span>
+        );
+      })}
+    </nav>
+  </div>
+
+  <div class="flex flex-col gap-4">
+    <div class="h-px bg-[#E2E8F0]"></div>
+    <button
+      type="button"
+      id="cerrar-sesion"
+      class="flex items-center gap-3 h-10 px-4 rounded-lg text-sm font-semibold text-[#EF4444] hover:bg-red-50 transition-colors cursor-pointer"
+    >
+      <LogOut class="size-[18px]" />
+      Cerrar Sesión
+    </button>
+  </div>
+</aside>
+
+<script>
+  import { cerrarSesion } from '../utils/sesion';
+
+  document.getElementById('cerrar-sesion')?.addEventListener('click', async () => {
+    await cerrarSesion();
+    window.location.href = '/';
+  });
+</script>
