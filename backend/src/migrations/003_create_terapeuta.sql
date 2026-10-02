@@ -1,7 +1,4 @@
--- docs/base-de-datos/terapeuta/ (DBD.md § Terapeuta), RF 2.1.1-2.1.13.
--- fecha_nacimiento es NOT NULL porque el formulario de registro la exige.
--- La validación de dimensiones mínimas de la foto (200x200 px) se hace en la aplicación;
--- foto_perfil guarda la ruta relativa del archivo dentro de UPLOADS_DIR.
+-- docs/base-de-datos/terapeuta/terapeuta.md § Terapeuta
 CREATE TABLE IF NOT EXISTS terapeuta (
     id_terapeuta SERIAL PRIMARY KEY,
     nombre_completo VARCHAR(50) NOT NULL,
