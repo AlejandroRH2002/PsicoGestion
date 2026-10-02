@@ -1,0 +1,100 @@
+---
+import CampoTexto from './CampoTexto.astro';
+import FotoUploader from './FotoUploader.astro';
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  textoGuardar: string;
+  cancelarHref: string;
+  /** "zona" en el registro, "compacta" (avatar + Cambiar foto) en la edición. */
+  varianteFoto?: 'zona' | 'compacta';
+}
+
+const { titulo, descripcion, textoGuardar, cancelarHref, varianteFoto = 'zona' } = Astro.props;
+---
+<!-- RF 2.1.1-2.1.13 y RF 2.2.3-2.2.4; la lógica vive en utils/terapeuta.ts (iniciarFormulario). -->
+<form
+  id="terapeuta-form"
+  novalidate
+  class="flex flex-col gap-6 w-full max-w-[640px] shrink-0 p-6 sm:p-8 bg-white rounded-2xl shadow-[0px_4px_12px_rgba(15,23,42,0.03)]"
+>
+  <div class="flex flex-col gap-1.5">
+    <h2 class="text-lg font-bold text-[#0F172A]">{titulo}</h2>
+    <p class="text-[13px] text-[#64748B]">{descripcion}</p>
+  </div>
+
+  <!-- Mensaje general del servidor (éxito o error de conexión) -->
+  <div id="form-message" role="alert" class="hidden text-sm rounded-lg px-3.5 py-2.5"></div>
+
+  <FotoUploader id="foto" variante={varianteFoto} />
+
+  <div class="flex flex-col gap-5">
+    <CampoTexto
+      id="nombre"
+      label="Nombre completo"
+      placeholder="Ej. María García López"
+      maxlength={50}
+      contador
+      ayuda="Máximo 50 caracteres"
+      autocomplete="name"
+    />
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-4">
+      <CampoTexto
+        id="telefono"
+        label="Teléfono"
+        type="tel"
+        inputmode="tel"
+        placeholder="Ej. 999 123 4567"
+        ayuda="Debe ser de 10 dígitos"
+        autocomplete="tel-national"
+      />
+      <CampoTexto
+        id="fechaNacimiento"
+        label="Fecha de nacimiento"
+        inputmode="numeric"
+        maxlength={10}
+        placeholder="dd/mm/aaaa"
+        ayuda="Formato: dd/mm/aaaa"
+      />
+    </div>
+
+    <CampoTexto
+      id="correo"
+      label="Correo electrónico"
+      type="email"
+      inputmode="email"
+      maxlength={100}
+      placeholder="Ej. maria.garcia@correo.uady.mx"
+      ayuda="Debe ser único e institucional"
+      autocomplete="email"
+    />
+
+    <CampoTexto
+      id="cedula"
+      label="Cédula profesional"
+      inputmode="numeric"
+      maxlength={8}
+      placeholder="Ej. 12345678"
+      ayuda="Cédula federal emitida por la SEP"
+    />
+  </div>
+
+  <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+    <a
+      href={cancelarHref}
+      id="cancelar-btn"
+      class="flex items-center justify-center px-6 py-3 bg-white border border-[#E2E8F0] rounded-lg text-sm font-semibold text-[#334155] hover:bg-[#F4F7F6] transition-colors"
+    >
+      Cancelar
+    </a>
+    <button
+      type="submit"
+      id="submit-btn"
+      class="flex items-center justify-center px-6 py-3 bg-[#0D9488] hover:bg-[#0F766E] disabled:opacity-60 disabled:cursor-not-allowed rounded-lg text-sm font-semibold text-white transition-colors cursor-pointer active:scale-[0.99]"
+    >
+      {textoGuardar}
+    </button>
+  </div>
+</form>

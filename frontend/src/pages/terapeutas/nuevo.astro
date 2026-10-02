@@ -1,0 +1,33 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import FormularioTerapeuta from '../../components/FormularioTerapeuta.astro';
+---
+<AppLayout
+  title="Registrar Nuevo Terapeuta"
+  activo="terapeutas"
+  volverHref="/terapeutas"
+  volverEtiqueta="Volver a terapeutas"
+>
+  <FormularioTerapeuta
+    titulo="Información Profesional y de Contacto"
+    descripcion="Complete el formulario para dar de alta al nuevo terapeuta en el sistema."
+    textoGuardar="Guardar Terapeuta"
+    cancelarHref="/terapeutas"
+  />
+</AppLayout>
+
+<script>
+  import { iniciarFormulario } from '../../utils/terapeuta';
+
+  // RF 2.1.1-2.1.13
+  const formulario = iniciarFormulario();
+
+  formulario.form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const terapeuta = await formulario.enviar('POST', '/terapeutas');
+    if (terapeuta) {
+      formulario.mostrarMensaje('Terapeuta registrado correctamente. Redirigiendo…', 'success');
+      window.location.href = `/terapeutas/ver?id=${terapeuta.id}&registrado=1`;
+    }
+  });
+</script>

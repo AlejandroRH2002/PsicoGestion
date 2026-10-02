@@ -243,9 +243,9 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
             const body = await response.json().catch(() => null);
 
             if (response.ok) {
-              // RF 1.2: sin pantalla de panel principal aún (specs/06-panel-principal/, fuera de
-              // este incremento) — solo confirmamos que la sesión quedó establecida.
+              // RF 1.2: sin panel principal aún (specs/06-panel-principal/), se entra a Terapeutas.
               showMessage('Inicio de sesión exitoso.', 'success');
+              window.location.href = '/terapeutas';
               return;
             }
 
