@@ -8,7 +8,7 @@ import {
 import {
   registerSecretaria,
   loginSecretaria,
-  getSecretariaById,
+  obtenerSecretaria,
   ConflictError,
   InvalidCredentialsError,
 } from '../services/auth.service.js';
@@ -63,22 +63,22 @@ export async function login(req, res, next) {
   }
 }
 
-export async function logout(req, res) {
-  res.clearCookie('session', sessionCookieOptions());
-  return res.status(200).json({ message: 'Sesión cerrada correctamente.' });
-}
-
-export async function getMe(req, res, next) {
+export async function me(req, res, next) {
   try {
-    const usuario = await getSecretariaById(req.user?.sub);
+    const usuario = await obtenerSecretaria(req.usuario.id);
     if (!usuario) {
       res.clearCookie('session', sessionCookieOptions());
-      return res.status(401).json({ error: 'Usuario no encontrado o sesión inválida.' });
+      return res.status(401).json({ error: 'Tu sesión ya no es válida. Inicia sesión de nuevo.' });
     }
-    return res.status(200).json({ ok: true, usuario });
+    return res.status(200).json({ usuario });
   } catch (err) {
     return next(err);
   }
+}
+
+export function logout(req, res) {
+  res.clearCookie('session', sessionCookieOptions());
+  return res.status(200).json({ message: 'Sesión cerrada.' });
 }
 
 export async function recoverRequest(req, res, next) {

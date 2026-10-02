@@ -1,113 +1,103 @@
-import { env } from '../config/env.js';
+import { EMAIL_UADY_REGEX, normalizeCorreo, normalizeTelefono } from './auth.validators.js';
 
-const ALLOWED_EMAIL_DOMAINS = ['correo.uady.mx', 'uady.mx', ...env.extraEmailDomains];
-const EMAIL_UADY_REGEX = new RegExp(
-  `^[^\\s@]+@(${ALLOWED_EMAIL_DOMAINS.map((d) => d.replace(/\\./g, '\\.')).join('|')})$`,
-  'i'
-);
+const FECHA_REGEX = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+const CEDULA_REGEX = /^\d{7,8}$/;
 
-export function normalizeCorreo(correo) {
-  return typeof correo === 'string' ? correo.trim().toLowerCase() : '';
-}
-
-export function normalizeTelefono(telefono) {
-  return typeof telefono === 'string' ? telefono.replace(/\D/g, '') : '';
-}
-
-export function parseFechaNacimiento(fechaStr) {
-  if (!fechaStr || typeof fechaStr !== 'string') return null;
-  const trimmed = fechaStr.trim();
-  // Formato dd/mm/aaaa
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
-    const [dia, mes, anio] = trimmed.split('/');
-    return `${anio}-${mes.padStart(2, '0')}-${dia.padStart(2, '0')}`;
-  }
-  // Formato aaaa-mm-dd
-  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-    return trimmed;
-  }
-  return null;
+function pad(n) {
+  return String(n).padStart(2, '0');
 }
 
 /**
- * Validador para registro de nuevo terapeuta según especificación:
- * - nombre_completo: obligatorio, máx 50 caracteres
- * - telefono: obligatorio, 10 dígitos numéricos
- * - correo_electronico: obligatorio, institucional UADY, máx 100 caracteres
- * - fecha_nacimiento: opcional u obligatoria según formulario; debe ser anterior a la fecha actual
- * - cedula_profesional: obligatorio, máx 20 caracteres
- * - foto_perfil: opcional (texto / DataURL / URL)
+ * RF 2.1.8-2.1.9: fecha en formato dd/mm/aaaa, existente y anterior a hoy.
+ * Devuelve la fecha en ISO (aaaa-mm-dd) o null si no es válida.
  */
-export function validateTerapeuta(body = {}) {
+export function parseFechaNacimiento(valor, hoy = new Date()) {
+  const match = typeof valor === 'string' ? FECHA_REGEX.exec(valor.trim()) : null;
+  if (!match) return { iso: null, error: 'La fecha de nacimiento debe tener el formato dd/mm/aaaa.' };
+
+  const [, dd, mm, aaaa] = match;
+  const dia = Number(dd);
+  const mes = Number(mm);
+  const anio = Number(aaaa);
+  const fecha = new Date(anio, mes - 1, dia);
+  if (fecha.getFullYear() !== anio || fecha.getMonth() !== mes - 1 || fecha.getDate() !== dia) {
+    return { iso: null, error: 'La fecha de nacimiento no es una fecha válida.' };
+  }
+
+  const inicioDeHoy = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  if (fecha >= inicioDeHoy) {
+    return { iso: null, error: 'La fecha de nacimiento debe ser anterior a la fecha de registro.' };
+  }
+
+  return { iso: `${anio}-${pad(mes)}-${pad(dia)}`, error: null };
+}
+
+/**
+ * RF 2.1.1-2.1.9 y RF 2.2.4 (registro y edición usan las mismas reglas).
+ * Devuelve { errors, data } con los campos normalizados.
+ * La foto de perfil se valida aparte (utils/imagen.js) porque llega como archivo.
+ */
+export function validateTerapeuta(body = {}, { hoy } = {}) {
   const errors = [];
 
-  const nombre_completo = typeof body.nombre_completo === 'string' ? body.nombre_completo.trim() : '';
-  const rawTelefono = typeof body.telefono === 'string' ? body.telefono : '';
-  const telefonoDigits = normalizeTelefono(rawTelefono);
-  const correo_electronico = normalizeCorreo(body.correo_electronico);
-  const rawFecha = typeof body.fecha_nacimiento === 'string' ? body.fecha_nacimiento.trim() : '';
-  const cedula_profesional = typeof body.cedula_profesional === 'string' ? body.cedula_profesional.trim().toUpperCase() : '';
-  const foto_perfil = typeof body.foto_perfil === 'string' && body.foto_perfil.trim() ? body.foto_perfil.trim() : null;
+  const nombre = typeof body.nombre === 'string' ? body.nombre.trim() : '';
+  const telefono = normalizeTelefono(body.telefono);
+  const correo = normalizeCorreo(body.correo);
+  const cedula = typeof body.cedula === 'string' ? body.cedula.replace(/\D/g, '') : '';
 
-  // Validación Nombre Completo
-  if (!nombre_completo) {
-    errors.push({ field: 'nombre_completo', message: 'El nombre completo es obligatorio.' });
-  } else if (nombre_completo.length > 50) {
-    errors.push({ field: 'nombre_completo', message: 'El nombre completo no puede exceder 50 caracteres.' });
+  if (!nombre) {
+    errors.push({ field: 'nombre', message: 'El nombre completo es obligatorio.' });
+  } else if (nombre.length > 50) {
+    errors.push({ field: 'nombre', message: 'El nombre completo no puede exceder 50 caracteres.' });
   }
 
-  // Validación Teléfono
-  if (!rawTelefono || !telefonoDigits) {
-    errors.push({ field: 'telefono', message: 'El teléfono es obligatorio.' });
-  } else if (telefonoDigits.length !== 10) {
-    errors.push({ field: 'telefono', message: 'El teléfono debe ser de 10 dígitos.' });
+  if (!telefono) {
+    errors.push({ field: 'telefono', message: 'El número telefónico es obligatorio.' });
+  } else if (telefono.length !== 10) {
+    errors.push({ field: 'telefono', message: 'El número telefónico debe tener 10 dígitos.' });
   }
 
-  // Validación Correo Electrónico Institucional
-  if (!correo_electronico) {
-    errors.push({ field: 'correo_electronico', message: 'El correo electrónico es obligatorio.' });
-  } else if (correo_electronico.length > 100 || !EMAIL_UADY_REGEX.test(correo_electronico)) {
-    errors.push({
-      field: 'correo_electronico',
-      message: 'Debe ser un correo institucional válido (@correo.uady.mx o @uady.mx).',
-    });
+  let fechaNacimiento = null;
+  if (typeof body.fechaNacimiento !== 'string' || !body.fechaNacimiento.trim()) {
+    errors.push({ field: 'fechaNacimiento', message: 'La fecha de nacimiento es obligatoria.' });
+  } else {
+    const { iso, error } = parseFechaNacimiento(body.fechaNacimiento, hoy);
+    if (error) errors.push({ field: 'fechaNacimiento', message: error });
+    fechaNacimiento = iso;
   }
 
-  // Validación Fecha de Nacimiento
-  let fechaParsed = null;
-  if (rawFecha) {
-    fechaParsed = parseFechaNacimiento(rawFecha);
-    if (!fechaParsed) {
-      errors.push({ field: 'fecha_nacimiento', message: 'Formato de fecha inválido. Utiliza dd/mm/aaaa o aaaa-mm-dd.' });
-    } else {
-      const birthDate = new Date(`${fechaParsed}T00:00:00Z`);
-      const today = new Date();
-      today.setUTCHours(0, 0, 0, 0);
-
-      if (Number.isNaN(birthDate.getTime())) {
-        errors.push({ field: 'fecha_nacimiento', message: 'La fecha proporcionada no es una fecha válida.' });
-      } else if (birthDate >= today) {
-        errors.push({ field: 'fecha_nacimiento', message: 'La fecha de nacimiento debe ser anterior a la fecha actual.' });
-      }
-    }
+  if (!correo) {
+    errors.push({ field: 'correo', message: 'El correo institucional es obligatorio.' });
+  } else if (correo.length > 100 || !EMAIL_UADY_REGEX.test(correo)) {
+    errors.push({ field: 'correo', message: 'El correo debe terminar en @correo.uady.mx o @uady.mx.' });
   }
 
-  // Validación Cédula Profesional
-  if (!cedula_profesional) {
-    errors.push({ field: 'cedula_profesional', message: 'La cédula profesional es obligatoria.' });
-  } else if (cedula_profesional.length > 20) {
-    errors.push({ field: 'cedula_profesional', message: 'La cédula profesional no puede exceder 20 caracteres.' });
+  if (!cedula) {
+    errors.push({ field: 'cedula', message: 'La cédula profesional es obligatoria.' });
+  } else if (!CEDULA_REGEX.test(cedula)) {
+    errors.push({ field: 'cedula', message: 'La cédula profesional debe tener 7 u 8 dígitos.' });
   }
 
   return {
     errors,
-    data: {
-      nombre_completo,
-      telefono: telefonoDigits,
-      correo_electronico,
-      fecha_nacimiento: fechaParsed,
-      cedula_profesional,
-      foto_perfil,
-    },
+    data: { nombre, telefono, correo, fechaNacimiento, cedula },
   };
+}
+
+const ESTADOS = ['activos', 'inactivos', 'todos'];
+const ORDENES = ['nombre', 'registro'];
+
+/** Parámetros de GET /terapeutas. Los valores desconocidos toman el predeterminado. */
+export function validateListado(query = {}) {
+  const q = typeof query.q === 'string' ? query.q.trim().slice(0, 100) : '';
+  const estado = ESTADOS.includes(query.estado) ? query.estado : 'activos';
+  const orden = ORDENES.includes(query.orden) ? query.orden : 'nombre';
+  return { q, estado, orden };
+}
+
+/** Id de ruta como entero positivo, o null si no es válido (el controlador responde 404). */
+export function parseId(param) {
+  if (typeof param !== 'string' || !/^\d{1,9}$/.test(param)) return null;
+  const id = Number(param);
+  return id > 0 ? id : null;
 }

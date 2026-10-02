@@ -1,4 +1,8 @@
 import 'dotenv/config';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const BACKEND_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 function required(name, fallback) {
   const value = process.env[name] ?? fallback;
@@ -14,6 +18,8 @@ export const env = {
   databaseUrl: required('DATABASE_URL'),
   jwtSecret: required('JWT_SECRET'),
   frontendOrigin: process.env.FRONTEND_ORIGIN ?? 'http://localhost:4321',
+  // Archivos subidos (fotos de perfil); se sirven en /uploads.
+  uploadsDir: path.resolve(BACKEND_DIR, process.env.UPLOADS_DIR || 'uploads'),
   // Dominios de correo aceptados además de los institucionales, separados por comas (solo pruebas locales).
   extraEmailDomains: (process.env.EXTRA_EMAIL_DOMAINS ?? '')
     .split(',')
