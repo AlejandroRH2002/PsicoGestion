@@ -1,5 +1,5 @@
 ---
-import DasboardLayout from '../../layouts/DasboardLayout.astro';
+import AppLayout from '../../layouts/AppLayout.astro';
 import FormField from '../../components/FormField.astro';
 import SelectField from '../../components/SelectField.astro';
 import FileDropzone from '../../components/FileDropzone.astro';
@@ -12,13 +12,13 @@ const sexOptions = [
 ];
 ---
 
-<DasboardLayout 
+<AppLayout 
   title="Registrar Nuevo Paciente" 
-  backUrl="/pacientes" 
-  backText="Volver a pacientes"
-  showBack={true}
+  activo="pacientes"
+  volverHref="/pacientes" 
+  volverEtiqueta="Volver a pacientes"
 >
-  <div class="max-w-3xl mx-auto bg-white rounded-2xl border border-border-input p-8 md:p-10 shadow-xs">
+  <div class="w-full max-w-3xl bg-white rounded-2xl border border-border-input p-8 md:p-10 shadow-xs">
     <div class="mb-8">
       <h3 class="text-xl font-bold text-title">Información del Paciente</h3>
       <p class="text-sm text-subtext mt-1">
@@ -565,4 +565,4 @@ const sexOptions = [
       }
     });
   </script>
-</DasboardLayout>
+</AppLayout>

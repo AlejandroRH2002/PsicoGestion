@@ -1,5 +1,6 @@
 ---
-import { ArrowLeft, BellDot } from '@lucide/astro';
+import { ArrowLeft } from '@lucide/astro';
+import NotificationCenter from './NotificationCenter.astro';
 
 interface Props {
   titulo: string;
@@ -31,9 +32,7 @@ const { titulo, volverHref, volverEtiqueta } = Astro.props;
   )}
 
   <div class="flex items-center gap-4 shrink-0">
-    <span class="flex items-center justify-center size-10 rounded-full bg-[#F4F7F6] text-[#0F172A]" aria-hidden="true">
-      <BellDot class="size-[18px]" />
-    </span>
+    <NotificationCenter />
     <div class="flex items-center gap-2.5">
       <span
         id="usuario-iniciales"
