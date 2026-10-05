@@ -5,8 +5,9 @@ CREATE TABLE IF NOT EXISTS terapeuta (
     telefono VARCHAR(15) NOT NULL UNIQUE,
     correo_electronico VARCHAR(100) NOT NULL UNIQUE
         CHECK (correo_electronico ~* '^[^@\s]+@[^@\s]+\.[^@\s]+$'),
-    fecha_nacimiento DATE
+    fecha_nacimiento DATE NOT NULL
         CHECK (fecha_nacimiento < CURRENT_DATE),
     cedula_profesional VARCHAR(20) NOT NULL UNIQUE,
-    foto_perfil TEXT
+    foto_perfil TEXT,
+    creado_en TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

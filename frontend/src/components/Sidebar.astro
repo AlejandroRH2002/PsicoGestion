@@ -1,188 +1,79 @@
 ---
-import { 
-  LayoutGrid, 
-  CircleDot, 
-  DoorClosed, 
-  Calendar, 
-  LogOut 
-} from 'lucide-astro';
-import BrandHeader from './BrandHeader.astro';
+import { CalendarDays, DoorOpen, LayoutGrid, LogOut, Stethoscope, Users } from '@lucide/astro';
 
-const navItems = [
-  { name: 'Inicio', href: '/inicio', icon: LayoutGrid, active: false },
-  { name: 'Pacientes', href: '/pacientes', icon: CircleDot, active: false },
-  { name: 'Terapeutas', href: '/terapeutas', icon: CircleDot, active: true },
-  { name: 'Salas', href: '/salas', icon: DoorClosed, active: false },
-  { name: 'Citas', href: '/citas', icon: Calendar, active: false },
-];
+export type SeccionApp = 'inicio' | 'pacientes' | 'terapeutas' | 'salas' | 'citas';
+
+interface Props {
+  activo: SeccionApp;
+}
+
+const { activo } = Astro.props;
+
+// Solo las secciones con href están construidas; el resto se muestra deshabilitado.
+const secciones = [
+  { clave: 'inicio', etiqueta: 'Inicio', icono: LayoutGrid },
+  { clave: 'pacientes', etiqueta: 'Pacientes', icono: Users },
+  { clave: 'terapeutas', etiqueta: 'Terapeutas', icono: Stethoscope, href: '/terapeutas' },
+  { clave: 'salas', etiqueta: 'Salas', icono: DoorOpen },
+  { clave: 'citas', etiqueta: 'Citas', icono: CalendarDays },
+] as const;
 ---
-
-<aside class="w-64 bg-white border-r border-border-input flex flex-col justify-between h-screen shrink-0 sticky top-0">
-  <div>
-    <!-- Logo & Subtítulo UADY con BrandHeader -->
-    <div class="px-5 py-6">
-      <BrandHeader alignment="sidebar" subtitle="Facultad de Psicología" />
+<aside class="hidden lg:flex flex-col justify-between w-[260px] shrink-0 h-full p-6 bg-white border-r border-[#E2E8F0]">
+  <div class="flex flex-col gap-8">
+    <div class="flex flex-col items-center gap-0.5">
+      <div class="flex items-center gap-2">
+        <img src="/logo-psicogestion.svg" alt="" width="32" height="32" class="size-8" />
+        <span class="text-[22px] font-extrabold leading-tight">
+          <span class="text-[#006847]">Psico</span><span class="text-[#0D9488]">Gestión</span>
+        </span>
+      </div>
+      <div class="flex items-center gap-1 text-[10px]">
+        <span class="font-bold uppercase text-[#006847]">UADY</span>
+        <span class="size-[3px] rounded-[2px] bg-[#64748B]" aria-hidden="true"></span>
+        <span class="font-semibold text-[#64748B]">Facultad de Psicología</span>
+      </div>
     </div>
 
-    <!-- Menú de Navegación -->
-    <nav class="px-4 space-y-1.5 mt-2">
-      {navItems.map((item) => {
-        const Icon = item.icon;
-        return (
-          <a
-            href={item.href}
-            class:list={[
-              'flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-colors',
-              item.active 
-                ? 'bg-sidebar-active text-uady-green font-semibold' 
-                : 'text-subtext hover:bg-slate-50 hover:text-title'
-            ]}
-          >
-            <Icon class:list={['w-5 h-5 shrink-0', item.active ? 'text-uady-green' : 'text-subtext']} />
-            <span>{item.name}</span>
+    <nav aria-label="Secciones" class="flex flex-col gap-1">
+      {secciones.map(({ clave, etiqueta, icono: Icono, ...resto }) => {
+        const esActivo = clave === activo;
+        const href = 'href' in resto ? resto.href : undefined;
+        const clases = `flex items-center gap-3 h-10 px-4 rounded-lg text-sm font-semibold transition-colors ${
+          esActivo ? 'bg-[#DCFCE7] text-[#006847]' : 'text-[#334155]'
+        }`;
+        return href ? (
+          <a href={href} aria-current={esActivo ? 'page' : undefined} class={`${clases} ${esActivo ? '' : 'hover:bg-[#F4F7F6]'}`}>
+            <Icono class="size-[18px]" />
+            {etiqueta}
           </a>
+        ) : (
+          <span aria-disabled="true" title="Disponible próximamente" class={`${clases} cursor-not-allowed`}>
+            <Icono class="size-[18px]" />
+            {etiqueta}
+          </span>
         );
       })}
     </nav>
   </div>
 
-  <!-- Botón Cerrar Sesión -->
-  <div class="p-4 border-t border-border-input">
+  <div class="flex flex-col gap-4">
+    <div class="h-px bg-[#E2E8F0]"></div>
     <button
       type="button"
-      id="logout-btn"
-      class="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+      id="cerrar-sesion"
+      class="flex items-center gap-3 h-10 px-4 rounded-lg text-sm font-semibold text-[#EF4444] hover:bg-red-50 transition-colors cursor-pointer"
     >
-      <LogOut class="w-5 h-5 shrink-0" />
-      <span>Cerrar Sesión</span>
+      <LogOut class="size-[18px]" />
+      Cerrar Sesión
     </button>
   </div>
 </aside>
 
-<!-- Modal Estilizado de Confirmación de Cierre de Sesión -->
-<div
-  id="logout-modal"
-  class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 hidden items-center justify-center p-4 transition-all"
-  role="dialog"
-  aria-modal="true"
-  aria-labelledby="logout-modal-title"
->
-  <div
-    id="logout-modal-card"
-    class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl border border-slate-100 flex flex-col items-center text-center transform transition-all duration-200 scale-95 opacity-0"
-  >
-    <!-- Ícono estilizado con la paleta de aviso -->
-    <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4 ring-8 ring-rose-50/60 shadow-xs">
-      <LogOut class="w-6 h-6" />
-    </div>
-
-    <!-- Título y Texto -->
-    <h3 id="logout-modal-title" class="text-lg font-bold text-title mb-1.5">
-      ¿Cerrar sesión?
-    </h3>
-    <p class="text-xs text-subtext leading-relaxed mb-6">
-      Tu sesión actual finalizará y deberás volver a ingresar tus credenciales para acceder al sistema.
-    </p>
-
-    <!-- Botones de Acción -->
-    <div class="flex items-center gap-3 w-full">
-      <button
-        type="button"
-        id="logout-cancel-btn"
-        class="flex-1 px-4 py-2.5 rounded-xl border border-border-input text-label hover:bg-slate-50 font-semibold text-sm transition-colors cursor-pointer"
-      >
-        Cancelar
-      </button>
-      <button
-        type="button"
-        id="logout-confirm-btn"
-        class="flex-1 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white font-semibold text-sm transition-all shadow-xs cursor-pointer flex items-center justify-center gap-2 disabled:opacity-60"
-      >
-        <span id="logout-btn-spinner" class="hidden animate-spin">
-          <svg class="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-        </span>
-        <span id="logout-btn-text">Sí, salir</span>
-      </button>
-    </div>
-  </div>
-</div>
-
 <script>
-  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
+  import { cerrarSesion } from '../utils/sesion';
 
-  function setupLogoutModal(): void {
-    const logoutBtn = document.getElementById('logout-btn') as HTMLButtonElement | null;
-    const modal = document.getElementById('logout-modal') as HTMLDivElement | null;
-    const modalCard = document.getElementById('logout-modal-card') as HTMLDivElement | null;
-    const cancelBtn = document.getElementById('logout-cancel-btn') as HTMLButtonElement | null;
-    const confirmBtn = document.getElementById('logout-confirm-btn') as HTMLButtonElement | null;
-    const spinner = document.getElementById('logout-btn-spinner') as HTMLElement | null;
-    const btnText = document.getElementById('logout-btn-text') as HTMLElement | null;
-
-    if (!logoutBtn || !modal || !modalCard || !cancelBtn || !confirmBtn) return;
-
-    const openModal = () => {
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
-      // Animación suave de entrada
-      requestAnimationFrame(() => {
-        modalCard.classList.remove('scale-95', 'opacity-0');
-        modalCard.classList.add('scale-100', 'opacity-100');
-      });
-    };
-
-    const closeModal = () => {
-      modalCard.classList.remove('scale-100', 'opacity-100');
-      modalCard.classList.add('scale-95', 'opacity-0');
-      setTimeout(() => {
-        modal.classList.remove('flex');
-        modal.classList.add('hidden');
-      }, 150);
-    };
-
-    logoutBtn.addEventListener('click', openModal);
-    cancelBtn.addEventListener('click', closeModal);
-
-    // Cerrar al hacer clic en el fondo oscuro
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        closeModal();
-      }
-    });
-
-    // Cerrar con tecla Escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
-        closeModal();
-      }
-    });
-
-    // Confirmar cierre de sesión
-    confirmBtn.addEventListener('click', async () => {
-      confirmBtn.disabled = true;
-      if (cancelBtn) cancelBtn.disabled = true;
-      spinner?.classList.remove('hidden');
-      if (btnText) btnText.textContent = 'Saliendo...';
-
-      try {
-        await fetch(`${API_URL}/auth/logout`, {
-          method: 'POST',
-          credentials: 'include',
-        });
-      } catch (err) {
-        console.error('Error al notificar cierre de sesión al servidor:', err);
-      } finally {
-        window.location.href = '/';
-      }
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', setupLogoutModal);
-  } else {
-    setupLogoutModal();
-  }
+  document.getElementById('cerrar-sesion')?.addEventListener('click', async () => {
+    await cerrarSesion();
+    window.location.href = '/';
+  });
 </script>

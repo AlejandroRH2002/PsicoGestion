@@ -1,0 +1,94 @@
+---
+import { SearchX } from '@lucide/astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+import FormularioTerapeuta from '../../components/FormularioTerapeuta.astro';
+---
+<AppLayout title="Editar Perfil" activo="terapeutas" volverHref="/terapeutas" volverEtiqueta="Cancelar edición">
+  <div id="cargando" class="w-full max-w-[640px] h-[560px] rounded-2xl bg-white animate-pulse" aria-label="Cargando"></div>
+
+  <div id="no-encontrado" class="hidden flex-col items-center gap-3 w-full max-w-[640px] p-10 bg-white rounded-2xl text-center">
+    <SearchX class="size-10 text-[#64748B]" />
+    <h2 class="text-lg font-bold">Terapeuta no encontrado</h2>
+    <a href="/terapeutas" class="text-sm font-semibold text-[#0D9488] hover:underline">Volver a la lista</a>
+  </div>
+
+  <div id="contenido" class="hidden w-full justify-center">
+    <FormularioTerapeuta
+      titulo="Modificar Datos Registrados"
+      descripcion="Los cambios se verán reflejados de inmediato en la ficha clínica y el listado."
+      textoGuardar="Guardar Cambios"
+      cancelarHref="/terapeutas"
+      varianteFoto="compacta"
+    />
+  </div>
+</AppLayout>
+
+<script>
+  import { iniciarFormulario, obtenerTerapeuta } from '../../utils/terapeuta';
+
+  // RF 2.2.3-2.2.4, RNF 2.2.6-2.2.7
+  const id = new URLSearchParams(window.location.search).get('id');
+  const formulario = iniciarFormulario();
+  let huellaGuardada = '';
+  let guardado = false;
+
+  const hayCambios = () => !guardado && huellaGuardada !== '' && formulario.huella() !== huellaGuardada;
+
+  function mostrar(seccion: 'contenido' | 'no-encontrado'): void {
+    document.getElementById('cargando')?.remove();
+    const el = document.getElementById(seccion)!;
+    el.classList.remove('hidden');
+    el.classList.add('flex');
+  }
+
+  async function cargar(): Promise<void> {
+    let terapeuta;
+    try {
+      terapeuta = await obtenerTerapeuta(id);
+    } catch {
+      mostrar('contenido');
+      formulario.mostrarMensaje('No se pudieron cargar los datos del terapeuta. Recarga la página para intentar de nuevo.', 'error');
+      return;
+    }
+    if (!terapeuta) {
+      mostrar('no-encontrado');
+      return;
+    }
+
+    const fichaHref = `/terapeutas/ver?id=${terapeuta.id}`;
+    document.getElementById('titulo-pagina')!.textContent = `Editar Perfil — ${terapeuta.nombre}`;
+    document.title = `Editar Perfil — ${terapeuta.nombre} - PsicoGestión UADY`;
+    for (const enlace of ['volver-link', 'cancelar-btn']) {
+      document.getElementById(enlace)?.setAttribute('href', fichaHref);
+    }
+
+    formulario.rellenar(terapeuta);
+    huellaGuardada = formulario.huella();
+    mostrar('contenido');
+
+    formulario.form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const actualizado = await formulario.enviar('PUT', `/terapeutas/${terapeuta.id}`);
+      if (actualizado) {
+        guardado = true;
+        window.location.href = `${fichaHref}&actualizado=1`;
+      }
+    });
+  }
+
+  // Avisa antes de perder cambios sin guardar (cerrar pestaña, Cancelar o "Cancelar edición").
+  window.addEventListener('beforeunload', (e) => {
+    if (hayCambios()) e.preventDefault();
+  });
+  for (const enlace of ['volver-link', 'cancelar-btn']) {
+    document.getElementById(enlace)?.addEventListener('click', (e) => {
+      if (hayCambios() && !window.confirm('Tienes cambios sin guardar. ¿Salir sin guardar?')) {
+        e.preventDefault();
+      } else {
+        guardado = true;
+      }
+    });
+  }
+
+  cargar();
+</script>

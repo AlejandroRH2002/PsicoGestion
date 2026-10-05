@@ -243,13 +243,9 @@ import { BrainCircuit, Eye, EyeOff, LogIn, UserPlus } from '@lucide/astro';
             const body = await response.json().catch(() => null);
 
             if (response.ok) {
-              if (body?.usuario) {
-                localStorage.setItem('user', JSON.stringify(body.usuario));
-              }
+              // RF 1.2: sin panel principal aún (specs/06-panel-principal/), se entra a Terapeutas.
               showMessage('Inicio de sesión exitoso.', 'success');
-              setTimeout(() => {
-                window.location.href = '/terapeutas/registro-terapeuta';
-              }, 400);
+              window.location.href = '/terapeutas';
               return;
             }
 

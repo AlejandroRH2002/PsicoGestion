@@ -24,6 +24,7 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 app.use('/auth', authRouter);
 app.use('/pacientes', pacienteRouter);
 app.use('/terapeutas', terapeutaRouter);
+app.use('/uploads', express.static(env.uploadsDir));
 
 app.use(notFoundHandler);
 app.use(errorHandler);

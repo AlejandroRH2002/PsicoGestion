@@ -1,0 +1,238 @@
+---
+import { SearchX, SquarePen, User, UserCheck, UserX } from '@lucide/astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+
+const datos = [
+  { clave: 'nombre', etiqueta: 'Nombre Completo' },
+  { clave: 'fechaNacimiento', etiqueta: 'Fecha de Nacimiento' },
+  { clave: 'telefono', etiqueta: 'Teléfono de Contacto' },
+  { clave: 'cedula', etiqueta: 'Cédula Profesional' },
+  { clave: 'correo', etiqueta: 'Correo Electrónico Institucional', ancho: true },
+];
+---
+<AppLayout title="Ficha del Terapeuta" activo="terapeutas" volverHref="/terapeutas" volverEtiqueta="Volver a la lista">
+  <div id="cargando" class="w-full max-w-[720px] h-[420px] rounded-2xl bg-white animate-pulse" aria-label="Cargando"></div>
+
+  <div id="no-encontrado" class="hidden flex-col items-center gap-3 w-full max-w-[720px] p-10 bg-white rounded-2xl text-center">
+    <SearchX class="size-10 text-[#64748B]" />
+    <h2 class="text-lg font-bold">Terapeuta no encontrado</h2>
+    <p class="text-sm text-[#64748B]">Es posible que el enlace sea incorrecto.</p>
+    <a href="/terapeutas" class="text-sm font-semibold text-[#0D9488] hover:underline">Volver a la lista</a>
+  </div>
+
+  <div id="error-carga" class="hidden flex-col items-center gap-3 w-full max-w-[720px] p-10 bg-white rounded-2xl text-center">
+    <h2 class="text-lg font-bold">No se pudo cargar la ficha</h2>
+    <p class="text-sm text-[#64748B]">Verifica tu conexión e intenta de nuevo.</p>
+    <button type="button" id="reintentar" class="text-sm font-semibold text-[#0D9488] hover:underline cursor-pointer">Reintentar</button>
+  </div>
+
+  <!-- RF 2.2.1-2.2.2: ficha con todos los datos del terapeuta -->
+  <article
+    id="ficha"
+    class="hidden flex-col gap-8 w-full max-w-[720px] shrink-0 p-6 sm:p-10 bg-white rounded-2xl shadow-[0px_4px_12px_rgba(15,23,42,0.03)]"
+  >
+    <div id="aviso" role="status" class="hidden text-sm rounded-lg px-3.5 py-2.5"></div>
+
+    <header class="flex flex-col sm:flex-row sm:items-center gap-6">
+      <span class="relative flex items-center justify-center size-24 shrink-0 rounded-full bg-[#CCFBF1] text-[#0D9488] overflow-hidden">
+        <User class="size-12" />
+        <img id="ficha-foto" alt="" class="hidden absolute inset-0 size-full object-cover" />
+      </span>
+      <div class="flex flex-col gap-2 min-w-0">
+        <h2 id="ficha-titulo" class="text-2xl font-extrabold text-[#0F172A] break-words"></h2>
+        <div class="flex flex-wrap items-center gap-3">
+          <span id="ficha-estado" class="px-2.5 py-1 rounded-md text-xs font-bold"></span>
+          <span id="ficha-id" class="text-sm text-[#64748B]"></span>
+        </div>
+      </div>
+    </header>
+
+    <hr class="border-[#E2E8F0]" />
+
+    <section class="flex flex-col gap-6">
+      <h3 class="text-base font-bold text-[#0F172A]">Información Personal</h3>
+      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+        {datos.map(({ clave, etiqueta, ancho }) => (
+          <div class={`flex flex-col gap-1.5 min-w-0 ${ancho ? 'sm:col-span-2' : ''}`}>
+            <dt class="text-[13px] font-medium text-[#64748B]">{etiqueta}</dt>
+            <dd data-dato={clave} class="text-[15px] font-semibold text-[#0F172A] break-words"></dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+
+    <hr class="border-[#E2E8F0]" />
+
+    <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+      <button
+        type="button"
+        id="estado-btn"
+        class="flex items-center justify-center gap-2 px-6 py-3 bg-white border rounded-lg text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        <span data-con="activo" class="contents"><UserX class="size-[18px]" /> Dar de baja</span>
+        <span data-con="inactivo" class="hidden"><UserCheck class="size-[18px]" /> Reactivar</span>
+      </button>
+      <a
+        id="editar-btn"
+        href="#"
+        class="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-[#0D9488] rounded-lg text-sm font-semibold text-[#0D9488] hover:bg-[#CCFBF1]/40 transition-colors"
+      >
+        <SquarePen class="size-[18px]" />
+        Editar Perfil
+      </a>
+    </div>
+  </article>
+
+  <!-- Confirmación de baja lógica: el terapeuta no se elimina. -->
+  <dialog
+    id="confirmar-baja"
+    class="m-auto w-[calc(100%-2rem)] max-w-[440px] p-0 rounded-2xl backdrop:bg-[#0F172A]/40 shadow-xl"
+  >
+    <form method="dialog" class="flex flex-col gap-4 p-6">
+      <h2 class="text-lg font-bold text-[#0F172A]">¿Dar de baja a <span id="baja-nombre"></span>?</h2>
+      <p class="text-sm text-[#64748B]">
+        El terapeuta dejará de aparecer en la lista de activos. Su información e historial se conservan y
+        puedes reactivarlo en cualquier momento.
+      </p>
+      <div class="flex justify-end gap-3">
+        <button value="cancelar" class="px-5 py-2.5 border border-[#E2E8F0] rounded-lg text-sm font-semibold text-[#334155] hover:bg-[#F4F7F6] cursor-pointer">
+          Cancelar
+        </button>
+        <button value="confirmar" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold text-white cursor-pointer">
+          Dar de baja
+        </button>
+      </div>
+    </form>
+  </dialog>
+</AppLayout>
+
+<script>
+  import {
+    cambiarEstado,
+    formatearFecha,
+    formatearFechaHora,
+    formatearId,
+    formatearTelefono,
+    obtenerTerapeuta,
+    urlFoto,
+    type Terapeuta,
+  } from '../../utils/terapeuta';
+
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const ficha = document.getElementById('ficha')!;
+  const aviso = document.getElementById('aviso')!;
+  const estadoBtn = document.getElementById('estado-btn') as HTMLButtonElement;
+  const dialogo = document.getElementById('confirmar-baja') as HTMLDialogElement;
+  let terapeuta: Terapeuta;
+
+  function mostrar(seccion: 'ficha' | 'no-encontrado' | 'error-carga'): void {
+    document.getElementById('cargando')?.classList.add('hidden');
+    for (const s of ['ficha', 'no-encontrado', 'error-carga']) {
+      const el = document.getElementById(s)!;
+      el.classList.toggle('hidden', s !== seccion);
+      el.classList.toggle('flex', s === seccion);
+    }
+  }
+
+  function mostrarAviso(texto: string, tipo: 'error' | 'success'): void {
+    aviso.textContent = texto;
+    aviso.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700');
+    aviso.classList.add(...(tipo === 'error' ? ['bg-red-50', 'text-red-700'] : ['bg-green-50', 'text-green-700']));
+  }
+
+  function pintar(t: Terapeuta): void {
+    terapeuta = t;
+    document.title = `${t.nombre} - PsicoGestión UADY`;
+    document.getElementById('ficha-titulo')!.textContent = t.nombre;
+    document.getElementById('ficha-id')!.textContent = `ID: ${formatearId(t.id)}`;
+    document.getElementById('baja-nombre')!.textContent = t.nombre;
+    document.getElementById('editar-btn')!.setAttribute('href', `/terapeutas/editar?id=${t.id}`);
+
+    const foto = document.getElementById('ficha-foto') as HTMLImageElement;
+    const src = urlFoto(t);
+    if (src) foto.src = src;
+    foto.classList.toggle('hidden', !src);
+    foto.alt = `Foto de ${t.nombre}`;
+
+    const valores: Record<string, string> = {
+      nombre: t.nombre,
+      fechaNacimiento: formatearFecha(t.fechaNacimiento),
+      telefono: formatearTelefono(t.telefono),
+      cedula: t.cedula,
+      correo: t.correo,
+    };
+    document.querySelectorAll<HTMLElement>('[data-dato]').forEach((el) => {
+      el.textContent = valores[el.dataset.dato!];
+    });
+
+    const estado = document.getElementById('ficha-estado')!;
+    estado.textContent = t.activo ? 'TERAPEUTA ACTIVO' : `DADO DE BAJA${t.fechaBaja ? ` · ${formatearFechaHora(t.fechaBaja)}` : ''}`;
+    estado.className = `px-2.5 py-1 rounded-md text-xs font-bold ${t.activo ? 'bg-[#CCFBF1] text-[#0D9488]' : 'bg-red-50 text-red-700'}`;
+
+    estadoBtn.classList.toggle('border-red-300', t.activo);
+    estadoBtn.classList.toggle('text-red-600', t.activo);
+    estadoBtn.classList.toggle('hover:bg-red-50', t.activo);
+    estadoBtn.classList.toggle('border-[#E2E8F0]', !t.activo);
+    estadoBtn.classList.toggle('text-[#334155]', !t.activo);
+    estadoBtn.classList.toggle('hover:bg-[#F4F7F6]', !t.activo);
+    estadoBtn.querySelectorAll<HTMLElement>('[data-con]').forEach((el) => {
+      const visible = (el.dataset.con === 'activo') === t.activo;
+      el.classList.toggle('hidden', !visible);
+      el.classList.toggle('contents', visible);
+    });
+  }
+
+  async function cargar(): Promise<void> {
+    try {
+      const t = await obtenerTerapeuta(id);
+      if (!t) {
+        mostrar('no-encontrado');
+        return;
+      }
+      pintar(t);
+      mostrar('ficha');
+    } catch {
+      mostrar('error-carga');
+    }
+  }
+
+  async function aplicarEstado(activo: boolean): Promise<void> {
+    estadoBtn.disabled = true;
+    try {
+      pintar(await cambiarEstado(terapeuta.id, activo));
+      mostrarAviso(activo ? 'Terapeuta reactivado.' : 'Terapeuta dado de baja. Ya no aparece en la lista de activos.', 'success');
+    } catch {
+      mostrarAviso('No se pudo cambiar el estado. Verifica tu conexión e intenta de nuevo.', 'error');
+    } finally {
+      estadoBtn.disabled = false;
+    }
+  }
+
+  estadoBtn.addEventListener('click', () => {
+    if (terapeuta.activo) {
+      dialogo.returnValue = ''; // Cerrar con Esc no debe reusar una confirmación anterior.
+      dialogo.showModal();
+    }
+    else aplicarEstado(true);
+  });
+
+  dialogo.addEventListener('close', () => {
+    if (dialogo.returnValue === 'confirmar') aplicarEstado(false);
+  });
+
+  document.getElementById('reintentar')?.addEventListener('click', () => {
+    document.getElementById('cargando')?.classList.remove('hidden');
+    document.getElementById('error-carga')?.classList.add('hidden');
+    cargar();
+  });
+
+  // Aviso tras registrar o editar; se limpia de la URL para no repetirlo al recargar.
+  if (params.has('registrado')) mostrarAviso('Terapeuta registrado correctamente.', 'success');
+  if (params.has('actualizado')) mostrarAviso('Cambios guardados correctamente.', 'success');
+  if (params.has('registrado') || params.has('actualizado')) {
+    window.history.replaceState(null, '', `${window.location.pathname}?id=${id}`);
+  }
+
+  cargar();
+</script>
