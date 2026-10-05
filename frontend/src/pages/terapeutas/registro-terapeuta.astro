@@ -1,13 +1,14 @@
 ---
-import DasboardLayout from '../../layouts/DasboardLayout.astro';
+import AppLayout from '../../layouts/AppLayout.astro';
 import PhotoDropzone from '../../components/PhotoDropzone.astro';
 import FormField from '../../components/FormField.astro';
 ---
 
-<DasboardLayout 
+<AppLayout 
   title="Registrar Nuevo Terapeuta"
-  backUrl="/terapeutas"
-  backText="Volver a terapeutas"
+  activo="terapeutas"
+  volverHref="/terapeutas"
+  volverEtiqueta="Volver a terapeutas"
 >
   <div class="max-w-3xl mx-auto bg-white rounded-2xl border border-border-input p-8 md:p-10 shadow-xs">
     <div class="mb-8">
@@ -325,4 +326,4 @@ import FormField from '../../components/FormField.astro';
       }
     });
   </script>
-</DasboardLayout>
+</AppLayout>

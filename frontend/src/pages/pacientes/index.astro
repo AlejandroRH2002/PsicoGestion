@@ -1,24 +1,23 @@
 ---
-import DasboardLayout from '../../layouts/DasboardLayout.astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+import { Plus } from '@lucide/astro';
 ---
 
-<DasboardLayout
-  title="Pacientes"
-  headerTitle="Pacientes"
-  subtitle="Consulta y edición de pacientes"
->
-  <div class="max-w-6xl mx-auto space-y-6">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h2 class="text-2xl font-bold text-title">Listado de pacientes</h2>
-        <p class="text-sm text-subtext">Consulta la información registrada y edita los datos en cualquier momento.</p>
-      </div>
-      <a
-        href="/pacientes/registro-paciente"
-        class="inline-flex items-center justify-center rounded-xl bg-brand-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-teal-hover transition-colors"
-      >
-        Registrar paciente
-      </a>
+<AppLayout title="Pacientes" activo="pacientes">
+  <Fragment slot="acciones">
+    <a
+      href="/pacientes/registro-paciente"
+      class="flex items-center gap-2 h-10 px-4 rounded-lg bg-[#006847] hover:bg-[#005238] text-white text-sm font-semibold transition-colors"
+    >
+      <Plus class="size-4" />
+      <span>Registrar Paciente</span>
+    </a>
+  </Fragment>
+
+  <div class="w-full max-w-6xl space-y-6">
+    <div class="flex flex-col gap-1">
+      <h2 class="text-xl font-bold text-[#0F172A]">Listado de pacientes</h2>
+      <p class="text-sm text-[#64748B]">Consulta la información registrada y edita los datos en cualquier momento.</p>
     </div>
 
     <div class="rounded-2xl border border-border-input bg-white shadow-xs overflow-hidden">
@@ -99,4 +98,4 @@ import DasboardLayout from '../../layouts/DasboardLayout.astro';
 
     loadPatients();
   </script>
-</DasboardLayout>
+</AppLayout>

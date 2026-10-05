@@ -1,5 +1,5 @@
 ---
-import { Bell, BellOff, CheckCheck } from 'lucide-astro';
+import { Bell, BellOff, CheckCheck } from '@lucide/astro';
 
 export interface NotificationItem {
   id: string;
@@ -21,38 +21,38 @@ const { class: className = '' } = Astro.props;
   <button 
     type="button" 
     id="notification-bell-btn"
-    class="p-2.5 rounded-full text-subtext hover:bg-slate-100 hover:text-title transition-all relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-uady-green/30"
+    class="flex items-center justify-center size-10 rounded-full bg-[#F4F7F6] text-[#0F172A] hover:bg-[#E2E8F0] transition-colors relative cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#006847]/30"
     aria-label="Centro de notificaciones"
     aria-expanded="false"
     aria-haspopup="true"
   >
-    <Bell class="w-5 h-5 transition-transform duration-150" />
+    <Bell class="size-[18px] transition-transform duration-150" />
     
     <!-- Indicador Verde Iluminado: SOLO se muestra si hay notificaciones sin leer -->
     <span 
       id="notification-badge" 
-      class="absolute top-2 right-2 hidden h-2.5 w-2.5"
+      class="absolute top-1.5 right-1.5 hidden size-2.5"
       aria-hidden="true"
     >
       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-      <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 ring-2 ring-white shadow-xs"></span>
+      <span class="relative inline-flex rounded-full size-2.5 bg-emerald-500 ring-2 ring-white shadow-xs"></span>
     </span>
   </button>
 
   <!-- Menú Desplegable -->
   <div 
     id="notification-dropdown"
-    class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-border-input overflow-hidden z-50 transform origin-top-right transition-all duration-150"
+    class="hidden absolute right-0 mt-3 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] overflow-hidden z-50 transform origin-top-right transition-all duration-150 opacity-0 scale-95"
     role="region"
     aria-label="Notificaciones"
   >
     <!-- Cabecera -->
-    <div class="px-5 py-3.5 border-b border-border-input flex items-center justify-between bg-slate-50/80">
+    <div class="px-5 py-3.5 border-b border-[#E2E8F0] flex items-center justify-between bg-slate-50/80">
       <div class="flex items-center gap-2">
-        <h3 class="text-sm font-bold text-title">Notificaciones</h3>
+        <h3 class="text-sm font-bold text-[#0F172A]">Notificaciones</h3>
         <span 
           id="notif-count-badge" 
-          class="hidden px-2 py-0.5 text-[11px] font-bold bg-emerald-100 text-uady-green rounded-full border border-emerald-200"
+          class="hidden px-2 py-0.5 text-[11px] font-bold bg-[#DCFCE7] text-[#006847] rounded-full border border-emerald-200"
         >
           0 nuevas
         </span>
@@ -61,21 +61,21 @@ const { class: className = '' } = Astro.props;
       <button 
         type="button" 
         id="notif-mark-all-read" 
-        class="text-xs font-semibold text-subtext hover:text-uady-green transition-colors cursor-pointer flex items-center gap-1 disabled:opacity-40 disabled:cursor-not-allowed"
+        class="text-xs font-semibold text-[#64748B] hover:text-[#006847] transition-colors cursor-pointer flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
         disabled
       >
-        <CheckCheck class="w-3.5 h-3.5" />
+        <CheckCheck class="size-3.5" />
         <span>Marcar leídas</span>
       </button>
     </div>
 
     <!-- Estado Vacío (Mensaje cuando no hay notificaciones nuevas) -->
     <div id="notif-empty-state" class="py-10 px-6 flex flex-col items-center justify-center text-center">
-      <div class="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3 ring-4 ring-slate-50">
-        <BellOff class="w-6 h-6 text-slate-400" />
+      <div class="size-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3 ring-4 ring-slate-50">
+        <BellOff class="size-6 text-slate-400" />
       </div>
-      <h4 class="text-sm font-bold text-title">No hay notificaciones nuevas</h4>
-      <p class="text-xs text-subtext mt-1 max-w-[240px] leading-relaxed">
+      <h4 class="text-sm font-bold text-[#0F172A]">No hay notificaciones nuevas</h4>
+      <p class="text-xs text-[#64748B] mt-1 max-w-[240px] leading-relaxed">
         Estás al día. Te avisaremos cuando recibas nuevas solicitudes, citas o avisos institucionales.
       </p>
     </div>
@@ -99,6 +99,23 @@ const { class: className = '' } = Astro.props;
 
   const NOTIF_STORAGE_KEY = 'psico_notifications';
 
+  const DEFAULT_NOTIFICATIONS: NotificationData[] = [
+    {
+      id: 'notif-1',
+      title: 'Bienvenida a PsicoGestión',
+      message: 'Sesión iniciada correctamente en el sistema institucional de la Facultad de Psicología.',
+      time: 'Hoy',
+      unread: true,
+    },
+    {
+      id: 'notif-2',
+      title: 'Módulos Activos',
+      message: 'La gestión de terapeutas y pacientes se encuentra activa y sincronizada con la base de datos.',
+      time: 'Hoy',
+      unread: true,
+    },
+  ];
+
   function setupNotificationCenter(): void {
     const container = document.getElementById('notification-center-container');
     const bellBtn = document.getElementById('notification-bell-btn') as HTMLButtonElement | null;
@@ -112,15 +129,15 @@ const { class: className = '' } = Astro.props;
 
     if (!container || !bellBtn || !badge || !dropdown || !emptyState || !listState || !itemsList) return;
 
-    // Obtener notificaciones reales sin inyecciones fijas
     function getStoredNotifications(): NotificationData[] {
       try {
         const raw = localStorage.getItem(NOTIF_STORAGE_KEY);
-        if (raw) return JSON.parse(raw);
+        if (raw !== null) return JSON.parse(raw);
+        saveNotifications(DEFAULT_NOTIFICATIONS);
+        return DEFAULT_NOTIFICATIONS;
       } catch {
-        // vacio por defecto
+        return [];
       }
-      return [];
     }
 
     function saveNotifications(notifs: NotificationData[]): void {
@@ -177,16 +194,16 @@ const { class: className = '' } = Astro.props;
         li.innerHTML = `
           <div class="mt-0.5 shrink-0">
             ${item.unread 
-              ? '<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100"></span>' 
-              : '<span class="inline-block w-2.5 h-2.5 rounded-full bg-slate-300"></span>'
+              ? '<span class="inline-block size-2.5 rounded-full bg-emerald-500 ring-2 ring-emerald-100"></span>' 
+              : '<span class="inline-block size-2.5 rounded-full bg-slate-300"></span>'
             }
           </div>
           <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between gap-2 mb-1">
-              <h5 class="text-xs font-bold text-title truncate ${item.unread ? 'text-title' : 'text-slate-600'}">${escapeHtml(item.title)}</h5>
+              <h5 class="text-xs font-bold text-[#0F172A] truncate ${item.unread ? 'text-[#0F172A]' : 'text-slate-600'}">${escapeHtml(item.title)}</h5>
               <span class="text-[10px] text-slate-400 font-medium whitespace-nowrap">${escapeHtml(item.time)}</span>
             </div>
-            <p class="text-xs text-subtext leading-relaxed line-clamp-2">${escapeHtml(item.message)}</p>
+            <p class="text-xs text-[#64748B] leading-relaxed line-clamp-2">${escapeHtml(item.message)}</p>
           </div>
         `;
 
@@ -268,20 +285,6 @@ const { class: className = '' } = Astro.props;
 
     // Render inicial
     renderNotifications();
-
-    // API global para que otras partes de la app envíen notificaciones reales
-    (window as any).addPsicoNotification = (title: string, message: string) => {
-      const current = getStoredNotifications();
-      const notif: NotificationData = {
-        id: 'notif-' + Date.now(),
-        title,
-        message,
-        time: 'Justo ahora',
-        unread: true
-      };
-      saveNotifications([notif, ...current]);
-      renderNotifications();
-    };
   }
 
   if (document.readyState === 'loading') {

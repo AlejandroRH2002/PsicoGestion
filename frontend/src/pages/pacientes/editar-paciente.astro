@@ -1,24 +1,21 @@
 ---
-import DasboardLayout from '../../layouts/DasboardLayout.astro';
+import AppLayout from '../../layouts/AppLayout.astro';
 import FormField from '../../components/FormField.astro';
 import SelectField from '../../components/SelectField.astro';
-
 const sexOptions = [
   { value: 'F', label: 'Femenino' },
   { value: 'M', label: 'Masculino' },
   { value: 'O', label: 'Otro' },
 ];
-
-const patientId = Astro.url.searchParams.get('id') ?? '';
 ---
 
-<DasboardLayout
-  title="Editar paciente"
-  backUrl="/pacientes"
-  backText="Volver a pacientes"
-  showBack={true}
+<AppLayout
+  title="Editar Paciente"
+  activo="pacientes"
+  volverHref="/pacientes"
+  volverEtiqueta="Volver a pacientes"
 >
-  <div class="max-w-3xl mx-auto bg-white rounded-2xl border border-border-input p-8 md:p-10 shadow-xs">
+  <div class="w-full max-w-3xl bg-white rounded-2xl border border-border-input p-8 md:p-10 shadow-xs">
     <div class="mb-8">
       <h3 class="text-xl font-bold text-title">Editar datos del paciente</h3>
       <p class="text-sm text-subtext mt-1">Actualiza la información del paciente y guarda los cambios.</p>
@@ -50,7 +47,8 @@ const patientId = Astro.url.searchParams.get('id') ?? '';
     </form>
   </div>
 
-  <script define:vars={{ patientId }}>
+  <script>
+    const patientId = new URLSearchParams(window.location.search).get('id') ?? '';
     const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
     const form = document.getElementById('patient-form');
     const fullNameInput = document.getElementById('fullName');
@@ -159,6 +157,50 @@ const patientId = Astro.url.searchParams.get('id') ?? '';
       return `${day}/${month}/${year}`;
     }
 
+    function validateBirthDate(birthDateStr) {
+      const parts = birthDateStr.split('/');
+      if (parts.length !== 3) {
+        return { valid: false, message: 'Ingrese una fecha válida en formato dd/mm/aaaa.' };
+      }
+
+      const day = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10) - 1;
+      const year = parseInt(parts[2], 10);
+
+      const currentYear = new Date().getFullYear();
+      if (isNaN(year) || year < 1900 || year > currentYear) {
+        return { valid: false, message: 'El año de nacimiento no es válido.' };
+      }
+
+      const birthDate = new Date(year, month, day);
+      if (
+        birthDate.getFullYear() !== year ||
+        birthDate.getMonth() !== month ||
+        birthDate.getDate() !== day
+      ) {
+        return { valid: false, message: 'La fecha ingresada no existe en el calendario.' };
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (birthDate >= today) {
+        return { valid: false, message: 'La fecha de nacimiento debe ser anterior a la fecha actual.' };
+      }
+
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      if (age < 7) {
+        return { valid: false, message: 'El paciente debe tener al menos 7 años cumplidos.' };
+      }
+
+      return { valid: true };
+    }
+
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
       if (statusBanner) {
@@ -176,9 +218,18 @@ const patientId = Astro.url.searchParams.get('id') ?? '';
       if (!fullNameVal) {
         showError('fullName', 'El nombre completo es obligatorio.');
         hasErrors = true;
+      } else if (fullNameVal.length < 3) {
+        showError('fullName', 'El nombre completo debe tener al menos 3 caracteres.');
+        hasErrors = true;
+      } else if (fullNameVal.length > 50) {
+        showError('fullName', 'El nombre completo no puede exceder 50 caracteres.');
+        hasErrors = true;
       }
 
-      if (!curpVal || curpVal.length !== 18 || !/^[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d$/.test(curpVal)) {
+      if (!curpVal) {
+        showError('curp', 'La CURP es obligatoria.');
+        hasErrors = true;
+      } else if (curpVal.length !== 18 || !/^[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]\d$/.test(curpVal)) {
         showError('curp', 'Ingresa una CURP oficial válida de 18 caracteres.');
         hasErrors = true;
       }
@@ -188,20 +239,21 @@ const patientId = Astro.url.searchParams.get('id') ?? '';
         hasErrors = true;
       }
 
-      if (!birthDateVal || !/^\d{2}\/\d{2}\/\d{4}$/.test(birthDateVal)) {
-        showError('birthDate', 'Ingrese una fecha válida en formato dd/mm/aaaa.');
+      if (!birthDateVal) {
+        showError('birthDate', 'La fecha de nacimiento es obligatoria.');
         hasErrors = true;
       } else {
-        const [day, month, year] = birthDateVal.split('/').map(Number);
-        const date = new Date(year, month - 1, day);
-        const today = new Date();
-        if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day || date >= today) {
-          showError('birthDate', 'La fecha de nacimiento debe ser anterior a la fecha actual.');
+        const dateCheck = validateBirthDate(birthDateVal);
+        if (!dateCheck.valid) {
+          showError('birthDate', dateCheck.message ?? 'Fecha de nacimiento inválida.');
           hasErrors = true;
         }
       }
 
-      if (!phoneVal || phoneVal.length !== 10) {
+      if (!phoneVal) {
+        showError('phone', 'El teléfono es obligatorio.');
+        hasErrors = true;
+      } else if (phoneVal.length !== 10) {
         showError('phone', 'Debe contener un número telefónico válido de 10 dígitos.');
         hasErrors = true;
       }
@@ -266,4 +318,4 @@ const patientId = Astro.url.searchParams.get('id') ?? '';
 
     loadPatient();
   </script>
-</DasboardLayout>
+</AppLayout>
