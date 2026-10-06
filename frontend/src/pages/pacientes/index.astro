@@ -1,6 +1,6 @@
 ---
+import { Plus, Search, UsersRound } from '@lucide/astro';
 import AppLayout from '../../layouts/AppLayout.astro';
-import { Plus } from '@lucide/astro';
 ---
 
 <AppLayout title="Pacientes" activo="pacientes">
@@ -17,11 +17,26 @@ import { Plus } from '@lucide/astro';
   <div class="w-full max-w-6xl space-y-6">
     <div class="flex flex-col gap-1">
       <h2 class="text-xl font-bold text-[#0F172A]">Listado de pacientes</h2>
-      <p class="text-sm text-[#64748B]">Consulta la información registrada y edita los datos en cualquier momento.</p>
+      <p class="text-sm text-[#64748B]">Consulta la información registrada y localiza pacientes por nombre, CURP o teléfono.</p>
     </div>
 
-    <div class="rounded-2xl border border-border-input bg-white shadow-xs overflow-hidden">
-      <div id="status-banner" class="hidden border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm text-subtext"></div>
+    <div class="flex items-center p-4 bg-white border border-[#E2E8F0] rounded-xl">
+      <label class="flex flex-1 items-center gap-2.5 min-w-0 px-3.5 py-2.5 bg-[#F4F7F6] rounded-lg focus-within:ring-2 focus-within:ring-[#0D9488]/20">
+        <Search class="size-[18px] shrink-0 text-[#64748B]" />
+        <span class="sr-only">Buscar pacientes</span>
+        <input
+          id="busqueda-pacientes"
+          type="search"
+          maxlength="50"
+          autocomplete="off"
+          placeholder="Buscar por nombre, CURP o teléfono…"
+          class="flex-1 min-w-0 bg-transparent text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none"
+        />
+      </label>
+    </div>
+
+    <div id="general-panel" class="rounded-2xl border border-border-input bg-white shadow-xs overflow-hidden">
+      <div id="status-banner" class="hidden border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm text-subtext" aria-live="polite"></div>
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-slate-200 text-left">
           <thead class="bg-slate-50 text-xs uppercase tracking-[0.08em] text-subtext">
@@ -38,64 +53,297 @@ import { Plus } from '@lucide/astro';
         </table>
       </div>
     </div>
+
+    <section id="search-panel" class="hidden flex-col gap-4" aria-busy="false" aria-labelledby="resultados-titulo">
+      <div class="flex items-center justify-between gap-4">
+        <h2 id="resultados-titulo" class="text-lg font-bold text-[#0F172A]">Resultados</h2>
+        <p id="resumen-resultados" class="hidden text-[13px] text-[#64748B]" aria-live="polite"></p>
+      </div>
+
+      <p id="estado-resultados" class="sr-only" aria-live="polite"></p>
+
+      <div id="estado-loading" class="hidden flex-col gap-4 p-6 bg-white border border-[#E2E8F0] rounded-xl" aria-hidden="true">
+        <p class="text-sm font-semibold text-[#334155]">Buscando…</p>
+        <div class="h-[92px] rounded-xl bg-[#F1F5F9] animate-pulse"></div>
+        <div class="h-[92px] rounded-xl bg-[#F1F5F9] animate-pulse"></div>
+      </div>
+
+      <div id="lista-pacientes" class="hidden grid-cols-1 gap-4"></div>
+
+      <div id="estado-vacio" class="hidden flex-col items-center gap-3 p-10 bg-white border border-[#E2E8F0] rounded-xl text-center">
+        <span class="flex items-center justify-center size-14 rounded-full bg-[#CCFBF1] text-[#0D9488]">
+          <UsersRound class="size-7" />
+        </span>
+        <p class="text-sm font-semibold text-[#334155]">Sin coincidencias</p>
+        <p id="vacio-texto" class="text-sm text-[#64748B]"></p>
+      </div>
+
+      <div id="estado-error" class="hidden flex-col items-center gap-3 p-10 bg-white border border-[#E2E8F0] rounded-xl text-center">
+        <p class="text-sm font-semibold text-[#334155]">No se pudo buscar pacientes.</p>
+        <p class="text-sm text-[#64748B]">La consulta se conserva para que puedas intentarlo de nuevo.</p>
+        <button
+          type="button"
+          id="reintentar-busqueda"
+          class="rounded-lg px-4 py-2 text-sm font-semibold text-[#0D9488] hover:bg-[#F4F7F6] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]/30 cursor-pointer"
+        >
+          Reintentar
+        </button>
+      </div>
+    </section>
   </div>
 
-  <script>
-    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
-    const tbody = document.getElementById('patients-table-body');
-    const statusBanner = document.getElementById('status-banner');
+  <template id="paciente-template">
+    <article class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 bg-white border border-[#E2E8F0] rounded-xl shadow-[0px_2px_4px_rgba(15,23,42,0.02)]">
+      <div class="flex items-start sm:items-center gap-4 min-w-0">
+        <span data-iniciales class="flex items-center justify-center size-14 shrink-0 rounded-full bg-[#CCFBF1] text-base font-extrabold text-[#0F172A]"></span>
+        <div class="flex flex-col gap-1.5 min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <span data-nombre class="text-base font-bold text-[#0F172A] break-words"></span>
+            <span data-baja class="hidden px-2 py-0.5 rounded-md bg-red-50 text-[11px] font-bold text-red-700">Dado de baja</span>
+          </div>
+          <span data-curp class="text-[13px] text-[#64748B] break-all"></span>
+          <span data-telefono class="text-[13px] text-[#64748B]"></span>
+        </div>
+      </div>
+      <a data-editar class="inline-flex items-center justify-center rounded-lg border border-border-input px-3 py-2 text-xs font-semibold text-title hover:bg-slate-50 transition-colors">
+        Editar
+      </a>
+    </article>
+  </template>
 
-    async function loadPatients() {
+  <script>
+    import { buscarPacientes, type PatientSearchItem } from '../../utils/paciente';
+    import { API_URL } from '../../utils/sesion';
+
+    const DEBOUNCE_MS = 300;
+
+    interface PacienteListado {
+      id_paciente: number;
+      nombre_completo: string;
+      curp: string;
+      sexo: string;
+      fecha_nacimiento: string | null;
+      telefono: string;
+    }
+
+    type Seccion = 'loading' | 'lista' | 'vacio' | 'error';
+
+    const busqueda = document.getElementById('busqueda-pacientes') as HTMLInputElement;
+    const generalPanel = document.getElementById('general-panel')!;
+    const searchPanel = document.getElementById('search-panel')!;
+    const tbody = document.getElementById('patients-table-body')!;
+    const statusBanner = document.getElementById('status-banner')!;
+    const resumen = document.getElementById('resumen-resultados')!;
+    const estado = document.getElementById('estado-resultados')!;
+    const loading = document.getElementById('estado-loading')!;
+    const lista = document.getElementById('lista-pacientes')!;
+    const vacio = document.getElementById('estado-vacio')!;
+    const error = document.getElementById('estado-error')!;
+    const vacioTexto = document.getElementById('vacio-texto')!;
+    const reintentar = document.getElementById('reintentar-busqueda') as HTMLButtonElement;
+    const plantilla = document.getElementById('paciente-template') as HTMLTemplateElement;
+
+    let espera: number | undefined;
+    let peticion = 0;
+
+    function crearCelda(texto: string, clases = 'px-5 py-4'): HTMLTableCellElement {
+      const celda = document.createElement('td');
+      celda.className = clases;
+      celda.textContent = texto;
+      return celda;
+    }
+
+    function renderPatients(pacientes: PacienteListado[]): void {
+      tbody.replaceChildren();
+
+      if (pacientes.length === 0) {
+        const fila = document.createElement('tr');
+        const celda = crearCelda('No hay pacientes registrados todavía.', 'px-5 py-8 text-center text-subtext');
+        celda.colSpan = 6;
+        fila.append(celda);
+        tbody.append(fila);
+        return;
+      }
+
+      for (const paciente of pacientes) {
+        const fila = document.createElement('tr');
+        fila.className = 'hover:bg-slate-50';
+        fila.append(
+          crearCelda(paciente.nombre_completo, 'px-5 py-4 font-medium'),
+          crearCelda(paciente.curp),
+          crearCelda(paciente.sexo),
+          crearCelda(paciente.fecha_nacimiento || '-'),
+          crearCelda(paciente.telefono)
+        );
+
+        const acciones = crearCelda('', 'px-5 py-4 text-right');
+        const editar = document.createElement('a');
+        editar.href = `/pacientes/editar-paciente?id=${paciente.id_paciente}`;
+        editar.className = 'inline-flex items-center rounded-lg border border-border-input px-3 py-2 text-xs font-semibold text-title hover:bg-slate-50 transition-colors';
+        editar.textContent = 'Editar';
+        acciones.append(editar);
+        fila.append(acciones);
+        tbody.append(fila);
+      }
+    }
+
+    async function loadPatients(): Promise<void> {
+      statusBanner.textContent = 'Cargando pacientes…';
+      statusBanner.className = 'block border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm text-subtext';
+
       try {
         const response = await fetch(`${API_URL}/pacientes`, {
           method: 'GET',
           credentials: 'include',
         });
-
         const result = await response.json().catch(() => ({}));
-        if (!response.ok) {
-          throw new Error(result?.error || 'No se pudo cargar la lista de pacientes.');
-        }
+        if (!response.ok) throw new Error(result?.error || 'No se pudo cargar la lista de pacientes.');
 
         renderPatients(result.pacientes || []);
+        statusBanner.className = 'hidden';
       } catch (err) {
-        if (statusBanner) {
-          statusBanner.textContent = err instanceof Error ? err.message : 'Ocurrió un error inesperado.';
-          statusBanner.className = 'block border-b border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700';
-        }
+        statusBanner.textContent = err instanceof Error ? err.message : 'Ocurrió un error inesperado.';
+        statusBanner.className = 'block border-b border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700';
       }
     }
 
-    function renderPatients(patients) {
-      if (!tbody) return;
+    function consultaActual(): string {
+      return busqueda.value.trim();
+    }
 
-      if (!patients.length) {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="6" class="px-5 py-8 text-center text-subtext">
-              No hay pacientes registrados todavía.
-            </td>
-          </tr>
-        `;
+    function cancelarDebounce(): void {
+      window.clearTimeout(espera);
+      espera = undefined;
+    }
+
+    function mostrar(seccion: Seccion): void {
+      const elementos: Array<[HTMLElement, Seccion, 'flex' | 'grid']> = [
+        [loading, 'loading', 'flex'],
+        [lista, 'lista', 'grid'],
+        [vacio, 'vacio', 'flex'],
+        [error, 'error', 'flex'],
+      ];
+
+      for (const [elemento, nombre, display] of elementos) {
+        const activo = nombre === seccion;
+        elemento.classList.toggle('hidden', !activo);
+        elemento.classList.toggle(display, activo);
+        if (nombre === 'loading') elemento.setAttribute('aria-hidden', String(!activo));
+      }
+
+      searchPanel.setAttribute('aria-busy', String(seccion === 'loading'));
+      resumen.classList.toggle('hidden', seccion !== 'lista');
+    }
+
+    function restaurarListado(): void {
+      cancelarDebounce();
+      peticion += 1;
+      lista.replaceChildren();
+      resumen.textContent = '';
+      estado.textContent = 'Búsqueda limpia. Se muestra el listado general.';
+      searchPanel.classList.add('hidden');
+      searchPanel.classList.remove('flex');
+      generalPanel.classList.remove('hidden');
+    }
+
+    function iniciales(nombre: string): string {
+      return nombre
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((parte) => parte[0]?.toUpperCase() ?? '')
+        .join('');
+    }
+
+    function ultimosCuatro(valor: string): string {
+      return valor.trim().slice(-4);
+    }
+
+    function tarjeta(paciente: PatientSearchItem): DocumentFragment {
+      const nodo = plantilla.content.cloneNode(true) as DocumentFragment;
+      const articulo = nodo.querySelector('article')!;
+      const curp = ultimosCuatro(paciente.curpUltimos4);
+      const telefono = ultimosCuatro(paciente.telefonoUltimos4);
+
+      articulo.classList.toggle('opacity-75', !paciente.activo);
+      articulo.setAttribute('aria-label', `${paciente.nombre}${paciente.activo ? '' : ', dado de baja'}`);
+      nodo.querySelector('[data-iniciales]')!.textContent = iniciales(paciente.nombre);
+      nodo.querySelector('[data-nombre]')!.textContent = paciente.nombre;
+      nodo.querySelector('[data-curp]')!.textContent = `CURP ••••••••••••••${curp}`;
+      nodo.querySelector('[data-telefono]')!.textContent = `Tel. ••• ••• ${telefono}`;
+      nodo.querySelector('[data-baja]')!.classList.toggle('hidden', paciente.activo);
+      (nodo.querySelector('[data-editar]') as HTMLAnchorElement).href = `/pacientes/editar-paciente?id=${paciente.id}`;
+      return nodo;
+    }
+
+    async function ejecutarBusqueda(consulta: string): Promise<void> {
+      const q = consulta.trim();
+      cancelarDebounce();
+      if (!q) {
+        restaurarListado();
         return;
       }
 
-      tbody.innerHTML = patients.map((paciente) => `
-        <tr class="hover:bg-slate-50">
-          <td class="px-5 py-4 font-medium">${paciente.nombre_completo}</td>
-          <td class="px-5 py-4">${paciente.curp}</td>
-          <td class="px-5 py-4">${paciente.sexo}</td>
-          <td class="px-5 py-4">${paciente.fecha_nacimiento || '-'}</td>
-          <td class="px-5 py-4">${paciente.telefono}</td>
-          <td class="px-5 py-4 text-right">
-            <a href="/pacientes/editar-paciente?id=${paciente.id_paciente}" class="inline-flex items-center rounded-lg border border-border-input px-3 py-2 text-xs font-semibold text-title hover:bg-slate-50 transition-colors">
-              Editar
-            </a>
-          </td>
-        </tr>
-      `).join('');
+      const actual = ++peticion;
+      generalPanel.classList.add('hidden');
+      searchPanel.classList.remove('hidden');
+      searchPanel.classList.add('flex');
+      estado.textContent = 'Buscando…';
+      mostrar('loading');
+
+      try {
+        const pacientes = await buscarPacientes(q);
+        if (actual !== peticion) return;
+
+        if (pacientes.length === 0) {
+          vacioTexto.textContent = `No hay pacientes que coincidan con «${q}».`;
+          estado.textContent = vacioTexto.textContent;
+          mostrar('vacio');
+          return;
+        }
+
+        lista.replaceChildren(...pacientes.map(tarjeta));
+        resumen.textContent = `${pacientes.length} coincidencia${pacientes.length === 1 ? '' : 's'}`;
+        estado.textContent = `${pacientes.length} coincidencia${pacientes.length === 1 ? '' : 's'} encontrada${pacientes.length === 1 ? '' : 's'}.`;
+        mostrar('lista');
+      } catch {
+        if (actual !== peticion) return;
+        estado.textContent = 'No se pudo buscar pacientes.';
+        mostrar('error');
+      }
     }
 
-    loadPatients();
+    busqueda.addEventListener('input', () => {
+      cancelarDebounce();
+      const q = consultaActual();
+      peticion += 1;
+
+      if (!q) {
+        restaurarListado();
+        return;
+      }
+
+      espera = window.setTimeout(() => void ejecutarBusqueda(q), DEBOUNCE_MS);
+    });
+
+    busqueda.addEventListener('search', () => {
+      if (!consultaActual()) restaurarListado();
+    });
+
+    busqueda.addEventListener('keydown', (evento) => {
+      if (evento.key === 'Enter') {
+        evento.preventDefault();
+        void ejecutarBusqueda(consultaActual());
+      } else if (evento.key === 'Escape') {
+        evento.preventDefault();
+        busqueda.value = '';
+        restaurarListado();
+      }
+    });
+
+    reintentar.addEventListener('click', () => void ejecutarBusqueda(consultaActual()));
+
+    void loadPatients();
   </script>
 </AppLayout>
