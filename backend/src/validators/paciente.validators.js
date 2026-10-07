@@ -42,6 +42,28 @@ export function parsePacienteId(value) {
   return null;
 }
 
+const QUERY_MAX = 50;
+
+/** Valida el término opcional del buscador rápido. */
+export function validateBusquedaPacientes(query = {}) {
+  const q = typeof query.q === 'string' ? query.q.trim() : '';
+  const errors = [];
+
+  if (q.length > QUERY_MAX) {
+    errors.push({ field: 'q', message: `La búsqueda no puede exceder ${QUERY_MAX} caracteres.` });
+  }
+
+  return {
+    errors,
+    data: {
+      q,
+      buscar: q.length > 0 && q.length <= QUERY_MAX,
+    },
+  };
+}
+
+export { QUERY_MAX as PACIENTE_SEARCH_QUERY_MAX };
+
 export function validatePaciente(body = {}, options = {}) {
   const { hoy = new Date() } = options;
   const errors = [];
