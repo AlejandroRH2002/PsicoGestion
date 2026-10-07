@@ -1,16 +1,26 @@
 ---
-import { Plus, Search, UsersRound } from '@lucide/astro';
+import { ChevronRight, Funnel, Plus, Search, UsersRound } from '@lucide/astro';
 import AppLayout from '../../layouts/AppLayout.astro';
+
+const ordenes = [
+  { valor: 'nombre', etiqueta: 'Nombre (A–Z)' },
+  { valor: 'registro', etiqueta: 'Fecha de registro (recientes primero)' },
+];
+const estados = [
+  { valor: 'activos', etiqueta: 'Solo activos' },
+  { valor: 'inactivos', etiqueta: 'Solo dados de baja' },
+  { valor: 'todos', etiqueta: 'Activos y dados de baja' },
+];
 ---
 
 <AppLayout title="Pacientes" activo="pacientes">
   <Fragment slot="acciones">
     <a
-      href="/pacientes/registro-paciente"
+      href="/pacientes/nuevo"
       class="flex items-center gap-2 h-10 px-4 rounded-lg bg-[#006847] hover:bg-[#005238] text-white text-sm font-semibold transition-colors"
     >
       <Plus class="size-4" />
-      <span>Registrar Paciente</span>
+      <span class="hidden sm:inline">Registrar Paciente</span>
     </a>
   </Fragment>
 
@@ -20,7 +30,8 @@ import AppLayout from '../../layouts/AppLayout.astro';
       <p class="text-sm text-[#64748B]">Consulta la información registrada y localiza pacientes por nombre, CURP o teléfono.</p>
     </div>
 
-    <div class="flex items-center p-4 bg-white border border-[#E2E8F0] rounded-xl">
+    <!-- Búsqueda rápida y filtros del listado (RF 3.2.1) -->
+    <div class="flex items-center gap-3 sm:gap-4 p-4 bg-white border border-[#E2E8F0] rounded-xl">
       <label class="flex flex-1 items-center gap-2.5 min-w-0 px-3.5 py-2.5 bg-[#F4F7F6] rounded-lg focus-within:ring-2 focus-within:ring-[#0D9488]/20">
         <Search class="size-[18px] shrink-0 text-[#64748B]" />
         <span class="sr-only">Buscar pacientes</span>
@@ -33,26 +44,73 @@ import AppLayout from '../../layouts/AppLayout.astro';
           class="flex-1 min-w-0 bg-transparent text-sm text-[#0F172A] placeholder:text-[#64748B] focus:outline-none"
         />
       </label>
-    </div>
 
-    <div id="general-panel" class="rounded-2xl border border-border-input bg-white shadow-xs overflow-hidden">
-      <div id="status-banner" class="hidden border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm text-subtext" aria-live="polite"></div>
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-left">
-          <thead class="bg-slate-50 text-xs uppercase tracking-[0.08em] text-subtext">
-            <tr>
-              <th class="px-5 py-3 font-semibold">Nombre</th>
-              <th class="px-5 py-3 font-semibold">CURP</th>
-              <th class="px-5 py-3 font-semibold">Sexo</th>
-              <th class="px-5 py-3 font-semibold">Nacimiento</th>
-              <th class="px-5 py-3 font-semibold">Teléfono</th>
-              <th class="px-5 py-3 font-semibold text-right">Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="patients-table-body" class="divide-y divide-slate-200 bg-white text-sm text-title"></tbody>
-        </table>
+      <div class="relative">
+        <button
+          type="button"
+          id="filtros-btn"
+          aria-expanded="false"
+          aria-controls="filtros-panel"
+          class="relative flex items-center gap-2 px-4 py-2.5 border border-[#E2E8F0] rounded-lg text-sm font-medium text-[#334155] hover:bg-[#F4F7F6] transition-colors cursor-pointer"
+        >
+          <Funnel class="size-4" />
+          <span class="hidden sm:inline">Filtros</span>
+          <span id="filtros-indicador" class="hidden absolute -top-1 -right-1 size-2.5 rounded-full bg-[#0D9488] ring-2 ring-white" aria-hidden="true"></span>
+        </button>
+
+        <form
+          id="filtros-panel"
+          class="hidden absolute right-0 top-full mt-2 z-10 flex-col gap-4 w-72 p-4 bg-white border border-[#E2E8F0] rounded-xl shadow-lg"
+        >
+          <fieldset class="flex flex-col gap-2">
+            <legend class="mb-2 text-xs font-bold uppercase tracking-wider text-[#64748B]">Ordenar por</legend>
+            {ordenes.map(({ valor, etiqueta }) => (
+              <label class="flex items-center gap-2.5 text-sm text-[#334155] cursor-pointer">
+                <input type="radio" name="orden" value={valor} class="accent-[#0D9488]" />
+                {etiqueta}
+              </label>
+            ))}
+          </fieldset>
+          <fieldset class="flex flex-col gap-2">
+            <legend class="mb-2 text-xs font-bold uppercase tracking-wider text-[#64748B]">Estado</legend>
+            {estados.map(({ valor, etiqueta }) => (
+              <label class="flex items-center gap-2.5 text-sm text-[#334155] cursor-pointer">
+                <input type="radio" name="estado" value={valor} class="accent-[#0D9488]" />
+                {etiqueta}
+              </label>
+            ))}
+          </fieldset>
+          <p class="text-xs text-[#64748B]">La búsqueda rápida siempre incluye a los pacientes dados de baja.</p>
+          <button type="button" id="filtros-restablecer" class="self-start text-xs font-semibold text-[#0D9488] hover:underline cursor-pointer">
+            Restablecer filtros
+          </button>
+        </form>
       </div>
     </div>
+
+    <section id="general-panel" class="flex flex-col gap-3" aria-labelledby="listado-titulo">
+      <h2 id="listado-titulo" class="sr-only">Listado general</h2>
+      <p id="resumen-listado" class="hidden text-[13px] text-[#64748B]" aria-live="polite"></p>
+
+      <div class="rounded-2xl border border-border-input bg-white shadow-xs overflow-hidden">
+        <div id="status-banner" class="hidden" aria-live="polite"></div>
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-slate-200 text-left">
+            <thead class="bg-slate-50 text-xs uppercase tracking-[0.08em] text-subtext">
+              <tr>
+                <th class="px-5 py-3 font-semibold">Nombre</th>
+                <th class="px-5 py-3 font-semibold">CURP</th>
+                <th class="px-5 py-3 font-semibold">Sexo</th>
+                <th class="px-5 py-3 font-semibold">Nacimiento</th>
+                <th class="px-5 py-3 font-semibold">Teléfono</th>
+                <th class="px-5 py-3 font-semibold text-right"><span class="sr-only">Acciones</span></th>
+              </tr>
+            </thead>
+            <tbody id="patients-table-body" class="divide-y divide-slate-200 bg-white text-sm text-title"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
     <section id="search-panel" class="hidden flex-col gap-4" aria-busy="false" aria-labelledby="resultados-titulo">
       <div class="flex items-center justify-between gap-4">
@@ -93,7 +151,10 @@ import AppLayout from '../../layouts/AppLayout.astro';
   </div>
 
   <template id="paciente-template">
-    <article class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 bg-white border border-[#E2E8F0] rounded-xl shadow-[0px_2px_4px_rgba(15,23,42,0.02)]">
+    <a
+      data-enlace
+      class="flex items-center justify-between gap-4 p-5 sm:p-6 bg-white border border-[#E2E8F0] rounded-xl shadow-[0px_2px_4px_rgba(15,23,42,0.02)] hover:border-[#0D9488]/50 hover:shadow-md transition-all"
+    >
       <div class="flex items-start sm:items-center gap-4 min-w-0">
         <span data-iniciales class="flex items-center justify-center size-14 shrink-0 rounded-full bg-[#CCFBF1] text-base font-extrabold text-[#0F172A]"></span>
         <div class="flex flex-col gap-1.5 min-w-0">
@@ -105,26 +166,25 @@ import AppLayout from '../../layouts/AppLayout.astro';
           <span data-telefono class="text-[13px] text-[#64748B]"></span>
         </div>
       </div>
-      <a data-editar class="inline-flex items-center justify-center rounded-lg border border-border-input px-3 py-2 text-xs font-semibold text-title hover:bg-slate-50 transition-colors">
-        Editar
-      </a>
-    </article>
+      <ChevronRight class="size-5 shrink-0 text-[#64748B]" />
+    </a>
   </template>
 
   <script>
-    import { buscarPacientes, type PatientSearchItem } from '../../utils/paciente';
-    import { API_URL } from '../../utils/sesion';
+    import {
+      SEXOS,
+      buscarPacientes,
+      formatearFecha,
+      formatearTelefono,
+      listarPacientes,
+      type EstadoFiltro,
+      type OrdenFiltro,
+      type Paciente,
+      type PatientSearchItem,
+    } from '../../utils/paciente';
 
     const DEBOUNCE_MS = 300;
-
-    interface PacienteListado {
-      id_paciente: number;
-      nombre_completo: string;
-      curp: string;
-      sexo: string;
-      fecha_nacimiento: string | null;
-      telefono: string;
-    }
+    const PREDETERMINADOS = { estado: 'activos' as EstadoFiltro, orden: 'nombre' as OrdenFiltro };
 
     type Seccion = 'loading' | 'lista' | 'vacio' | 'error';
 
@@ -133,6 +193,7 @@ import AppLayout from '../../layouts/AppLayout.astro';
     const searchPanel = document.getElementById('search-panel')!;
     const tbody = document.getElementById('patients-table-body')!;
     const statusBanner = document.getElementById('status-banner')!;
+    const resumenListado = document.getElementById('resumen-listado')!;
     const resumen = document.getElementById('resumen-resultados')!;
     const estado = document.getElementById('estado-resultados')!;
     const loading = document.getElementById('estado-loading')!;
@@ -142,9 +203,35 @@ import AppLayout from '../../layouts/AppLayout.astro';
     const vacioTexto = document.getElementById('vacio-texto')!;
     const reintentar = document.getElementById('reintentar-busqueda') as HTMLButtonElement;
     const plantilla = document.getElementById('paciente-template') as HTMLTemplateElement;
+    const filtrosBtn = document.getElementById('filtros-btn') as HTMLButtonElement;
+    const filtrosPanel = document.getElementById('filtros-panel') as HTMLFormElement;
+
+    // Los filtros viven en la URL para conservarlos al volver desde el perfil.
+    const params = new URLSearchParams(window.location.search);
+    const filtros = {
+      estado: (['activos', 'inactivos', 'todos'].includes(params.get('estado') ?? '') ? params.get('estado') : PREDETERMINADOS.estado) as EstadoFiltro,
+      orden: (['nombre', 'registro'].includes(params.get('orden') ?? '') ? params.get('orden') : PREDETERMINADOS.orden) as OrdenFiltro,
+    };
+    (filtrosPanel.elements.namedItem('orden') as RadioNodeList).value = filtros.orden;
+    (filtrosPanel.elements.namedItem('estado') as RadioNodeList).value = filtros.estado;
 
     let espera: number | undefined;
     let peticion = 0;
+
+    const fichaHref = (id: number) => `/pacientes/ver?id=${id}`;
+
+    function guardarEnUrl(): void {
+      const nuevos = new URLSearchParams();
+      if (filtros.estado !== PREDETERMINADOS.estado) nuevos.set('estado', filtros.estado);
+      if (filtros.orden !== PREDETERMINADOS.orden) nuevos.set('orden', filtros.orden);
+      const query = nuevos.toString();
+      window.history.replaceState(null, '', query ? `?${query}` : window.location.pathname);
+      document
+        .getElementById('filtros-indicador')!
+        .classList.toggle('hidden', filtros.estado === PREDETERMINADOS.estado && filtros.orden === PREDETERMINADOS.orden);
+    }
+
+    // --- Listado general (RF 3.2.1) ---
 
     function crearCelda(texto: string, clases = 'px-5 py-4'): HTMLTableCellElement {
       const celda = document.createElement('td');
@@ -153,59 +240,85 @@ import AppLayout from '../../layouts/AppLayout.astro';
       return celda;
     }
 
-    function renderPatients(pacientes: PacienteListado[]): void {
-      tbody.replaceChildren();
+    function filaVacia(texto: string): HTMLTableRowElement {
+      const fila = document.createElement('tr');
+      const celda = crearCelda(texto, 'px-5 py-8 text-center text-subtext');
+      celda.colSpan = 6;
+      fila.append(celda);
+      return fila;
+    }
 
+    function renderPatients(pacientes: Paciente[]): void {
       if (pacientes.length === 0) {
-        const fila = document.createElement('tr');
-        const celda = crearCelda('No hay pacientes registrados todavía.', 'px-5 py-8 text-center text-subtext');
-        celda.colSpan = 6;
-        fila.append(celda);
-        tbody.append(fila);
+        tbody.replaceChildren(
+          filaVacia(filtros.estado === 'inactivos' ? 'No hay pacientes dados de baja.' : 'Aún no hay pacientes registrados.')
+        );
         return;
       }
 
-      for (const paciente of pacientes) {
-        const fila = document.createElement('tr');
-        fila.className = 'hover:bg-slate-50';
-        fila.append(
-          crearCelda(paciente.nombre_completo, 'px-5 py-4 font-medium'),
-          crearCelda(paciente.curp),
-          crearCelda(paciente.sexo),
-          crearCelda(paciente.fecha_nacimiento || '-'),
-          crearCelda(paciente.telefono)
-        );
+      tbody.replaceChildren(
+        ...pacientes.map((paciente) => {
+          const fila = document.createElement('tr');
+          fila.className = `hover:bg-slate-50 ${paciente.activo ? '' : 'opacity-70'}`;
 
-        const acciones = crearCelda('', 'px-5 py-4 text-right');
-        const editar = document.createElement('a');
-        editar.href = `/pacientes/editar-paciente?id=${paciente.id_paciente}`;
-        editar.className = 'inline-flex items-center rounded-lg border border-border-input px-3 py-2 text-xs font-semibold text-title hover:bg-slate-50 transition-colors';
-        editar.textContent = 'Editar';
-        acciones.append(editar);
-        fila.append(acciones);
-        tbody.append(fila);
-      }
+          const nombre = crearCelda('', 'px-5 py-4 font-medium');
+          const enlace = document.createElement('a');
+          enlace.href = fichaHref(paciente.id);
+          enlace.className = 'hover:underline';
+          enlace.textContent = paciente.nombre;
+          nombre.append(enlace);
+          if (!paciente.activo) {
+            const baja = document.createElement('span');
+            baja.className = 'ml-2 px-2 py-0.5 rounded-md bg-red-50 text-[11px] font-bold text-red-700';
+            baja.textContent = 'Dado de baja';
+            nombre.append(baja);
+          }
+
+          const acciones = crearCelda('', 'px-5 py-4 text-right');
+          const ver = document.createElement('a');
+          ver.href = fichaHref(paciente.id);
+          ver.className = 'inline-flex items-center rounded-lg border border-border-input px-3 py-2 text-xs font-semibold text-title hover:bg-slate-50 transition-colors';
+          ver.textContent = 'Ver perfil';
+          ver.setAttribute('aria-label', `Ver perfil de ${paciente.nombre}`);
+          acciones.append(ver);
+
+          fila.append(
+            nombre,
+            crearCelda(paciente.curp),
+            crearCelda(SEXOS[paciente.sexo] ?? paciente.sexo),
+            crearCelda(formatearFecha(paciente.fechaNacimiento)),
+            crearCelda(formatearTelefono(paciente.telefono)),
+            acciones
+          );
+          return fila;
+        })
+      );
     }
 
+    const TEXTO_ESTADO: Record<EstadoFiltro, string> = { activos: 'activos', inactivos: 'dados de baja', todos: '' };
+
+    let peticionListado = 0;
     async function loadPatients(): Promise<void> {
+      const actual = ++peticionListado;
       statusBanner.textContent = 'Cargando pacientes…';
       statusBanner.className = 'block border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm text-subtext';
 
       try {
-        const response = await fetch(`${API_URL}/pacientes`, {
-          method: 'GET',
-          credentials: 'include',
-        });
-        const result = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(result?.error || 'No se pudo cargar la lista de pacientes.');
-
-        renderPatients(result.pacientes || []);
+        const pacientes = await listarPacientes(filtros);
+        if (actual !== peticionListado) return;
+        renderPatients(pacientes);
         statusBanner.className = 'hidden';
-      } catch (err) {
-        statusBanner.textContent = err instanceof Error ? err.message : 'Ocurrió un error inesperado.';
+        const tipo = TEXTO_ESTADO[filtros.estado];
+        resumenListado.textContent = `${pacientes.length} paciente${pacientes.length === 1 ? '' : 's'}${tipo ? ` ${tipo}` : ''}`;
+        resumenListado.classList.toggle('hidden', pacientes.length === 0);
+      } catch {
+        if (actual !== peticionListado) return;
+        statusBanner.textContent = 'No se pudo cargar la lista de pacientes. Verifica tu conexión.';
         statusBanner.className = 'block border-b border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700';
       }
     }
+
+    // --- Búsqueda rápida ---
 
     function consultaActual(): string {
       return busqueda.value.trim();
@@ -262,18 +375,18 @@ import AppLayout from '../../layouts/AppLayout.astro';
 
     function tarjeta(paciente: PatientSearchItem): DocumentFragment {
       const nodo = plantilla.content.cloneNode(true) as DocumentFragment;
-      const articulo = nodo.querySelector('article')!;
+      const enlace = nodo.querySelector<HTMLAnchorElement>('[data-enlace]')!;
       const curp = ultimosCuatro(paciente.curpUltimos4);
       const telefono = ultimosCuatro(paciente.telefonoUltimos4);
 
-      articulo.classList.toggle('opacity-75', !paciente.activo);
-      articulo.setAttribute('aria-label', `${paciente.nombre}${paciente.activo ? '' : ', dado de baja'}`);
+      enlace.href = fichaHref(paciente.id);
+      enlace.classList.toggle('opacity-75', !paciente.activo);
+      enlace.setAttribute('aria-label', `Ver perfil de ${paciente.nombre}${paciente.activo ? '' : ', dado de baja'}`);
       nodo.querySelector('[data-iniciales]')!.textContent = iniciales(paciente.nombre);
       nodo.querySelector('[data-nombre]')!.textContent = paciente.nombre;
       nodo.querySelector('[data-curp]')!.textContent = `CURP ••••••••••••••${curp}`;
       nodo.querySelector('[data-telefono]')!.textContent = `Tel. ••• ••• ${telefono}`;
       nodo.querySelector('[data-baja]')!.classList.toggle('hidden', paciente.activo);
-      (nodo.querySelector('[data-editar]') as HTMLAnchorElement).href = `/pacientes/editar-paciente?id=${paciente.id}`;
       return nodo;
     }
 
@@ -344,6 +457,37 @@ import AppLayout from '../../layouts/AppLayout.astro';
 
     reintentar.addEventListener('click', () => void ejecutarBusqueda(consultaActual()));
 
+    // --- Panel de filtros ---
+
+    function abrirFiltros(abrir: boolean): void {
+      filtrosPanel.classList.toggle('hidden', !abrir);
+      filtrosPanel.classList.toggle('flex', abrir);
+      filtrosBtn.setAttribute('aria-expanded', String(abrir));
+    }
+
+    filtrosBtn.addEventListener('click', () => abrirFiltros(filtrosPanel.classList.contains('hidden')));
+    document.addEventListener('click', (e) => {
+      const objetivo = e.target as Node;
+      if (!filtrosPanel.contains(objetivo) && !filtrosBtn.contains(objetivo)) abrirFiltros(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') abrirFiltros(false);
+    });
+
+    filtrosPanel.addEventListener('change', () => {
+      filtros.orden = (filtrosPanel.elements.namedItem('orden') as RadioNodeList).value as OrdenFiltro;
+      filtros.estado = (filtrosPanel.elements.namedItem('estado') as RadioNodeList).value as EstadoFiltro;
+      guardarEnUrl();
+      void loadPatients();
+    });
+
+    document.getElementById('filtros-restablecer')!.addEventListener('click', () => {
+      (filtrosPanel.elements.namedItem('orden') as RadioNodeList).value = PREDETERMINADOS.orden;
+      (filtrosPanel.elements.namedItem('estado') as RadioNodeList).value = PREDETERMINADOS.estado;
+      filtrosPanel.dispatchEvent(new Event('change'));
+    });
+
+    guardarEnUrl();
     void loadPatients();
   </script>
 </AppLayout>

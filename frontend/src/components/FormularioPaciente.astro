@@ -1,0 +1,138 @@
+---
+import { ChevronDown, Upload } from '@lucide/astro';
+import CampoTexto from './CampoTexto.astro';
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  textoGuardar: string;
+  cancelarHref: string;
+}
+
+const { titulo, descripcion, textoGuardar, cancelarHref } = Astro.props;
+
+// Alineadas con el esquema (CHECK sexo IN ('M', 'F', 'O')).
+const sexos = [
+  { valor: 'F', etiqueta: 'Femenino' },
+  { valor: 'M', etiqueta: 'Masculino' },
+  { valor: 'O', etiqueta: 'Otro' },
+];
+---
+<!-- RF 3.1.1-3.1.12 y RF 3.2.4-3.2.6; la lógica vive en utils/paciente.ts (iniciarFormulario). -->
+<form
+  id="paciente-form"
+  novalidate
+  class="flex flex-col gap-6 w-full max-w-[640px] shrink-0 p-6 sm:p-8 bg-white rounded-2xl shadow-[0px_4px_12px_rgba(15,23,42,0.03)]"
+>
+  <div class="flex flex-col gap-1.5">
+    <h2 class="text-lg font-bold text-[#0F172A]">{titulo}</h2>
+    <p class="text-[13px] text-[#64748B]">{descripcion}</p>
+  </div>
+
+  <!-- Mensaje general del servidor (éxito o error de conexión) -->
+  <div id="form-message" role="alert" class="hidden text-sm rounded-lg px-3.5 py-2.5"></div>
+
+  <div class="flex flex-col gap-5">
+    <CampoTexto
+      id="nombre_completo"
+      label="Nombre completo"
+      placeholder="Ej. Carlos Ramírez Mendoza"
+      maxlength={50}
+      contador
+      ayuda="Máximo 50 caracteres"
+      autocomplete="name"
+    />
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-4">
+      <CampoTexto
+        id="curp"
+        label="CURP"
+        maxlength={18}
+        placeholder="Ej. RAMC950320HDFMNN02"
+        ayuda="18 caracteres oficiales"
+      />
+
+      <div class="flex flex-col gap-1.5 w-full" data-campo="sexo">
+        <label for="sexo" class="text-sm font-semibold text-[#0F172A]">Sexo</label>
+        <div class="relative">
+          <select
+            id="sexo"
+            name="sexo"
+            required
+            aria-describedby="sexo-error"
+            class="w-full appearance-none px-4 py-3 pr-10 bg-white border border-[#E2E8F0] rounded-lg text-sm text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#0D9488]/20 focus:border-[#0D9488] aria-invalid:border-red-500 transition-all cursor-pointer"
+          >
+            <option value="" disabled selected>Selecciona una opción</option>
+            {sexos.map(({ valor, etiqueta }) => <option value={valor}>{etiqueta}</option>)}
+          </select>
+          <ChevronDown class="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 size-4 text-[#64748B]" />
+        </div>
+        <p id="sexo-error" class="hidden text-xs text-red-600"></p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-4">
+      <CampoTexto
+        id="fecha_nacimiento"
+        label="Fecha de nacimiento"
+        inputmode="numeric"
+        maxlength={10}
+        placeholder="dd/mm/aaaa"
+        ayuda="Formato: dd/mm/aaaa · Edad mínima: 7 años"
+      />
+      <CampoTexto
+        id="telefono"
+        label="Teléfono"
+        type="tel"
+        inputmode="tel"
+        placeholder="Ej. 999 123 4567"
+        ayuda="Debe ser de 10 dígitos"
+        autocomplete="tel-national"
+      />
+    </div>
+
+    <!-- Adjuntos: expediente, consentimiento, identificación, etc. -->
+    <div class="flex flex-col gap-1.5">
+      <div class="flex items-center justify-between">
+        <span id="archivos-etiqueta" class="text-sm font-semibold text-[#0F172A]">Archivos adjuntos</span>
+        <span class="text-xs text-[#64748B]">Mínimo 1 archivo</span>
+      </div>
+      <div
+        id="archivos-zona"
+        role="button"
+        tabindex="0"
+        aria-labelledby="archivos-etiqueta"
+        aria-describedby="archivos-ayuda archivos-error"
+        class="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-[#CBD5E1] rounded-xl bg-[#F8FAFC] text-center cursor-pointer hover:border-[#0D9488] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0D9488]/30 aria-invalid:border-red-500 transition-colors"
+      >
+        <span class="flex items-center justify-center size-10 rounded-full bg-[#CCFBF1] text-[#0D9488]">
+          <Upload class="size-5" />
+        </span>
+        <p class="text-sm font-semibold text-[#0F172A]">
+          Arrastra archivos aquí o <span class="text-[#0D9488]">haz clic para seleccionar</span>
+        </p>
+      </div>
+      <input id="archivos" type="file" multiple accept="application/pdf,image/jpeg,image/png" class="hidden" />
+      <p id="archivos-ayuda" class="text-xs text-[#64748B]">PDF, JPG o PNG · Máx. 5 MB por archivo</p>
+      <p id="archivos-error" class="hidden text-xs text-red-600"></p>
+      <ul id="archivos-lista" class="hidden flex-col gap-2 mt-1" aria-label="Archivos adjuntos"></ul>
+    </div>
+  </div>
+
+  <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+    <a
+      href={cancelarHref}
+      id="cancelar-btn"
+      class="flex items-center justify-center px-6 py-3 bg-white border border-[#E2E8F0] rounded-lg text-sm font-semibold text-[#334155] hover:bg-[#F4F7F6] transition-colors"
+    >
+      Cancelar
+    </a>
+    <button
+      type="submit"
+      id="submit-btn"
+      class="flex items-center justify-center px-6 py-3 bg-[#0D9488] hover:bg-[#0F766E] disabled:opacity-60 disabled:cursor-not-allowed rounded-lg text-sm font-semibold text-white transition-colors cursor-pointer active:scale-[0.99]"
+    >
+      {textoGuardar}
+    </button>
+  </div>
+</form>
