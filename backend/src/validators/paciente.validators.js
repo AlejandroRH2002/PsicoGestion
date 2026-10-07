@@ -43,7 +43,7 @@ export function parsePacienteId(value) {
 }
 
 export function validatePaciente(body = {}, options = {}) {
-  const { hoy = new Date() } = options;
+  const { hoy = new Date(), fechaRegistro = null } = options;
   const errors = [];
 
   const nombre_completo = typeof body.nombre_completo === 'string' ? body.nombre_completo.trim() : '';
@@ -79,13 +79,36 @@ export function validatePaciente(body = {}, options = {}) {
       errors.push({ field: 'fecha_nacimiento', message: 'Formato de fecha inválido. Usa dd/mm/aaaa.' });
     } else {
       const birthDate = new Date(`${fechaNacimiento}T00:00:00Z`);
-      const today = new Date(hoy);
-      today.setUTCHours(0, 0, 0, 0);
+      const referencia = fechaRegistro
+        ? new Date(`${fechaRegistro}T00:00:00Z`)
+        : new Date(hoy);
+      referencia.setUTCHours(0, 0, 0, 0);
 
       if (Number.isNaN(birthDate.getTime())) {
         errors.push({ field: 'fecha_nacimiento', message: 'La fecha proporcionada no es válida.' });
-      } else if (birthDate >= today) {
-        errors.push({ field: 'fecha_nacimiento', message: 'La fecha de nacimiento debe ser anterior a la fecha actual.' });
+      } else if (birthDate >= referencia) {
+        errors.push({
+          field: 'fecha_nacimiento',
+          message: fechaRegistro
+            ? 'La fecha de nacimiento debe ser anterior a la fecha de registro.'
+            : 'La fecha de nacimiento debe ser anterior a la fecha actual.',
+        });
+      } else {
+        let edad = referencia.getUTCFullYear() - birthDate.getUTCFullYear();
+        if (
+          referencia.getUTCMonth() < birthDate.getUTCMonth() ||
+          (referencia.getUTCMonth() === birthDate.getUTCMonth() && referencia.getUTCDate() < birthDate.getUTCDate())
+        ) {
+          edad -= 1;
+        }
+        if (edad < 7) {
+          errors.push({
+            field: 'fecha_nacimiento',
+            message: fechaRegistro
+              ? 'El paciente debe tener al menos 7 años cumplidos en la fecha de registro.'
+              : 'El paciente debe tener al menos 7 años cumplidos.',
+          });
+        }
       }
     }
   }

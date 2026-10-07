@@ -70,6 +70,18 @@ export async function getPacienteById(id) {
   return rows[0] || null;
 }
 
+// Lectura interna de fecha calendario: evita interpretar un TIMESTAMP sin zona
+// como un Date local, sin cambiar el contrato de GET/PUT de pacientes.
+export async function getFechaRegistroPaciente(id) {
+  const { rows } = await pool.query(
+    `SELECT to_char(fecha_registro, 'YYYY-MM-DD') AS fecha_registro
+     FROM paciente
+     WHERE id_paciente = $1 AND activo = TRUE`,
+    [id]
+  );
+  return rows[0]?.fecha_registro ?? null;
+}
+
 export async function updatePaciente(id, { nombre_completo, curp, sexo, fecha_nacimiento, telefono }) {
   const existing = await pool.query(
     `SELECT id_paciente, curp, telefono

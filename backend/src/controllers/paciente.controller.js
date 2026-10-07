@@ -3,6 +3,7 @@ import {
   createPaciente,
   getPacientes,
   getPacienteById,
+  getFechaRegistroPaciente,
   updatePaciente,
   ConflictError,
 } from '../services/paciente.service.js';
@@ -61,7 +62,8 @@ export async function update(req, res, next) {
       return res.status(400).json({ error: 'ID de paciente inválido.' });
     }
 
-    const { errors, data } = validatePaciente(req.body);
+    const fechaRegistro = await getFechaRegistroPaciente(id);
+    const { errors, data } = validatePaciente(req.body, { fechaRegistro });
     if (errors.length > 0) {
       return res.status(400).json({ errors });
     }
