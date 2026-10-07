@@ -114,4 +114,41 @@ describe('API de pacientes: edición y unicidad', { skip: omitir }, () => {
     assert.equal(res.status, 404, JSON.stringify(res.body));
     assert.equal(res.body.error, 'Paciente no encontrado.');
   });
+
+  test('PUT mide siete años contra fecha_registro, no contra la fecha actual', async () => {
+    const { entrada, paciente } = await registrar();
+    // Captura única UTC. Registro histórico para detectar una implementación
+    // incorrecta que mida contra hoy y acepte a quien entonces tenía seis años.
+    const referencia = new Date();
+    const mes = referencia.getUTCMonth();
+    const dia = referencia.getUTCDate();
+    const anio = referencia.getUTCFullYear() - 2;
+    const registro = new Date(Date.UTC(anio, mes, dia, 12));
+    // Si el día de partida es 29/02, Date.UTC normaliza la referencia a marzo.
+    const nacimientoSiete = new Date(Date.UTC(
+      registro.getUTCFullYear() - 7, registro.getUTCMonth(), registro.getUTCDate()
+    ));
+    const nacimientoMenor = new Date(nacimientoSiete);
+    nacimientoMenor.setUTCDate(nacimientoMenor.getUTCDate() + 1);
+    const texto = (fecha) => `${String(fecha.getUTCDate()).padStart(2, '0')}/${String(fecha.getUTCMonth() + 1).padStart(2, '0')}/${fecha.getUTCFullYear()}`;
+    const fechaRegistro = registro.toISOString().slice(0, 19).replace('T', ' ');
+    await pool.query('UPDATE paciente SET fecha_registro = $1::timestamp WHERE id_paciente = $2', [fechaRegistro, paciente.id_paciente]);
+
+    const exactos = await api('PUT', `/pacientes/${paciente.id_paciente}`, {
+      json: { ...entrada, fecha_nacimiento: texto(nacimientoSiete) },
+    });
+    assert.equal(exactos.status, 200, JSON.stringify(exactos.body));
+    const consulta = await api('GET', `/pacientes/${paciente.id_paciente}`);
+    assert.equal(consulta.body.paciente.fecha_nacimiento, nacimientoSiete.toISOString().slice(0, 10));
+    assert.equal(consulta.body.paciente.fecha_registro, exactos.body.paciente.fecha_registro);
+
+    const menor = await api('PUT', `/pacientes/${paciente.id_paciente}`, {
+      json: { ...entrada, fecha_nacimiento: texto(nacimientoMenor) },
+    });
+    assert.equal(menor.status, 400, JSON.stringify(menor.body));
+    assert.equal(menor.body.errors[0].field, 'fecha_nacimiento');
+    assert.match(menor.body.errors[0].message, /7 años/);
+    const sinCambios = await api('GET', `/pacientes/${paciente.id_paciente}`);
+    assert.equal(sinCambios.body.paciente.fecha_nacimiento, nacimientoSiete.toISOString().slice(0, 10));
+  });
 });
