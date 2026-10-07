@@ -50,6 +50,37 @@ describe('API de pacientes: edición y unicidad', { skip: omitir }, () => {
     return { entrada, paciente: res.body.paciente };
   }
 
+  for (const method of ['POST', 'PUT']) {
+    for (const [nombre, json] of [['null', null], ['string', 'texto'], ['número', 42], ['arreglo', []], ['ausente', undefined]]) {
+      test(`${method} con cuerpo ${nombre} responde 400 sin error interno`, async () => {
+        const { paciente } = await registrar();
+        const ruta = method === 'POST' ? '/pacientes' : `/pacientes/${paciente.id_paciente}`;
+        const res = await api(method, ruta, { json });
+        assert.equal(res.status, 400, JSON.stringify(res.body));
+        assert.doesNotMatch(JSON.stringify(res.body), /interno|TypeError|SyntaxError/);
+        if (nombre === 'arreglo') assert.equal(res.body.errors[0].field, 'body');
+      });
+    }
+    test(`${method} con Content-Type no JSON responde 400 por campos obligatorios`, async (t) => {
+      const { paciente } = await registrar();
+      const original = globalThis.fetch;
+      t.mock.method(globalThis, 'fetch', (url, opciones) => original(url, {
+        ...opciones, headers: { ...opciones.headers, 'Content-Type': 'text/plain' },
+      }));
+      const res = await api(method, method === 'POST' ? '/pacientes' : `/pacientes/${paciente.id_paciente}`, { json: datos() });
+      assert.equal(res.status, 400);
+      assert.match(res.body.errors[0].message, /obligatorio/);
+    });
+    test(`${method} con JSON truncado responde 400 con mensaje fijo`, async (t) => {
+      const { paciente } = await registrar();
+      const original = globalThis.fetch;
+      t.mock.method(globalThis, 'fetch', (url, opciones) => original(url, { ...opciones, body: '{"nombre":' }));
+      const res = await api(method, method === 'POST' ? '/pacientes' : `/pacientes/${paciente.id_paciente}`, { json: {} });
+      assert.equal(res.status, 400);
+      assert.deepEqual(res.body, { error: 'El cuerpo de la solicitud debe ser un objeto JSON válido.' });
+    });
+  }
+
   test('PUT persiste el nombre y GET vuelve a leer el paciente actualizado', async () => {
     const { entrada, paciente } = await registrar();
     const nuevaEntrada = { ...entrada, nombre_completo: 'Nombre Sintetico Editado' };

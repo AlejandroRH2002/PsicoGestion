@@ -34,6 +34,14 @@ const pacienteValido = {
   telefono: '999 123 4567',
 };
 
+for (const [nombre, body] of [['null', null], ['string', 'texto'], ['número', 42], ['arreglo', []]]) {
+  test(`cuerpo ${nombre}: rechaza sin lanzar un error interno`, () => {
+    assert.deepEqual(validatePaciente(body).errors, [{
+      field: 'body', message: 'El cuerpo de la solicitud debe ser un objeto JSON válido.',
+    }]);
+  });
+}
+
 test('acepta un paciente válido y normaliza los datos', () => {
   const { errors, data } = validatePaciente(pacienteValido, { hoy });
   assert.deepEqual(errors, []);

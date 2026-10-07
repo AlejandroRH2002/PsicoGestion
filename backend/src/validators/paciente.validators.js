@@ -43,6 +43,9 @@ export function parsePacienteId(value) {
 }
 
 export function validatePaciente(body = {}, options = {}) {
+  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+    return { errors: [{ field: 'body', message: 'El cuerpo de la solicitud debe ser un objeto JSON válido.' }], data: {} };
+  }
   const { hoy = new Date(), fechaRegistro = null } = options;
   const errors = [];
 
