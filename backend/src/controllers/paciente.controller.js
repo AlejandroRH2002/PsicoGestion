@@ -62,7 +62,16 @@ export async function update(req, res, next) {
       return res.status(400).json({ error: 'ID de paciente inválido.' });
     }
 
+    const formato = validatePaciente(req.body, { validarEdad: false });
+    if (formato.errors.length > 0) {
+      return res.status(400).json({ errors: formato.errors });
+    }
+
+    // Una lectura comprueba existencia/activo y proporciona la referencia de edad.
     const fechaRegistro = await getFechaRegistroPaciente(id);
+    if (fechaRegistro === null) {
+      return res.status(404).json({ error: 'Paciente no encontrado.' });
+    }
     const { errors, data } = validatePaciente(req.body, { fechaRegistro });
     if (errors.length > 0) {
       return res.status(400).json({ errors });

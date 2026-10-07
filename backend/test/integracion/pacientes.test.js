@@ -207,4 +207,46 @@ describe('API de pacientes: edición y unicidad', { skip: omitir }, () => {
     const sinCambios = await api('GET', `/pacientes/${paciente.id_paciente}`);
     assert.equal(sinCambios.body.paciente.fecha_nacimiento, nacimientoSiete.toISOString().slice(0, 10));
   });
+
+  for (const inactivo of [false, true]) {
+    for (const edadInvalida of [false, true]) {
+      test(`PUT ${inactivo ? 'inactivo' : 'inexistente'}: 404 antes de ${edadInvalida ? 'edad' : 'duplicados'}`, async () => {
+        const a = await registrar();
+        const b = await registrar();
+        if (inactivo) await pool.query('UPDATE paciente SET activo = FALSE WHERE id_paciente = $1', [a.paciente.id_paciente]);
+        const referencia = new Date();
+        const nacimiento = new Date(Date.UTC(referencia.getUTCFullYear() - 1, 0, 1));
+        const fecha = `01/01/${nacimiento.getUTCFullYear()}`;
+        const res = await api('PUT', `/pacientes/${inactivo ? a.paciente.id_paciente : 2147483647}`, {
+          json: { ...a.entrada, curp: b.entrada.curp, ...(edadInvalida ? { fecha_nacimiento: fecha } : {}) },
+        });
+        assert.equal(res.status, 404, JSON.stringify(res.body));
+        assert.deepEqual(res.body, { error: 'Paciente no encontrado.' });
+      });
+    }
+  }
+
+  test('PUT valida formato antes de consultar existencia', async (t) => {
+    t.mock.method(pool, 'query', () => { throw new Error('No debe consultar la BD con formato inválido'); });
+    const res = await api('PUT', '/pacientes/2147483647', { json: datos({ sexo: 'X' }) });
+    assert.equal(res.status, 400, JSON.stringify(res.body));
+    assert.equal(res.body.errors[0].field, 'sexo');
+  });
+
+  test('PUT reutiliza una lectura para existencia y edad; edad precede duplicados', async (t) => {
+    const a = await registrar();
+    const b = await registrar();
+    let lecturas = 0;
+    const original = pool.query;
+    t.mock.method(pool, 'query', function (sql, ...args) {
+      if (/^\s*SELECT/i.test(sql)) lecturas += 1;
+      return original.call(this, sql, ...args);
+    });
+    const res = await api('PUT', `/pacientes/${a.paciente.id_paciente}`, {
+      json: { ...a.entrada, curp: b.entrada.curp, fecha_nacimiento: `01/01/${new Date().getUTCFullYear() - 1}` },
+    });
+    assert.equal(res.status, 400);
+    assert.equal(res.body.errors[0].field, 'fecha_nacimiento');
+    assert.equal(lecturas, 1);
+  });
 });

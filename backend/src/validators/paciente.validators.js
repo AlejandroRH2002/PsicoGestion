@@ -46,7 +46,7 @@ export function validatePaciente(body = {}, options = {}) {
   if (body === null || typeof body !== 'object' || Array.isArray(body)) {
     return { errors: [{ field: 'body', message: 'El cuerpo de la solicitud debe ser un objeto JSON válido.' }], data: {} };
   }
-  const { hoy = new Date(), fechaRegistro = null } = options;
+  const { hoy = new Date(), fechaRegistro = null, validarEdad = true } = options;
   const errors = [];
 
   const nombre_completo = typeof body.nombre_completo === 'string' ? body.nombre_completo.trim() : '';
@@ -80,7 +80,7 @@ export function validatePaciente(body = {}, options = {}) {
     fechaNacimiento = parseFechaNacimiento(rawFecha);
     if (!fechaNacimiento) {
       errors.push({ field: 'fecha_nacimiento', message: 'Formato de fecha inválido. Usa dd/mm/aaaa.' });
-    } else {
+    } else if (validarEdad) {
       const birthDate = new Date(`${fechaNacimiento}T00:00:00Z`);
       const referencia = fechaRegistro
         ? new Date(`${fechaRegistro}T00:00:00Z`)
