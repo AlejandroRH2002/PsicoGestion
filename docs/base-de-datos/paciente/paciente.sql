@@ -10,5 +10,8 @@ CREATE TABLE paciente (
     telefono VARCHAR(15) NOT NULL UNIQUE,
 
     fecha_registro TIMESTAMP NOT NULL DEFAULT NOW(),
-    activo BOOLEAN NOT NULL DEFAULT TRUE
+    activo BOOLEAN NOT NULL DEFAULT TRUE,
+    fecha_baja TIMESTAMPTZ,
+
+    CONSTRAINT paciente_baja_con_fecha CHECK (activo OR fecha_baja IS NOT NULL)
 );

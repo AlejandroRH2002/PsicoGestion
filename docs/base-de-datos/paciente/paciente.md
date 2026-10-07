@@ -20,6 +20,7 @@ funciones.
 | `telefono` | VARCHAR(15) | NOT NULL, UNIQUE, formato válido |
 | `fecha_registro` | TIMESTAMP | NOT NULL, DEFAULT NOW() |
 | `activo` | BOOLEAN | NOT NULL, DEFAULT TRUE (para baja lógica) |
+| `fecha_baja` | TIMESTAMPTZ | NULL mientras está activo; CHECK `activo OR fecha_baja IS NOT NULL` |
 
 ## Observaciones de diseño
 
@@ -31,3 +32,9 @@ funciones.
   retención de datos: se conserva el historial de todos los pacientes
   registrados.
 - El formato válido del teléfono se verifica en la aplicación.
+- `fecha_baja` (migración `005_paciente_estado.sql`) registra cuándo se dio de
+  baja al paciente, igual que en `Terapeuta`. La "eliminación" de RF 3.3.1 es
+  esta baja lógica: el paciente nunca se borra porque citas e historial
+  dependen de él, y puede reactivarse.
+- Los documentos adjuntos del paciente viven en la entidad
+  [`PacienteArchivo`](../paciente-archivo/paciente-archivo.md).
