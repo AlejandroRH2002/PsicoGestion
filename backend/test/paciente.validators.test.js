@@ -49,3 +49,51 @@ test('parsePacienteId: solo acepta enteros positivos', () => {
     assert.equal(parsePacienteId(invalido), null, String(invalido));
   }
 });
+
+test('edad: acepta siete años cumplidos en la fecha de referencia', () => {
+  const { errors } = validatePaciente(
+    { ...pacienteValido, fecha_nacimiento: '06/10/2019' },
+    { hoy: new Date('2026-10-06T12:00:00Z') }
+  );
+  assert.deepEqual(errors, []);
+});
+
+test('edad: rechaza un día antes de cumplir siete años', () => {
+  const { errors } = validatePaciente(
+    { ...pacienteValido, fecha_nacimiento: '07/10/2019' },
+    { hoy: new Date('2026-10-06T12:00:00Z') }
+  );
+  assert.ok(errors.some(({ field }) => field === 'fecha_nacimiento'));
+});
+
+test('edad: nacido el 29 de febrero aún no cumple siete el 28 de febrero', () => {
+  const { errors } = validatePaciente(
+    { ...pacienteValido, fecha_nacimiento: '29/02/2016' },
+    { hoy: new Date('2023-02-28T12:00:00Z') }
+  );
+  assert.ok(errors.some(({ field }) => field === 'fecha_nacimiento'));
+});
+
+test('edad: nacido el 29 de febrero ya cumplió siete el 1 de marzo', () => {
+  const { errors } = validatePaciente(
+    { ...pacienteValido, fecha_nacimiento: '29/02/2016' },
+    { hoy: new Date('2023-03-01T12:00:00Z') }
+  );
+  assert.deepEqual(errors, []);
+});
+
+test('fecha: rechaza el 29 de febrero de un año no bisiesto', () => {
+  const { errors } = validatePaciente(
+    { ...pacienteValido, fecha_nacimiento: '29/02/2019' },
+    { hoy: new Date('2026-10-06T12:00:00Z') }
+  );
+  assert.equal(errors[0]?.field, 'fecha_nacimiento');
+});
+
+test('fecha: rechaza una fecha futura', () => {
+  const { errors } = validatePaciente(
+    { ...pacienteValido, fecha_nacimiento: '07/10/2026' },
+    { hoy: new Date('2026-10-06T12:00:00Z') }
+  );
+  assert.equal(errors[0]?.field, 'fecha_nacimiento');
+});
