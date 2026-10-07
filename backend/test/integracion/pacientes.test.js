@@ -92,6 +92,31 @@ describe('API de pacientes: edición y unicidad', { skip: omitir }, () => {
     assert.deepEqual(consulta.body.paciente, actualizado.body.paciente);
   });
 
+  for (const method of ['POST', 'PUT']) {
+    for (const [constraint, field, message] of [
+      ['paciente_curp_key', 'curp', 'Ya existe un paciente registrado con esta CURP.'],
+      ['paciente_telefono_key', 'telefono', 'Este número telefónico ya se encuentra registrado.'],
+      ['constraint_privado_simulado', 'general', 'Ya existe un paciente con alguno de los datos proporcionados.'],
+    ]) {
+      test(`${method}: 23505 de ${constraint} devuelve 409 seguro`, async (t) => {
+        const { paciente } = await registrar();
+        const original = pool.query;
+        t.mock.method(pool, 'query', function (sql, ...args) {
+          if (/^\s*(INSERT INTO|UPDATE) paciente\b/i.test(sql)) {
+            return Promise.reject(Object.assign(new Error('detalle privado PostgreSQL'), {
+              code: '23505', constraint, detail: 'detalle privado PostgreSQL',
+            }));
+          }
+          return original.call(this, sql, ...args);
+        });
+        const res = await api(method, method === 'POST' ? '/pacientes' : `/pacientes/${paciente.id_paciente}`, { json: datos() });
+        assert.equal(res.status, 409, JSON.stringify(res.body));
+        assert.deepEqual(res.body, { errors: [{ field, message }] });
+        assert.doesNotMatch(JSON.stringify(res.body), /constraint_privado_simulado|detalle privado|23505/);
+      });
+    }
+  }
+
   test('PUT sin cambios conserva la propia CURP y teléfono sin falso duplicado', async () => {
     const { entrada, paciente } = await registrar();
     const res = await api('PUT', `/pacientes/${paciente.id_paciente}`, { json: entrada });

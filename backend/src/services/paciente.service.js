@@ -40,6 +40,9 @@ export async function createPaciente({ nombre_completo, curp, sexo, fecha_nacimi
         throw new ConflictError('telefono', 'Este número telefónico ya se encuentra registrado.');
       }
     }
+    if (err.code === '23505') {
+      throw new ConflictError('general', 'Ya existe un paciente con alguno de los datos proporcionados.');
+    }
     throw err;
   }
 }
@@ -123,6 +126,9 @@ export async function updatePaciente(id, { nombre_completo, curp, sexo, fecha_na
       if (err.constraint === 'paciente_telefono_key') {
         throw new ConflictError('telefono', 'Este número telefónico ya se encuentra registrado.');
       }
+    }
+    if (err.code === '23505') {
+      throw new ConflictError('general', 'Ya existe un paciente con alguno de los datos proporcionados.');
     }
     throw err;
   }
