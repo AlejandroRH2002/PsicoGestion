@@ -1,8 +1,5 @@
-import { randomUUID } from 'node:crypto';
-import { mkdir, writeFile, unlink } from 'node:fs/promises';
-import path from 'node:path';
 import { pool } from '../db/pool.js';
-import { env } from '../config/env.js';
+import { guardarArchivo, borrarArchivo } from '../utils/almacenamiento.js';
 import { ConflictError } from './auth.service.js';
 
 const CARPETA_FOTOS = 'terapeutas';
@@ -77,17 +74,11 @@ function mapearErrorUnico(err) {
 }
 
 /** Escribe la foto ya validada ({ buffer, extension }) y devuelve su ruta relativa a UPLOADS_DIR. */
-async function guardarFoto(foto) {
-  const rutaRelativa = `${CARPETA_FOTOS}/${randomUUID()}.${foto.extension}`;
-  const rutaAbsoluta = path.join(env.uploadsDir, rutaRelativa);
-  await mkdir(path.dirname(rutaAbsoluta), { recursive: true });
-  await writeFile(rutaAbsoluta, foto.buffer);
-  return rutaRelativa;
+function guardarFoto(foto) {
+  return guardarArchivo(CARPETA_FOTOS, foto.buffer, foto.extension);
 }
 
-async function borrarFoto(rutaRelativa) {
-  if (rutaRelativa) await unlink(path.join(env.uploadsDir, rutaRelativa)).catch(() => {});
-}
+const borrarFoto = borrarArchivo;
 
 /**
  * RF 2.1.1-2.1.13. `foto` es opcional: { buffer, extension } ya validado con validarFotoPerfil.
