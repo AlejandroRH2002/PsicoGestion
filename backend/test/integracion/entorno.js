@@ -40,7 +40,8 @@ export const SECRETARIA = {
 
 /**
  * Crea y migra la BD de pruebas, la vacía, levanta la app en un puerto libre e inicia sesión.
- * Devuelve { api, uploadsDir, cerrar }; `api(metodo, ruta, { form, json, sinSesion })`.
+ * Devuelve { api, uploadsDir, cerrar }; `api(metodo, ruta, { form, json, sinSesion, crudo })`.
+ * En `form` un valor puede ser un arreglo (campo repetido); `crudo` devuelve el cuerpo como Buffer.
  */
 export async function iniciarEntorno() {
   await crearBaseSiNoExiste();
@@ -56,7 +57,7 @@ export async function iniciarEntorno() {
   const client = await pool.connect();
   try {
     await aplicarMigraciones(client);
-    await client.query('TRUNCATE terapeuta, codigo_recuperacion, secretaria RESTART IDENTITY CASCADE');
+    await client.query('TRUNCATE paciente_archivo, paciente, terapeuta, codigo_recuperacion, secretaria RESTART IDENTITY CASCADE');
   } finally {
     client.release();
   }
@@ -67,7 +68,7 @@ export async function iniciarEntorno() {
   const base = `http://localhost:${server.address().port}`;
 
   let cookie = '';
-  async function api(metodo, ruta, { form, json, sinSesion = false } = {}) {
+  async function api(metodo, ruta, { form, json, sinSesion = false, crudo = false } = {}) {
     const headers = {};
     if (!sinSesion && cookie) headers.Cookie = cookie;
     let body;
@@ -76,12 +77,16 @@ export async function iniciarEntorno() {
       body = JSON.stringify(json);
     } else if (form) {
       body = new FormData();
-      for (const [clave, valor] of Object.entries(form)) {
-        if (valor instanceof Blob) body.append(clave, valor, `${clave}.${valor.type.split('/')[1]}`);
-        else body.append(clave, valor);
+      for (const [clave, valores] of Object.entries(form)) {
+        for (const valor of [valores].flat()) {
+          if (valor instanceof File) body.append(clave, valor, valor.name);
+          else if (valor instanceof Blob) body.append(clave, valor, `${clave}.${valor.type.split('/')[1]}`);
+          else body.append(clave, valor);
+        }
       }
     }
     const res = await fetch(`${base}${ruta}`, { method: metodo, headers, body });
+    if (crudo) return { status: res.status, body: Buffer.from(await res.arrayBuffer()), headers: res.headers };
     return { status: res.status, body: await res.json().catch(() => null), headers: res.headers };
   }
 
