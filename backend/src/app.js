@@ -5,6 +5,7 @@ import { env } from './config/env.js';
 import { authRouter } from './routes/auth.routes.js';
 import { pacienteRouter } from './routes/paciente.routes.js';
 import { terapeutaRouter } from './routes/terapeuta.routes.js';
+import { citaRouter } from './routes/cita.routes.js';
 import { notFoundHandler, errorHandler } from './middleware/errorHandler.js';
 
 export const app = express();
@@ -24,6 +25,7 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 app.use('/auth', authRouter);
 app.use('/pacientes', pacienteRouter);
 app.use('/terapeutas', terapeutaRouter);
+app.use('/citas', citaRouter);
 app.use('/uploads', express.static(env.uploadsDir));
 
 app.use(notFoundHandler);
