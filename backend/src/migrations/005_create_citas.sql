@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS cita (
         REFERENCES terapeuta (id_terapeuta) ON DELETE CASCADE,
     id_sala INT NOT NULL
         REFERENCES sala (id_sala) ON DELETE CASCADE,
-    folio VARCHAR(10) NOT NULL UNIQUE,
+    folio VARCHAR(20) NOT NULL UNIQUE,
     estado estado_cita NOT NULL
 );
 

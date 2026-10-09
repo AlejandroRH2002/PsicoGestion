@@ -1,5 +1,5 @@
 import {
-  CITAS_MOCK,
+  listarCitasApi,
   HORARIOS_DIA,
   HORARIOS_SEMANA,
   NOMBRES_MESES,
@@ -7,6 +7,7 @@ import {
   formatFechaISO,
   getLunesDeSemana,
   type TipoVista,
+  type Cita,
 } from './citas';
 
 export function inicializarAgenda(): void {
@@ -19,6 +20,29 @@ export function inicializarAgenda(): void {
 
   // Fecha seleccionada por defecto: 12 de Octubre de 2026 (fiel a los requerimientos)
   let fechaSeleccionada = new Date(2026, 9, 12);
+  let citasCargadas: Cita[] = [];
+
+  async function cargarCitasDesdeBackend(): Promise<void> {
+    try {
+      const res = await listarCitasApi({ limit: 100 });
+      citasCargadas = (res.citas || []).map((c) => ({
+        id: c.id,
+        fecha: c.fecha,
+        hora: c.horaInicio.slice(0, 5),
+        duracion: '1h',
+        paciente: c.paciente,
+        pacienteMes: c.paciente,
+        pacienteSemana: c.paciente,
+        terapeuta: c.terapeuta,
+        sala: c.sala,
+        salaCorta: c.sala,
+        estado: c.estado,
+        folio: c.folio,
+      }));
+    } catch (e) {
+      console.error('Error al cargar citas de la API:', e);
+    }
+  }
 
   // Referencias DOM
   const vistaTitulo = document.getElementById('vista-titulo');
@@ -156,7 +180,7 @@ export function inicializarAgenda(): void {
       }
 
       const fechaIso = formatFechaISO(fechaCelda);
-      const citasDelDia = CITAS_MOCK.filter(c => c.fecha === fechaIso);
+      const citasDelDia = citasCargadas.filter(c => c.fecha === fechaIso);
 
       if (!esMesActual) {
         celda.classList.remove('bg-white');
@@ -239,7 +263,7 @@ export function inicializarAgenda(): void {
       fila.appendChild(horaCol);
 
       fechasSemana.forEach(({ iso }) => {
-        const cita = CITAS_MOCK.find(c => c.fecha === iso && c.hora.startsWith(hora.split(':')[0]));
+        const cita = citasCargadas.find(c => c.fecha === iso && c.hora.startsWith(hora.split(':')[0]));
 
         const celda = document.createElement('div');
         if (cita) {
@@ -269,7 +293,7 @@ export function inicializarAgenda(): void {
     const fechaIso = formatFechaISO(fechaSeleccionada);
 
     HORARIOS_DIA.forEach(hora => {
-      const cita = CITAS_MOCK.find(c => c.fecha === fechaIso && c.hora === hora);
+      const cita = citasCargadas.find(c => c.fecha === fechaIso && c.hora === hora);
 
       const slotRow = document.createElement('div');
       slotRow.className = 'flex items-start gap-4 py-2 sm:py-2.5';
@@ -334,7 +358,7 @@ export function inicializarAgenda(): void {
 
     printTableBody.innerHTML = '';
     HORARIOS_DIA.forEach(hora => {
-      const cita = CITAS_MOCK.find(c => c.fecha === fechaIso && c.hora === hora);
+      const cita = citasCargadas.find(c => c.fecha === fechaIso && c.hora === hora);
       const tr = document.createElement('tr');
       tr.className = 'border-b border-slate-100 last:border-0 hover:bg-slate-50/50';
 
@@ -410,6 +434,9 @@ export function inicializarAgenda(): void {
     }
   });
 
-  // Inicialización
+  // Inicialización asíncrona conectada al backend
   cambiarVista(vistaActual);
+  void cargarCitasDesdeBackend().then(() => {
+    renderizarCalendario();
+  });
 }

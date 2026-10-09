@@ -1,0 +1,321 @@
+---
+import { Calendar, Save, SearchX, Check, AlertCircle } from '@lucide/astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+---
+
+<AppLayout title="Modificar Cita" activo="citas" volverHref="/citas" volverEtiqueta="Volver al Directorio">
+  <!-- Estado de Carga Inicial -->
+  <div id="cargando-pantalla" class="w-full max-w-3xl h-96 rounded-2xl bg-white border border-[#E2E8F0] animate-pulse flex items-center justify-center">
+    <div class="flex flex-col items-center gap-2">
+      <div class="size-6 border-2 border-[#0D9488] border-t-transparent rounded-full animate-spin"></div>
+      <span class="text-xs text-[#64748B]">Cargando información de la cita...</span>
+    </div>
+  </div>
+
+  <!-- Estado de No Encontrado -->
+  <div id="error-no-encontrado" class="hidden w-full max-w-3xl flex-col items-center gap-3 p-10 bg-white border border-[#E2E8F0] rounded-2xl text-center">
+    <SearchX class="size-10 text-[#64748B]" />
+    <h2 class="text-lg font-bold text-[#0F172A]">Cita no encontrada</h2>
+    <p class="text-sm text-[#64748B]">No se encontró ninguna cita médica con el identificador proporcionado.</p>
+    <a href="/citas" class="mt-2 text-sm font-semibold text-[#0D9488] hover:underline">Volver al directorio de citas</a>
+  </div>
+
+  <!-- Contenido Principal -->
+  <div id="contenido-formulario" class="hidden w-full max-w-3xl flex-col gap-6">
+    <header class="flex flex-col gap-1">
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-[#0F172A] tracking-tight">Modificar Cita</h1>
+      <p class="text-sm text-[#64748B]">Edite la información y guarde los cambios en la agenda del consultorio.</p>
+    </header>
+
+    <div id="feedback-alerta" class="hidden rounded-xl border px-4 py-3 text-sm" role="status" aria-live="polite"></div>
+
+    <form id="form-editar-cita" class="bg-white border border-[#E2E8F0] rounded-2xl p-6 sm:p-8 shadow-xs flex flex-col gap-6">
+      <!-- Encabezado de la Tarjeta: Folio y Estatus Actual -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-[#F1F5F9]">
+        <h2 class="text-base sm:text-lg font-bold text-[#0F172A]">
+          Folio de la Reserva: <span id="folio-display" class="font-extrabold text-[#0D9488]">CIT-00000</span>
+        </h2>
+        <div>
+          <span id="badge-estado-actual" class="px-3.5 py-1 rounded-full text-xs font-bold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]/60">
+            Actualmente Pendiente
+          </span>
+        </div>
+      </div>
+
+      <!-- Campo Paciente -->
+      <div class="flex flex-col gap-1.5">
+        <label for="select-paciente" class="text-xs font-bold text-[#0F172A]">
+          Paciente <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="select-paciente"
+          required
+          class="h-11 w-full rounded-xl border border-[#CBD5E1] px-3.5 text-sm font-medium bg-white text-[#0F172A] outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20 cursor-pointer transition-all"
+        >
+          <!-- Poblado dinámicamente -->
+        </select>
+      </div>
+
+      <!-- Campo Terapeuta -->
+      <div class="flex flex-col gap-1.5">
+        <label for="select-terapeuta" class="text-xs font-bold text-[#0F172A]">
+          Terapeuta <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="select-terapeuta"
+          required
+          class="h-11 w-full rounded-xl border border-[#CBD5E1] px-3.5 text-sm font-medium bg-white text-[#0F172A] outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20 cursor-pointer transition-all"
+        >
+          <!-- Poblado dinámicamente -->
+        </select>
+      </div>
+
+      <!-- Campo Sala de Terapia -->
+      <div class="flex flex-col gap-1.5">
+        <label for="select-sala" class="text-xs font-bold text-[#0F172A]">
+          Sala de Terapia <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="select-sala"
+          required
+          class="h-11 w-full rounded-xl border border-[#CBD5E1] px-3.5 text-sm font-medium bg-white text-[#0F172A] outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20 cursor-pointer transition-all"
+        >
+          <!-- Poblado dinámicamente -->
+        </select>
+      </div>
+
+      <!-- Campo Fecha y Hora de la Cita -->
+      <div class="flex flex-col gap-1.5">
+        <label class="text-xs font-bold text-[#0F172A]">
+          Fecha y Hora de la Cita <span class="text-red-500">*</span>
+        </label>
+        <div class="flex items-center justify-between p-3.5 rounded-xl border border-[#CBD5E1] bg-white transition-all">
+          <div class="flex items-center gap-2.5 text-sm font-semibold text-[#0F172A]">
+            <Calendar class="size-4 text-[#0D9488] shrink-0" />
+            <span id="display-fecha-hora">Cargando horario...</span>
+          </div>
+          <button
+            type="button"
+            id="btn-toggle-horario"
+            class="text-xs sm:text-sm font-semibold text-[#0D9488] hover:underline cursor-pointer focus:outline-none"
+          >
+            Modificar Horario...
+          </button>
+        </div>
+
+        <!-- Panel Desplegable para Cambiar Horario si lo requiere -->
+        <div id="panel-modificar-horario" class="hidden mt-2 p-4 rounded-xl border border-[#CCFBF1] bg-[#F0FDFA] flex-col gap-3">
+          <p class="text-xs font-semibold text-[#006847]">
+            Para reasignar a una nueva fecha y hora, seleccione la nueva fecha deseada:
+          </p>
+          <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+            <input
+              type="date"
+              id="input-cambiar-fecha"
+              class="h-10 px-3 rounded-lg border border-[#CBD5E1] bg-white text-sm font-medium outline-none focus:border-[#0D9488]"
+            />
+            <span class="text-xs text-[#64748B]">Consulte la disponibilidad de consultorio en la agenda.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Campo Estatus -->
+      <div class="flex flex-col gap-1.5">
+        <label for="select-estado" class="text-xs font-bold text-[#0F172A]">
+          Estatus <span class="text-red-500">*</span>
+        </label>
+        <select
+          id="select-estado"
+          required
+          class="h-11 w-full rounded-xl border border-[#CBD5E1] px-3.5 text-sm font-medium bg-white text-[#0F172A] outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20 cursor-pointer transition-all"
+        >
+          <option value="Pendiente">Pendiente</option>
+          <option value="Cancelada">Cancelada</option>
+          <option value="Vencida">Vencida</option>
+        </select>
+      </div>
+
+      <!-- Botones de Acción -->
+      <div class="flex items-center justify-between pt-4 border-t border-[#F1F5F9]">
+        <a
+          href="/citas"
+          class="px-6 py-2.5 rounded-xl border border-[#CBD5E1] text-sm font-semibold text-[#334155] hover:bg-slate-50 transition-colors"
+        >
+          Cancelar
+        </a>
+
+        <button
+          type="submit"
+          id="btn-guardar"
+          class="inline-flex items-center gap-2 bg-[#0D9488] hover:bg-[#0f766e] text-white text-sm font-semibold px-6 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
+        >
+          <Save class="size-4" />
+          <span>Guardar Cambios</span>
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    import {
+      obtenerCitaApi,
+      actualizarCitaApi,
+      listarSalasApi,
+      listarTerapeutasApi,
+      formatearFechaLargaDetalle,
+      type CitaDetalle,
+      type EstadoCita,
+    } from '../../utils/citas';
+    import { buscarPacientes } from '../../utils/paciente';
+
+    const cargandoPantalla = document.getElementById('cargando-pantalla')!;
+    const errorNoEncontrado = document.getElementById('error-no-encontrado')!;
+    const contenidoFormulario = document.getElementById('contenido-formulario')!;
+    const feedbackAlerta = document.getElementById('feedback-alerta')!;
+    const formEditarCita = document.getElementById('form-editar-cita') as HTMLFormElement;
+
+    const folioDisplay = document.getElementById('folio-display')!;
+    const badgeEstadoActual = document.getElementById('badge-estado-actual')!;
+    const selectPaciente = document.getElementById('select-paciente') as HTMLSelectElement;
+    const selectTerapeuta = document.getElementById('select-terapeuta') as HTMLSelectElement;
+    const selectSala = document.getElementById('select-sala') as HTMLSelectElement;
+    const displayFechaHora = document.getElementById('display-fecha-hora')!;
+    const selectEstado = document.getElementById('select-estado') as HTMLSelectElement;
+    const btnGuardar = document.getElementById('btn-guardar') as HTMLButtonElement;
+
+    const btnToggleHorario = document.getElementById('btn-toggle-horario')!;
+    const panelModificarHorario = document.getElementById('panel-modificar-horario')!;
+
+    btnToggleHorario.addEventListener('click', () => {
+      panelModificarHorario.classList.toggle('hidden');
+      panelModificarHorario.classList.toggle('flex');
+    });
+
+    const citaIdParam = new URLSearchParams(window.location.search).get('id');
+    let citaActual: CitaDetalle | null = null;
+
+    function mostrarAlerta(mensaje: string, tipo: 'exito' | 'error' = 'error'): void {
+      feedbackAlerta.textContent = mensaje;
+      feedbackAlerta.className = `rounded-xl border px-4 py-3 text-sm ${
+        tipo === 'exito'
+          ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+          : 'bg-rose-50 border-rose-200 text-rose-800'
+      }`;
+      feedbackAlerta.classList.remove('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function actualizarBadgeEstado(estado: EstadoCita): void {
+      badgeEstadoActual.textContent = `Actualmente ${estado}`;
+      if (estado === 'Pendiente') {
+        badgeEstadoActual.className = 'px-3.5 py-1 rounded-full text-xs font-bold bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]/60';
+      } else if (estado === 'Cancelada') {
+        badgeEstadoActual.className = 'px-3.5 py-1 rounded-full text-xs font-bold bg-[#FEE2E2] text-[#DC2626] border border-[#FECACA]/60';
+      } else {
+        badgeEstadoActual.className = 'px-3.5 py-1 rounded-full text-xs font-bold bg-[#F1F5F9] text-[#64748B] border border-[#E2E8F0]';
+      }
+    }
+
+    async function cargarDatos(): Promise<void> {
+      if (!citaIdParam) {
+        cargandoPantalla.classList.add('hidden');
+        errorNoEncontrado.classList.remove('hidden');
+        errorNoEncontrado.classList.add('flex');
+        return;
+      }
+
+      try {
+        const [cita, salas, terapeutas] = await Promise.all([
+          obtenerCitaApi(citaIdParam),
+          listarSalasApi(),
+          listarTerapeutasApi(),
+        ]);
+
+        citaActual = cita;
+
+        // Renderizar Folio y Estado Actual
+        folioDisplay.textContent = cita.folio;
+        actualizarBadgeEstado(cita.estado);
+        selectEstado.value = cita.estado;
+
+        // Llenar Paciente
+        selectPaciente.innerHTML = '';
+        const optPacienteActual = document.createElement('option');
+        optPacienteActual.value = String(cita.pacienteId);
+        optPacienteActual.textContent = cita.paciente;
+        optPacienteActual.selected = true;
+        selectPaciente.appendChild(optPacienteActual);
+
+        // Llenar terapeutas
+        selectTerapeuta.innerHTML = '';
+        terapeutas.forEach((t) => {
+          const opt = document.createElement('option');
+          opt.value = String(t.id);
+          opt.textContent = t.nombre;
+          if (t.id === cita.terapeutaId) opt.selected = true;
+          selectTerapeuta.appendChild(opt);
+        });
+
+        // Llenar salas
+        selectSala.innerHTML = '';
+        salas.forEach((s) => {
+          const opt = document.createElement('option');
+          opt.value = String(s.id);
+          opt.textContent = s.nombre;
+          if (s.id === cita.salaId) opt.selected = true;
+          selectSala.appendChild(opt);
+        });
+
+        // Formatear Fecha y Hora
+        displayFechaHora.textContent = formatearFechaLargaDetalle(
+          cita.fecha,
+          cita.horaInicio,
+          cita.horaFin
+        );
+
+        // Mostrar Formulario
+        cargandoPantalla.classList.add('hidden');
+        contenidoFormulario.classList.remove('hidden');
+        contenidoFormulario.classList.add('flex');
+      } catch (err) {
+        cargandoPantalla.classList.add('hidden');
+        errorNoEncontrado.classList.remove('hidden');
+        errorNoEncontrado.classList.add('flex');
+      }
+    }
+
+    selectEstado.addEventListener('change', () => {
+      actualizarBadgeEstado(selectEstado.value as EstadoCita);
+    });
+
+    formEditarCita.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!citaActual) return;
+
+      btnGuardar.disabled = true;
+      btnGuardar.textContent = 'Guardando cambios...';
+
+      try {
+        const datosActualizar = {
+          estado: selectEstado.value as EstadoCita,
+          pacienteId: Number(selectPaciente.value),
+          terapeutaId: Number(selectTerapeuta.value),
+          salaId: Number(selectSala.value),
+        };
+
+        await actualizarCitaApi(citaActual.id, datosActualizar);
+        mostrarAlerta('Cita médica actualizada correctamente.', 'exito');
+
+        setTimeout(() => {
+          window.location.href = '/citas';
+        }, 1200);
+      } catch (err) {
+        mostrarAlerta(err instanceof Error ? err.message : 'Error al actualizar la cita.', 'error');
+        btnGuardar.disabled = false;
+        btnGuardar.textContent = 'Guardar Cambios';
+      }
+    });
+
+    void cargarDatos();
+  </script>
+</AppLayout>

@@ -1,0 +1,344 @@
+---
+import { CalendarDays, Check, Clock3, Search } from '@lucide/astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+---
+
+<AppLayout title="Agendar cita" activo="citas" volverHref="/citas" volverEtiqueta="Volver a Citas">
+  <div class="w-full max-w-4xl space-y-6">
+    <header class="space-y-2">
+      <p class="text-sm font-semibold uppercase tracking-wide text-[#0D9488]">Agenda</p>
+      <h2 class="text-2xl font-extrabold text-[#0F172A]">Agendar una cita</h2>
+      <p class="text-sm text-[#64748B]">Selecciona un paciente, un terapeuta, una sala y un horario disponible.</p>
+    </header>
+
+    <div id="estado-pagina" class="hidden rounded-xl border px-4 py-3 text-sm" role="status" aria-live="polite"></div>
+
+    <form id="formulario-cita" class="space-y-6">
+      <section class="space-y-4 rounded-2xl border border-[#E2E8F0] bg-white p-5 sm:p-7">
+        <div class="flex items-center gap-3">
+          <span class="flex size-9 items-center justify-center rounded-full bg-[#CCFBF1] text-sm font-bold text-[#006847]">1</span>
+          <div>
+            <h3 class="font-bold text-[#0F172A]">Paciente</h3>
+            <p class="text-xs text-[#64748B]">Busca por nombre, CURP o teléfono.</p>
+          </div>
+        </div>
+        <label for="busqueda-paciente" class="sr-only">Buscar paciente</label>
+        <div class="relative">
+          <Search class="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#64748B]" />
+          <input
+            id="busqueda-paciente"
+            type="search"
+            autocomplete="off"
+            placeholder="Escribe al menos 2 caracteres…"
+            class="h-11 w-full rounded-lg border border-[#CBD5E1] pl-10 pr-3 text-sm outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20"
+          />
+          <div id="resultados-paciente" class="absolute z-10 mt-1 hidden max-h-60 w-full overflow-y-auto rounded-lg border border-[#E2E8F0] bg-white shadow-lg"></div>
+        </div>
+        <p id="paciente-seleccionado" class="hidden rounded-lg bg-[#F0FDFA] px-3 py-2 text-sm font-semibold text-[#006847]"></p>
+      </section>
+
+      <section class="space-y-4 rounded-2xl border border-[#E2E8F0] bg-white p-5 sm:p-7">
+        <div class="flex items-center gap-3">
+          <span class="flex size-9 items-center justify-center rounded-full bg-[#CCFBF1] text-sm font-bold text-[#006847]">2</span>
+          <div>
+            <h3 class="font-bold text-[#0F172A]">Atención y horario</h3>
+            <p class="text-xs text-[#64748B]">Los horarios se muestran cuando ambos recursos están disponibles.</p>
+          </div>
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <label class="space-y-1.5 text-sm font-semibold text-[#334155]" for="terapeuta">
+            Terapeuta
+            <select id="terapeuta" required class="h-11 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 font-normal outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20">
+              <option value="">Cargando terapeutas…</option>
+            </select>
+          </label>
+          <label class="space-y-1.5 text-sm font-semibold text-[#334155]" for="sala">
+            Sala
+            <select id="sala" required class="h-11 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 font-normal outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20">
+              <option value="">Cargando salas…</option>
+            </select>
+          </label>
+          <label class="space-y-1.5 text-sm font-semibold text-[#334155]" for="fecha">
+            Fecha
+            <input id="fecha" type="date" required class="h-11 w-full rounded-lg border border-[#CBD5E1] bg-white px-3 font-normal outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20" />
+          </label>
+        </div>
+
+        <div class="space-y-3">
+          <div class="flex items-center gap-2 text-sm font-semibold text-[#334155]">
+            <Clock3 class="size-4 text-[#0D9488]" />
+            <span>Bloques disponibles</span>
+          </div>
+          <p id="ayuda-bloques" class="text-sm text-[#64748B]">Selecciona terapeuta, sala y fecha para consultar horarios.</p>
+          <fieldset id="lista-bloques" class="hidden grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <legend class="sr-only">Selecciona uno o más bloques consecutivos</legend>
+          </fieldset>
+        </div>
+      </section>
+
+      <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+        <a href="/citas" class="inline-flex h-11 items-center justify-center rounded-lg border border-[#CBD5E1] px-5 text-sm font-semibold text-[#334155] hover:bg-slate-50">Cancelar</a>
+        <button id="guardar-cita" type="submit" disabled class="inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-[#0D9488] px-5 text-sm font-semibold text-white transition-colors hover:bg-[#0F766E] disabled:cursor-not-allowed disabled:opacity-50">
+          <CalendarDays class="size-4" />
+          Agendar cita
+        </button>
+      </div>
+    </form>
+
+    <section id="confirmacion" class="hidden rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm" aria-live="polite">
+      <span class="mb-3 flex size-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700"><Check class="size-6" /></span>
+      <h3 class="text-lg font-bold text-[#0F172A]">Cita agendada</h3>
+      <p id="detalle-confirmacion" class="mt-2 text-sm leading-6 text-[#475569]"></p>
+      <div class="mt-4 flex items-center justify-center gap-4">
+        <button id="nueva-cita" type="button" class="text-sm font-semibold text-[#0D9488] hover:underline">Agendar otra cita</button>
+        <span class="text-[#CBD5E1]">·</span>
+        <a href="/citas" class="text-sm font-semibold text-[#475569] hover:underline">Ir al directorio de citas</a>
+      </div>
+    </section>
+  </div>
+</AppLayout>
+
+<script>
+  import { API_URL } from '../../utils/sesion';
+
+  interface Opcion {
+    id: number;
+    nombre: string;
+  }
+
+  interface Bloque {
+    id: number;
+    fecha: string;
+    horaInicio: string;
+    horaFin: string;
+  }
+
+  interface Paciente {
+    id: number;
+    nombre: string;
+    curpUltimos4: string;
+    telefonoUltimos4: string;
+    activo: boolean;
+  }
+
+  const formulario = document.getElementById('formulario-cita') as HTMLFormElement;
+  const estadoPagina = document.getElementById('estado-pagina')!;
+  const pacienteBusqueda = document.getElementById('busqueda-paciente') as HTMLInputElement;
+  const resultadosPaciente = document.getElementById('resultados-paciente')!;
+  const pacienteSeleccionado = document.getElementById('paciente-seleccionado')!;
+  const terapeutaSelect = document.getElementById('terapeuta') as HTMLSelectElement;
+  const salaSelect = document.getElementById('sala') as HTMLSelectElement;
+  const fechaInput = document.getElementById('fecha') as HTMLInputElement;
+  const ayudaBloques = document.getElementById('ayuda-bloques')!;
+  const listaBloques = document.getElementById('lista-bloques')!;
+  const guardar = document.getElementById('guardar-cita') as HTMLButtonElement;
+  const confirmacion = document.getElementById('confirmacion')!;
+  const detalleConfirmacion = document.getElementById('detalle-confirmacion')!;
+  let pacienteId: number | null = null;
+  let temporizadorBusqueda: number | undefined;
+  let peticionDisponibilidad = 0;
+
+  function mostrarEstado(mensaje: string, tipo: 'error' | 'info' = 'error'): void {
+    estadoPagina.textContent = mensaje;
+    estadoPagina.className = `rounded-xl border px-4 py-3 text-sm ${
+      tipo === 'error' ? 'border-red-200 bg-red-50 text-red-800' : 'border-sky-200 bg-sky-50 text-sky-800'
+    }`;
+  }
+
+  function limpiarEstado(): void {
+    estadoPagina.textContent = '';
+    estadoPagina.className = 'hidden rounded-xl border px-4 py-3 text-sm';
+  }
+
+  async function pedir<T>(ruta: string, init?: RequestInit): Promise<T> {
+    const response = await fetch(`${API_URL}${ruta}`, {
+      credentials: 'include',
+      ...init,
+    });
+    if (response.status === 401) {
+      window.location.replace('/');
+      throw new Error('Tu sesión expiró. Inicia sesión de nuevo.');
+    }
+    const body = await response.json().catch(() => null);
+    if (!response.ok) {
+      const mensaje = body?.error ?? body?.errors?.map((error: { message: string }) => error.message).join(' ') ?? `La solicitud respondió ${response.status}.`;
+      throw new Error(mensaje);
+    }
+    return body as T;
+  }
+
+  function llenarOpciones(select: HTMLSelectElement, placeholder: string, opciones: Opcion[]): void {
+    select.replaceChildren(new Option(placeholder, ''));
+    for (const opcion of opciones) select.add(new Option(opcion.nombre, String(opcion.id)));
+    if (opciones.length === 0) select.options[0].textContent = 'No hay opciones disponibles';
+  }
+
+  async function cargarOpciones(): Promise<void> {
+    try {
+      const [terapeutas, salas] = await Promise.all([
+        pedir<{ terapeutas: Array<{ id: number; nombre: string }> }>('/terapeutas?estado=activos'),
+        pedir<{ salas: Opcion[] }>('/citas/salas'),
+      ]);
+      llenarOpciones(terapeutaSelect, 'Selecciona un terapeuta', terapeutas.terapeutas);
+      llenarOpciones(salaSelect, 'Selecciona una sala', salas.salas);
+      if (salas.salas.length === 0) {
+        mostrarEstado('Aún no hay salas registradas. Solicita que se carguen las salas y sus disponibilidades.', 'info');
+      }
+    } catch (error) {
+      mostrarEstado(error instanceof Error ? error.message : 'No se pudieron cargar terapeutas y salas.');
+      terapeutaSelect.replaceChildren(new Option('No se pudieron cargar', ''));
+      salaSelect.replaceChildren(new Option('No se pudieron cargar', ''));
+    }
+  }
+
+  function seleccionarPaciente(paciente: Paciente): void {
+    pacienteId = paciente.id;
+    pacienteBusqueda.value = paciente.nombre;
+    pacienteSeleccionado.textContent = `Paciente seleccionado: ${paciente.nombre} · CURP ••••${paciente.curpUltimos4} · Tel. ••••${paciente.telefonoUltimos4}`;
+    pacienteSeleccionado.classList.remove('hidden');
+    resultadosPaciente.replaceChildren();
+    resultadosPaciente.classList.add('hidden');
+  }
+
+  async function buscarPaciente(): Promise<void> {
+    const consulta = pacienteBusqueda.value.trim();
+    pacienteId = null;
+    pacienteSeleccionado.classList.add('hidden');
+    resultadosPaciente.replaceChildren();
+    if (consulta.length < 2) {
+      resultadosPaciente.classList.add('hidden');
+      return;
+    }
+
+    const opcion = document.createElement('p');
+    opcion.className = 'px-3 py-2 text-sm text-[#64748B]';
+    opcion.textContent = 'Buscando pacientes…';
+    resultadosPaciente.replaceChildren(opcion);
+    resultadosPaciente.classList.remove('hidden');
+    try {
+      const { pacientes } = await pedir<{ pacientes: Paciente[] }>(`/pacientes?q=${encodeURIComponent(consulta)}`);
+      if (pacienteBusqueda.value.trim() !== consulta) return;
+      resultadosPaciente.replaceChildren();
+      const pacientesActivos = pacientes.filter((paciente) => paciente.activo);
+      if (pacientesActivos.length === 0) {
+        const vacio = document.createElement('p');
+        vacio.className = 'px-3 py-2 text-sm text-[#64748B]';
+        vacio.textContent = 'No se encontraron pacientes activos.';
+        resultadosPaciente.append(vacio);
+        resultadosPaciente.classList.remove('hidden');
+        return;
+      }
+      for (const paciente of pacientesActivos) {
+        const boton = document.createElement('button');
+        boton.type = 'button';
+        boton.className = 'block w-full border-b border-[#F1F5F9] px-3 py-2 text-left text-sm hover:bg-[#F0FDFA]';
+        boton.textContent = `${paciente.nombre} · CURP ••••${paciente.curpUltimos4} · Tel. ••••${paciente.telefonoUltimos4}`;
+        boton.addEventListener('click', () => seleccionarPaciente(paciente));
+        resultadosPaciente.append(boton);
+      }
+      resultadosPaciente.classList.remove('hidden');
+    } catch (error) {
+      resultadosPaciente.replaceChildren();
+      resultadosPaciente.classList.add('hidden');
+      mostrarEstado(error instanceof Error ? error.message : 'No se pudo buscar el paciente.');
+    }
+  }
+
+  function actualizarBoton(): void {
+    guardar.disabled = !pacienteId || !terapeutaSelect.value || !salaSelect.value || !fechaInput.value || !listaBloques.querySelector('input:checked');
+  }
+
+  async function cargarDisponibilidad(): Promise<void> {
+    const solicitud = ++peticionDisponibilidad;
+    listaBloques.replaceChildren();
+    listaBloques.classList.add('hidden');
+    actualizarBoton();
+    if (!terapeutaSelect.value || !salaSelect.value || !fechaInput.value) {
+      ayudaBloques.textContent = 'Selecciona terapeuta, sala y fecha para consultar horarios.';
+      return;
+    }
+    ayudaBloques.textContent = 'Consultando horarios disponibles…';
+    limpiarEstado();
+    try {
+      const params = new URLSearchParams({
+        terapeutaId: terapeutaSelect.value,
+        salaId: salaSelect.value,
+        fecha: fechaInput.value,
+      });
+      const { bloques } = await pedir<{ bloques: Bloque[] }>(`/citas/disponibilidad?${params}`);
+      if (solicitud !== peticionDisponibilidad) return;
+      if (bloques.length === 0) {
+        ayudaBloques.textContent = 'No hay bloques disponibles para esta combinación y fecha.';
+        return;
+      }
+      for (const bloque of bloques) {
+        const label = document.createElement('label');
+        label.className = 'flex cursor-pointer items-center gap-3 rounded-lg border border-[#E2E8F0] p-3 text-sm hover:border-[#0D9488] has-checked:border-[#0D9488] has-checked:bg-[#F0FDFA]';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.name = 'bloques';
+        checkbox.value = String(bloque.id);
+        checkbox.className = 'size-4 accent-[#0D9488]';
+        checkbox.addEventListener('change', actualizarBoton);
+        const texto = document.createElement('span');
+        texto.textContent = `${bloque.horaInicio} – ${bloque.horaFin}`;
+        label.append(checkbox, texto);
+        listaBloques.append(label);
+      }
+      ayudaBloques.textContent = 'Selecciona bloques contiguos. La cita se reservará al confirmar.';
+      listaBloques.classList.remove('hidden');
+    } catch (error) {
+      if (solicitud !== peticionDisponibilidad) return;
+      ayudaBloques.textContent = 'No se pudo consultar la disponibilidad.';
+      mostrarEstado(error instanceof Error ? error.message : 'No se pudo consultar la disponibilidad.');
+    }
+  }
+
+  pacienteBusqueda.addEventListener('input', () => {
+    window.clearTimeout(temporizadorBusqueda);
+    temporizadorBusqueda = window.setTimeout(() => void buscarPaciente(), 250);
+  });
+  terapeutaSelect.addEventListener('change', () => void cargarDisponibilidad());
+  salaSelect.addEventListener('change', () => void cargarDisponibilidad());
+  fechaInput.addEventListener('change', () => void cargarDisponibilidad());
+
+  fechaInput.min = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
+  void cargarOpciones();
+
+  formulario.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    limpiarEstado();
+    const bloques = Array.from(listaBloques.querySelectorAll<HTMLInputElement>('input:checked')).map((input) => Number(input.value));
+    if (!pacienteId || bloques.length === 0) {
+      mostrarEstado('Selecciona un paciente y al menos un bloque horario.');
+      return;
+    }
+    guardar.disabled = true;
+    guardar.textContent = 'Agendando…';
+    try {
+      const { cita } = await pedir<{ cita: { folio: string; fecha: string; horaInicio: string; horaFin: string } }>('/citas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pacienteId,
+          terapeutaId: Number(terapeutaSelect.value),
+          salaId: Number(salaSelect.value),
+          bloques,
+        }),
+      });
+      detalleConfirmacion.textContent = `Folio ${cita.folio} · ${cita.fecha} · ${cita.horaInicio}–${cita.horaFin}.`;
+      confirmacion.classList.remove('hidden');
+      formulario.classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (error) {
+      mostrarEstado(error instanceof Error ? error.message : 'No se pudo agendar la cita.');
+      await cargarDisponibilidad();
+    } finally {
+      guardar.textContent = 'Agendar cita';
+      actualizarBoton();
+    }
+  });
+
+  document.getElementById('nueva-cita')?.addEventListener('click', () => window.location.reload());
+</script>

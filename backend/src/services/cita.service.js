@@ -52,7 +52,273 @@ export async function listarDisponibilidad({ terapeutaId, salaId, fecha }) {
 }
 
 function folioNuevo() {
-  return randomBytes(5).toString('hex').toUpperCase();
+  const anio = new Date().getFullYear();
+  const num = Math.floor(10000 + Math.random() * 90000);
+  return `CIT-${anio}-${num}`;
+}
+
+export async function listarCitas({
+  q = '',
+  estado = 'Todas',
+  salaId = null,
+  terapeutaId = null,
+  tiempo = 'todos',
+  fechaInicio = null,
+  fechaFin = null,
+  page = 1,
+  limit = 10,
+} = {}) {
+  const conditions = [];
+  const params = [];
+  let paramIdx = 1;
+
+  if (q && q.trim()) {
+    conditions.push(`(p.nombre_completo ILIKE $${paramIdx} OR c.folio ILIKE $${paramIdx})`);
+    params.push(`%${q.trim()}%`);
+    paramIdx++;
+  }
+
+  if (estado && estado !== 'Todas') {
+    conditions.push(`c.estado = $${paramIdx}`);
+    params.push(estado);
+    paramIdx++;
+  }
+
+  if (salaId) {
+    conditions.push(`c.id_sala = $${paramIdx}`);
+    params.push(Number(salaId));
+    paramIdx++;
+  }
+
+  if (terapeutaId) {
+    conditions.push(`c.id_terapeuta = $${paramIdx}`);
+    params.push(Number(terapeutaId));
+    paramIdx++;
+  }
+
+  if (tiempo === 'dia') {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM cita_bloque cb_t 
+      JOIN bloque_horario bh_t ON bh_t.id_bloque = cb_t.id_bloque
+      WHERE cb_t.id_cita = c.id_cita AND bh_t.fecha = CURRENT_DATE
+    )`);
+  } else if (tiempo === 'semana') {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM cita_bloque cb_t 
+      JOIN bloque_horario bh_t ON bh_t.id_bloque = cb_t.id_bloque
+      WHERE cb_t.id_cita = c.id_cita 
+        AND bh_t.fecha >= date_trunc('week', CURRENT_DATE) 
+        AND bh_t.fecha < date_trunc('week', CURRENT_DATE) + INTERVAL '7 days'
+    )`);
+  } else if (tiempo === 'mes') {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM cita_bloque cb_t 
+      JOIN bloque_horario bh_t ON bh_t.id_bloque = cb_t.id_bloque
+      WHERE cb_t.id_cita = c.id_cita 
+        AND bh_t.fecha >= date_trunc('month', CURRENT_DATE) 
+        AND bh_t.fecha < (date_trunc('month', CURRENT_DATE) + INTERVAL '1 month')
+    )`);
+  }
+
+  if (fechaInicio) {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM cita_bloque cb_t 
+      JOIN bloque_horario bh_t ON bh_t.id_bloque = cb_t.id_bloque
+      WHERE cb_t.id_cita = c.id_cita AND bh_t.fecha >= $${paramIdx}
+    )`);
+    params.push(fechaInicio);
+    paramIdx++;
+  }
+
+  if (fechaFin) {
+    conditions.push(`EXISTS (
+      SELECT 1 FROM cita_bloque cb_t 
+      JOIN bloque_horario bh_t ON bh_t.id_bloque = cb_t.id_bloque
+      WHERE cb_t.id_cita = c.id_cita AND bh_t.fecha <= $${paramIdx}
+    )`);
+    params.push(fechaFin);
+    paramIdx++;
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  const contadoresRes = await pool.query(`
+    SELECT
+      COUNT(*) AS todas,
+      COUNT(*) FILTER (WHERE c.estado = 'Pendiente') AS pendientes,
+      COUNT(*) FILTER (WHERE c.estado = 'Cancelada') AS canceladas,
+      COUNT(*) FILTER (WHERE c.estado = 'Vencida') AS vencidas
+    FROM cita c
+  `);
+  const contadoresRow = contadoresRes.rows[0] || {};
+  const contadores = {
+    todas: Number(contadoresRow.todas || 0),
+    pendientes: Number(contadoresRow.pendientes || 0),
+    canceladas: Number(contadoresRow.canceladas || 0),
+    vencidas: Number(contadoresRow.vencidas || 0),
+  };
+
+  const countSql = `
+    SELECT COUNT(DISTINCT c.id_cita) AS total
+    FROM cita c
+    JOIN paciente p ON p.id_paciente = c.id_paciente
+    JOIN terapeuta t ON t.id_terapeuta = c.id_terapeuta
+    JOIN sala s ON s.id_sala = c.id_sala
+    ${whereClause}
+  `;
+  const countRes = await pool.query(countSql, params);
+  const total = Number(countRes.rows[0]?.total || 0);
+
+  const numLimit = Math.max(1, Math.min(100, Number(limit) || 10));
+  const numPage = Math.max(1, Number(page) || 1);
+  const offset = (numPage - 1) * numLimit;
+  const totalPages = Math.max(1, Math.ceil(total / numLimit));
+
+  const queryParams = [...params, numLimit, offset];
+  const querySql = `
+    SELECT
+      c.id_cita AS id,
+      c.folio,
+      c.estado,
+      p.id_paciente AS "pacienteId",
+      p.nombre_completo AS paciente,
+      t.id_terapeuta AS "terapeutaId",
+      t.nombre_completo AS terapeuta,
+      s.id_sala AS "salaId",
+      s.nombre_sala AS sala,
+      COALESCE(to_char(MIN(b.fecha), 'YYYY-MM-DD'), '') AS fecha,
+      COALESCE(to_char(MIN(b.hora_inicio), 'HH24:MI'), '') AS "horaInicio",
+      COALESCE(to_char(MAX(b.hora_fin), 'HH24:MI'), '') AS "horaFin"
+    FROM cita c
+    JOIN paciente p ON p.id_paciente = c.id_paciente
+    JOIN terapeuta t ON t.id_terapeuta = c.id_terapeuta
+    JOIN sala s ON s.id_sala = c.id_sala
+    LEFT JOIN cita_bloque cb ON cb.id_cita = c.id_cita
+    LEFT JOIN bloque_horario b ON b.id_bloque = cb.id_bloque
+    ${whereClause}
+    GROUP BY c.id_cita, c.folio, c.estado, p.id_paciente, p.nombre_completo, t.id_terapeuta, t.nombre_completo, s.id_sala, s.nombre_sala
+    ORDER BY MIN(b.fecha) DESC NULLS LAST, MIN(b.hora_inicio) ASC NULLS LAST, c.id_cita DESC
+    LIMIT $${paramIdx} OFFSET $${paramIdx + 1}
+  `;
+
+  const { rows } = await pool.query(querySql, queryParams);
+
+  return {
+    citas: rows.map(r => ({
+      id: r.id,
+      folio: r.folio,
+      estado: r.estado,
+      pacienteId: r.pacienteId,
+      paciente: r.paciente,
+      terapeutaId: r.terapeutaId,
+      terapeuta: r.terapeuta,
+      salaId: r.salaId,
+      sala: r.sala,
+      fecha: r.fecha,
+      horaInicio: r.horaInicio,
+      horaFin: r.horaFin,
+    })),
+    total,
+    page: numPage,
+    totalPages,
+    contadores,
+  };
+}
+
+export async function obtenerCitaPorId(idOfolio) {
+  const isNumber = /^\d+$/.test(String(idOfolio));
+  const where = isNumber ? 'c.id_cita = $1' : 'c.folio = $1';
+  const param = isNumber ? Number(idOfolio) : String(idOfolio);
+
+  const { rows } = await pool.query(`
+    SELECT
+      c.id_cita AS id,
+      c.folio,
+      c.estado,
+      p.id_paciente AS "pacienteId",
+      p.nombre_completo AS paciente,
+      t.id_terapeuta AS "terapeutaId",
+      t.nombre_completo AS terapeuta,
+      s.id_sala AS "salaId",
+      s.nombre_sala AS sala,
+      COALESCE(to_char(MIN(b.fecha), 'YYYY-MM-DD'), '') AS fecha,
+      COALESCE(to_char(MIN(b.hora_inicio), 'HH24:MI'), '') AS "horaInicio",
+      COALESCE(to_char(MAX(b.hora_fin), 'HH24:MI'), '') AS "horaFin",
+      ARRAY_AGG(cb.id_bloque) FILTER (WHERE cb.id_bloque IS NOT NULL) AS bloques
+    FROM cita c
+    JOIN paciente p ON p.id_paciente = c.id_paciente
+    JOIN terapeuta t ON t.id_terapeuta = c.id_terapeuta
+    JOIN sala s ON s.id_sala = c.id_sala
+    LEFT JOIN cita_bloque cb ON cb.id_cita = c.id_cita
+    LEFT JOIN bloque_horario b ON b.id_bloque = cb.id_bloque
+    WHERE ${where}
+    GROUP BY c.id_cita, c.folio, c.estado, p.id_paciente, p.nombre_completo, t.id_terapeuta, t.nombre_completo, s.id_sala, s.nombre_sala
+  `, [param]);
+
+  if (rows.length === 0) {
+    throw new CitaNotFoundError('La cita solicitada no existe.');
+  }
+
+  const r = rows[0];
+  return {
+    id: r.id,
+    folio: r.folio,
+    estado: r.estado,
+    pacienteId: r.pacienteId,
+    paciente: r.paciente,
+    terapeutaId: r.terapeutaId,
+    terapeuta: r.terapeuta,
+    salaId: r.salaId,
+    sala: r.sala,
+    fecha: r.fecha,
+    horaInicio: r.horaInicio,
+    horaFin: r.horaFin,
+    bloques: r.bloques || [],
+  };
+}
+
+export async function actualizarCita(id, { estado, pacienteId, terapeutaId, salaId } = {}) {
+  const cita = await obtenerCitaPorId(id);
+
+  const updates = [];
+  const params = [];
+  let paramIdx = 1;
+
+  if (estado && ['Pendiente', 'Cancelada', 'Vencida'].includes(estado)) {
+    updates.push(`estado = $${paramIdx++}`);
+    params.push(estado);
+  }
+
+  if (pacienteId) {
+    updates.push(`id_paciente = $${paramIdx++}`);
+    params.push(Number(pacienteId));
+  }
+
+  if (terapeutaId) {
+    updates.push(`id_terapeuta = $${paramIdx++}`);
+    params.push(Number(terapeutaId));
+  }
+
+  if (salaId) {
+    updates.push(`id_sala = $${paramIdx++}`);
+    params.push(Number(salaId));
+  }
+
+  if (updates.length > 0) {
+    params.push(cita.id);
+    await pool.query(
+      `UPDATE cita SET ${updates.join(', ')} WHERE id_cita = $${paramIdx}`,
+      params
+    );
+  }
+
+  return obtenerCitaPorId(cita.id);
+}
+
+export async function cancelarCita(id) {
+  const cita = await obtenerCitaPorId(id);
+  await pool.query("UPDATE cita SET estado = 'Cancelada' WHERE id_cita = $1", [cita.id]);
+  return { id: cita.id, folio: cita.folio, estado: 'Cancelada' };
 }
 
 export async function crearCita({ pacienteId, terapeutaId, salaId, bloques }) {
