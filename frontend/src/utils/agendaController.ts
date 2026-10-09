@@ -210,7 +210,7 @@ export function inicializarAgenda(): void {
       citasDelDia.forEach(cita => {
         const pill = document.createElement('div');
         pill.className = 'bg-[#DCFCE7] text-[#006847] text-[10px] md:text-[11px] font-semibold px-1.5 md:px-2 py-0.5 rounded-md truncate border border-emerald-200/50 hover:bg-[#bbf7d0] transition-colors';
-        pill.textContent = cita.pacienteMes;
+        pill.textContent = cita.pacienteMes ?? cita.paciente;
         pill.title = `${cita.hora} - ${cita.paciente} (${cita.sala})`;
         citasContainer.appendChild(pill);
       });
