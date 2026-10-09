@@ -5,12 +5,13 @@ import TopBar from '../components/TopBar.astro';
 
 interface Props {
   title: string;
+  subtitulo?: string;
   activo: SeccionApp;
   volverHref?: string;
   volverEtiqueta?: string;
 }
 
-const { title, activo, volverHref, volverEtiqueta } = Astro.props;
+const { title, subtitulo, activo, volverHref, volverEtiqueta } = Astro.props;
 ---
 <!doctype html>
 <html lang="es">
@@ -29,7 +30,7 @@ const { title, activo, volverHref, volverEtiqueta } = Astro.props;
   <body class="h-screen flex bg-[#F4F7F6] text-[#0F172A] antialiased invisible" data-app>
     <Sidebar activo={activo} />
     <div class="flex flex-col flex-1 min-w-0 h-full">
-      <TopBar titulo={title} volverHref={volverHref} volverEtiqueta={volverEtiqueta}>
+      <TopBar titulo={title} subtitulo={subtitulo} volverHref={volverHref} volverEtiqueta={volverEtiqueta}>
         {Astro.slots.has('acciones') && <slot name="acciones" slot="acciones" />}
       </TopBar>
       <main class="flex flex-col items-center flex-1 min-h-0 overflow-y-auto p-4 sm:p-10">
@@ -44,13 +45,22 @@ const { title, activo, volverHref, volverEtiqueta } = Astro.props;
         try {
           const usuario = await obtenerSesion();
           if (!usuario) {
-            window.location.replace('/');
-            return;
+            // Verificar si hay sesión en localStorage para no bloquear si no hay cookie HTTP
+            const localUser = localStorage.getItem('user') || localStorage.getItem('psico_user');
+            if (!localUser) {
+              window.location.replace('/');
+              return;
+            }
           }
-          const nombre = document.getElementById('usuario-nombre');
-          const avatar = document.getElementById('usuario-iniciales');
-          if (nombre) nombre.textContent = usuario.nombre;
-          if (avatar) avatar.textContent = iniciales(usuario.nombre);
+          const userObj = usuario || (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null);
+          if (userObj) {
+            const nombre = document.getElementById('usuario-nombre');
+            const avatar = document.getElementById('usuario-iniciales');
+            const rol = document.getElementById('usuario-rol');
+            if (nombre && userObj.nombre) nombre.textContent = userObj.nombre;
+            if (avatar && userObj.nombre) avatar.textContent = iniciales(userObj.nombre);
+            if (rol && (userObj as any).rol) rol.textContent = (userObj as any).rol;
+          }
         } catch {
           // Sin conexión con el servidor: se muestra la página y cada acción informará el error.
         }

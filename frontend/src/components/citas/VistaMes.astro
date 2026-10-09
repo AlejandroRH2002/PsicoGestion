@@ -1,0 +1,19 @@
+---
+const diasSemana = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
+---
+
+<section id="vista-mes" class="flex flex-col gap-3" aria-label="Calendario mensual">
+  <!-- Cabecera de Días de la Semana -->
+  <div class="grid grid-cols-7 gap-2 md:gap-3">
+    {diasSemana.map((dia) => (
+      <div class="bg-[#F8FAFC] text-[#64748B] text-xs font-semibold py-2 text-center rounded-lg border border-[#E2E8F0]/40">
+        {dia}
+      </div>
+    ))}
+  </div>
+
+  <!-- Cuadrícula de Días -->
+  <div id="grid-mes" class="grid grid-cols-7 gap-2 md:gap-3">
+    <!-- Renderizado dinámicamente vía JavaScript -->
+  </div>
+</section>

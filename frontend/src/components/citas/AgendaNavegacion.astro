@@ -1,0 +1,34 @@
+---
+import { ChevronLeft, ChevronRight } from '@lucide/astro';
+---
+
+<div class="flex items-center justify-between gap-4">
+  <div class="flex items-center gap-3">
+    <div class="flex items-center gap-1.5">
+      <button
+        type="button"
+        id="btn-nav-prev"
+        class="p-1.5 border border-[#E2E8F0] rounded-lg text-[#334155] hover:bg-slate-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30"
+        aria-label="Anterior"
+      >
+        <ChevronLeft class="size-4" />
+      </button>
+      <button
+        type="button"
+        id="btn-nav-next"
+        class="p-1.5 border border-[#E2E8F0] rounded-lg text-[#334155] hover:bg-slate-50 transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30"
+        aria-label="Siguiente"
+      >
+        <ChevronRight class="size-4" />
+      </button>
+    </div>
+    <h3 id="calendar-header-label" class="text-base md:text-lg font-bold text-[#0F172A]">
+      Octubre 2026
+    </h3>
+  </div>
+
+  <!-- Rango de Horario (solo visible en vista Día) -->
+  <div id="dia-horario-label" class="hidden text-xs md:text-sm font-medium text-[#64748B]">
+    Horario: 7:00 AM - 17:00 PM
+  </div>
+</div>

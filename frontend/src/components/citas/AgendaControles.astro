@@ -1,0 +1,57 @@
+---
+import { Printer } from '@lucide/astro';
+---
+
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+  <div class="flex flex-col gap-0.5">
+    <h2 id="vista-titulo" class="text-xl md:text-2xl font-bold text-[#0F172A]">Agenda Mensual</h2>
+    <p id="vista-subtitulo" class="text-sm text-[#64748B]">Ocupación del mes</p>
+  </div>
+
+  <div class="flex items-center gap-3 self-start sm:self-auto">
+    <!-- Switcher de Vistas: Día | Semana | Mes -->
+    <div class="flex items-center p-1 bg-white border border-[#E2E8F0] rounded-xl shadow-2xs" role="tablist" aria-label="Cambiar vista de calendario">
+      <button
+        type="button"
+        id="tab-dia"
+        role="tab"
+        aria-selected="false"
+        data-view="dia"
+        class="view-tab-btn px-4 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer text-[#334155] hover:text-[#0F172A] hover:bg-slate-50"
+      >
+        Día
+      </button>
+      <button
+        type="button"
+        id="tab-semana"
+        role="tab"
+        aria-selected="false"
+        data-view="semana"
+        class="view-tab-btn px-4 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer text-[#334155] hover:text-[#0F172A] hover:bg-slate-50"
+      >
+        Semana
+      </button>
+      <button
+        type="button"
+        id="tab-mes"
+        role="tab"
+        aria-selected="true"
+        data-view="mes"
+        class="view-tab-btn px-4 py-1.5 rounded-lg text-sm font-semibold transition-all cursor-pointer bg-[#0D9488] text-white shadow-xs"
+      >
+        Mes
+      </button>
+    </div>
+
+    <!-- Botón de Vista Previa / Imprimir -->
+    <button
+      type="button"
+      id="btn-abrir-imprimir"
+      class="flex items-center gap-2 px-4 py-2 bg-white border border-[#E2E8F0] rounded-xl text-sm font-semibold text-[#334155] hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0D9488]/30"
+      aria-label="Abrir vista previa de impresión"
+    >
+      <Printer class="size-4 text-[#334155]" />
+      <span>Imprimir</span>
+    </button>
+  </div>
+</div>

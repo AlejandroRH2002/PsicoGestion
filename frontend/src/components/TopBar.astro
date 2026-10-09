@@ -4,11 +4,12 @@ import NotificationCenter from './NotificationCenter.astro';
 
 interface Props {
   titulo: string;
+  subtitulo?: string;
   volverHref?: string;
   volverEtiqueta?: string;
 }
 
-const { titulo, volverHref, volverEtiqueta } = Astro.props;
+const { titulo, subtitulo, volverHref, volverEtiqueta } = Astro.props;
 ---
 <header class="flex items-center justify-between gap-4 w-full px-4 sm:px-10 py-[18px] bg-white border-b border-[#E2E8F0]">
   <div class="flex items-center gap-4 min-w-0">
@@ -22,7 +23,12 @@ const { titulo, volverHref, volverEtiqueta } = Astro.props;
         {volverEtiqueta}
       </a>
     )}
-    <h1 id="titulo-pagina" class="text-[22px] font-bold text-[#0F172A] truncate">{titulo}</h1>
+    <div class="flex flex-col min-w-0">
+      <h1 id="titulo-pagina" class="text-[22px] font-bold text-[#0F172A] leading-tight truncate">{titulo}</h1>
+      {subtitulo && (
+        <p id="subtitulo-pagina" class="text-xs text-[#64748B] font-medium leading-tight truncate">{subtitulo}</p>
+      )}
+    </div>
   </div>
 
   {Astro.slots.has('acciones') && (
@@ -38,10 +44,10 @@ const { titulo, volverHref, volverEtiqueta } = Astro.props;
         id="usuario-iniciales"
         class="flex items-center justify-center size-10 rounded-full bg-[#DCFCE7] text-sm font-bold text-[#006847]"
         aria-hidden="true"
-      ></span>
+      >AP</span>
       <div class="hidden md:flex flex-col gap-0.5">
-        <span id="usuario-nombre" class="text-sm font-semibold leading-normal text-[#0F172A]"></span>
-        <span class="text-[11px] font-bold text-[#006847]">SECRETARÍA</span>
+        <span id="usuario-nombre" class="text-sm font-semibold leading-normal text-[#0F172A]">Dr. Alejandro Pech</span>
+        <span id="usuario-rol" class="text-[11px] font-bold text-[#006847] uppercase">TERAPEUTA UADY</span>
       </div>
     </div>
   </div>

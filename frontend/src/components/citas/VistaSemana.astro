@@ -1,0 +1,29 @@
+---
+const dias = [
+  { clave: 'lun', nombre: 'LUN', dia: 12 },
+  { clave: 'mar', nombre: 'MAR', dia: 13 },
+  { clave: 'mie', nombre: 'MIE', dia: 14 },
+  { clave: 'jue', nombre: 'JUE', dia: 15 },
+  { clave: 'vie', nombre: 'VIE', dia: 16 },
+];
+---
+
+<section id="vista-semana" class="hidden flex-col gap-4 overflow-x-auto" aria-label="Calendario semanal">
+  <div class="min-w-[700px]">
+    <!-- Encabezados de Días de la Semana (LUN 12, MAR 13, ...) -->
+    <div class="grid grid-cols-[60px_repeat(5,1fr)] gap-2.5 mb-2.5">
+      <div></div>
+      {dias.map(({ clave, nombre, dia }) => (
+        <div id={`col-header-${clave}`} class="bg-[#F8FAFC] border border-[#E2E8F0]/80 rounded-xl py-2 px-3 text-center flex flex-col items-center justify-center">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">{nombre}</span>
+          <span class="text-sm font-bold text-[#0F172A]">{dia}</span>
+        </div>
+      ))}
+    </div>
+
+    <!-- Filas Horarias Semanales (07:00 a 17:00) -->
+    <div id="semana-filas" class="flex flex-col gap-2.5">
+      <!-- Inyectado dinámicamente vía script -->
+    </div>
+  </div>
+</section>
