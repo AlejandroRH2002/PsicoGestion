@@ -1,0 +1,93 @@
+---
+import { SearchX } from '@lucide/astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+import FormularioPaciente from '../../components/FormularioPaciente.astro';
+---
+<AppLayout title="Editar Paciente" activo="pacientes" volverHref="/pacientes" volverEtiqueta="Cancelar edición">
+  <div id="cargando" class="w-full max-w-[640px] h-[560px] rounded-2xl bg-white animate-pulse" aria-label="Cargando"></div>
+
+  <div id="no-encontrado" class="hidden flex-col items-center gap-3 w-full max-w-[640px] p-10 bg-white rounded-2xl text-center">
+    <SearchX class="size-10 text-[#64748B]" />
+    <h2 class="text-lg font-bold">Paciente no encontrado</h2>
+    <a href="/pacientes" class="text-sm font-semibold text-[#0D9488] hover:underline">Volver a la lista</a>
+  </div>
+
+  <div id="contenido" class="hidden w-full justify-center">
+    <FormularioPaciente
+      titulo="Modificar Datos Registrados"
+      descripcion="Los cambios se verán reflejados de inmediato en el perfil y el listado."
+      textoGuardar="Guardar Cambios"
+      cancelarHref="/pacientes"
+    />
+  </div>
+</AppLayout>
+
+<script>
+  import { iniciarFormulario, obtenerPaciente } from '../../utils/paciente';
+
+  // RF 3.2.4-3.2.6, RNF 3.2.2, RNF 3.2.6
+  const id = new URLSearchParams(window.location.search).get('id');
+  const formulario = iniciarFormulario({ exigirArchivo: false });
+  let huellaGuardada = '';
+  let guardado = false;
+
+  const hayCambios = () => !guardado && huellaGuardada !== '' && formulario.huella() !== huellaGuardada;
+
+  function mostrar(seccion: 'contenido' | 'no-encontrado'): void {
+    document.getElementById('cargando')?.remove();
+    const el = document.getElementById(seccion)!;
+    el.classList.remove('hidden');
+    el.classList.add('flex');
+  }
+
+  async function cargar(): Promise<void> {
+    let paciente;
+    try {
+      paciente = await obtenerPaciente(id);
+    } catch {
+      mostrar('contenido');
+      formulario.mostrarMensaje('No se pudieron cargar los datos del paciente. Recarga la página para intentar de nuevo.', 'error');
+      return;
+    }
+    if (!paciente) {
+      mostrar('no-encontrado');
+      return;
+    }
+
+    const fichaHref = `/pacientes/ver?id=${paciente.id}`;
+    document.getElementById('titulo-pagina')!.textContent = `Editar Paciente — ${paciente.nombre}`;
+    document.title = `Editar Paciente — ${paciente.nombre} - PsicoGestión UADY`;
+    for (const enlace of ['volver-link', 'cancelar-btn']) {
+      document.getElementById(enlace)?.setAttribute('href', fichaHref);
+    }
+
+    formulario.rellenar(paciente);
+    huellaGuardada = formulario.huella();
+    mostrar('contenido');
+
+    formulario.form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const actualizado = await formulario.enviar('PUT', `/pacientes/${paciente.id}`);
+      if (actualizado) {
+        guardado = true;
+        window.location.href = `${fichaHref}&actualizado=1`;
+      }
+    });
+  }
+
+  // Avisa antes de perder cambios sin guardar (cerrar pestaña, Cancelar o "Cancelar edición").
+  window.addEventListener('beforeunload', (e) => {
+    if (hayCambios()) e.preventDefault();
+  });
+  for (const enlace of ['volver-link', 'cancelar-btn']) {
+    document.getElementById(enlace)?.addEventListener('click', (e) => {
+      if (hayCambios() && !window.confirm('Tienes cambios sin guardar. ¿Salir sin guardar?')) {
+        e.preventDefault();
+      } else {
+        guardado = true;
+      }
+    });
+  }
+
+  cargar();
+</script>

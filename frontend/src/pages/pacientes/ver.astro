@@ -1,0 +1,292 @@
+---
+import { FileText, SearchX, SquarePen, UserCheck, UserX } from '@lucide/astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+
+// RF 3.2.3: datos de identificación del paciente.
+const datos = [
+  { clave: 'nombre', etiqueta: 'Nombre Completo', ancho: true },
+  { clave: 'curp', etiqueta: 'CURP' },
+  { clave: 'sexo', etiqueta: 'Sexo' },
+  { clave: 'fechaNacimiento', etiqueta: 'Fecha de Nacimiento' },
+  { clave: 'telefono', etiqueta: 'Teléfono de Contacto' },
+  { clave: 'fechaRegistro', etiqueta: 'Fecha de Registro' },
+];
+---
+<AppLayout title="Perfil del Paciente" activo="pacientes" volverHref="/pacientes" volverEtiqueta="Volver a la lista">
+  <div id="cargando" class="w-full max-w-[720px] h-[420px] rounded-2xl bg-white animate-pulse" aria-label="Cargando"></div>
+
+  <div id="no-encontrado" class="hidden flex-col items-center gap-3 w-full max-w-[720px] p-10 bg-white rounded-2xl text-center">
+    <SearchX class="size-10 text-[#64748B]" />
+    <h2 class="text-lg font-bold">Paciente no encontrado</h2>
+    <p class="text-sm text-[#64748B]">Es posible que el enlace sea incorrecto.</p>
+    <a href="/pacientes" class="text-sm font-semibold text-[#0D9488] hover:underline">Volver a la lista</a>
+  </div>
+
+  <div id="error-carga" class="hidden flex-col items-center gap-3 w-full max-w-[720px] p-10 bg-white rounded-2xl text-center">
+    <h2 class="text-lg font-bold">No se pudo cargar el perfil</h2>
+    <p class="text-sm text-[#64748B]">Verifica tu conexión e intenta de nuevo.</p>
+    <button type="button" id="reintentar" class="text-sm font-semibold text-[#0D9488] hover:underline cursor-pointer">Reintentar</button>
+  </div>
+
+  <!-- RF 3.2.2-3.2.3: vista "Nombre Paciente" con sus datos y adjuntos -->
+  <article
+    id="ficha"
+    class="hidden flex-col gap-8 w-full max-w-[720px] shrink-0 p-6 sm:p-10 bg-white rounded-2xl shadow-[0px_4px_12px_rgba(15,23,42,0.03)]"
+  >
+    <div id="aviso" role="status" class="hidden text-sm rounded-lg px-3.5 py-2.5"></div>
+
+    <header class="flex flex-col sm:flex-row sm:items-center gap-6">
+      <span
+        id="ficha-iniciales"
+        class="flex items-center justify-center size-24 shrink-0 rounded-full bg-[#CCFBF1] text-3xl font-extrabold text-[#0D9488]"
+        aria-hidden="true"
+      ></span>
+      <div class="flex flex-col gap-2 min-w-0">
+        <h2 id="ficha-titulo" class="text-2xl font-extrabold text-[#0F172A] break-words"></h2>
+        <div class="flex flex-wrap items-center gap-3">
+          <span id="ficha-estado" class="px-2.5 py-1 rounded-md text-xs font-bold"></span>
+          <span id="ficha-id" class="text-sm text-[#64748B]"></span>
+        </div>
+      </div>
+    </header>
+
+    <hr class="border-[#E2E8F0]" />
+
+    <section class="flex flex-col gap-6">
+      <h3 class="text-base font-bold text-[#0F172A]">Información Personal</h3>
+      <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-6">
+        {datos.map(({ clave, etiqueta, ancho }) => (
+          <div class={`flex flex-col gap-1.5 min-w-0 ${ancho ? 'sm:col-span-2' : ''}`}>
+            <dt class="text-[13px] font-medium text-[#64748B]">{etiqueta}</dt>
+            <dd data-dato={clave} class="text-[15px] font-semibold text-[#0F172A] break-words"></dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+
+    <hr class="border-[#E2E8F0]" />
+
+    <section class="flex flex-col gap-4">
+      <h3 class="text-base font-bold text-[#0F172A]">Archivos Adjuntos</h3>
+      <ul id="ficha-archivos" class="flex flex-col gap-2"></ul>
+      <p id="ficha-sin-archivos" class="hidden text-sm text-[#64748B]">Este paciente no tiene archivos adjuntos.</p>
+    </section>
+
+    <hr class="border-[#E2E8F0]" />
+
+    <div class="flex flex-col-reverse sm:flex-row sm:justify-end gap-3">
+      <button
+        type="button"
+        id="estado-btn"
+        class="flex items-center justify-center gap-2 px-6 py-3 bg-white border rounded-lg text-sm font-semibold transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        <span data-con="activo" class="contents"><UserX class="size-[18px]" /> Dar de baja</span>
+        <span data-con="inactivo" class="hidden"><UserCheck class="size-[18px]" /> Reactivar</span>
+      </button>
+      <a
+        id="editar-btn"
+        href="#"
+        class="flex items-center justify-center gap-2 px-6 py-3 bg-white border border-[#0D9488] rounded-lg text-sm font-semibold text-[#0D9488] hover:bg-[#CCFBF1]/40 transition-colors"
+      >
+        <SquarePen class="size-[18px]" />
+        Editar Perfil
+      </a>
+    </div>
+  </article>
+
+  <template id="archivo-template">
+    <li>
+      <a
+        data-enlace
+        class="flex items-center justify-between gap-3 p-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-lg hover:border-[#0D9488]/50 transition-colors"
+      >
+        <span class="flex items-center gap-3 min-w-0">
+          <FileText class="size-5 shrink-0 text-[#0D9488]" />
+          <span class="flex flex-col min-w-0">
+            <span data-nombre class="truncate text-sm font-semibold text-[#0F172A]"></span>
+            <span data-detalle class="text-[11px] text-[#64748B]"></span>
+          </span>
+        </span>
+        <span class="shrink-0 text-xs font-semibold text-[#0D9488]">Descargar</span>
+      </a>
+    </li>
+  </template>
+
+  <!-- RF 3.3.2: confirmación antes de dar de baja; el paciente no se elimina. -->
+  <dialog
+    id="confirmar-baja"
+    class="m-auto w-[calc(100%-2rem)] max-w-[440px] p-0 rounded-2xl backdrop:bg-[#0F172A]/40 shadow-xl"
+  >
+    <form method="dialog" class="flex flex-col gap-4 p-6">
+      <h2 class="text-lg font-bold text-[#0F172A]">¿Dar de baja a <span id="baja-nombre"></span>?</h2>
+      <p class="text-sm text-[#64748B]">
+        El paciente dejará de aparecer en la lista de activos. Su información, archivos e historial se conservan
+        y puedes reactivarlo en cualquier momento.
+      </p>
+      <div class="flex justify-end gap-3">
+        <button value="cancelar" class="px-5 py-2.5 border border-[#E2E8F0] rounded-lg text-sm font-semibold text-[#334155] hover:bg-[#F4F7F6] cursor-pointer">
+          Cancelar
+        </button>
+        <button value="confirmar" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold text-white cursor-pointer">
+          Dar de baja
+        </button>
+      </div>
+    </form>
+  </dialog>
+</AppLayout>
+
+<script>
+  import {
+    SEXOS,
+    cambiarEstado,
+    formatearFecha,
+    formatearFechaHora,
+    formatearId,
+    formatearTamano,
+    formatearTelefono,
+    obtenerPaciente,
+    urlArchivo,
+    type Paciente,
+  } from '../../utils/paciente';
+
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  const aviso = document.getElementById('aviso')!;
+  const estadoBtn = document.getElementById('estado-btn') as HTMLButtonElement;
+  const dialogo = document.getElementById('confirmar-baja') as HTMLDialogElement;
+  const plantillaArchivo = document.getElementById('archivo-template') as HTMLTemplateElement;
+  let paciente: Paciente;
+
+  function mostrar(seccion: 'ficha' | 'no-encontrado' | 'error-carga'): void {
+    document.getElementById('cargando')?.classList.add('hidden');
+    for (const s of ['ficha', 'no-encontrado', 'error-carga']) {
+      const el = document.getElementById(s)!;
+      el.classList.toggle('hidden', s !== seccion);
+      el.classList.toggle('flex', s === seccion);
+    }
+  }
+
+  function mostrarAviso(texto: string, tipo: 'error' | 'success'): void {
+    aviso.textContent = texto;
+    aviso.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700');
+    aviso.classList.add(...(tipo === 'error' ? ['bg-red-50', 'text-red-700'] : ['bg-green-50', 'text-green-700']));
+  }
+
+  function iniciales(nombre: string): string {
+    return nombre
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((parte) => parte[0]?.toUpperCase() ?? '')
+      .join('');
+  }
+
+  function pintarArchivos(p: Paciente): void {
+    const items = p.archivos.map((archivo) => {
+      const nodo = plantillaArchivo.content.cloneNode(true) as DocumentFragment;
+      const enlace = nodo.querySelector<HTMLAnchorElement>('[data-enlace]')!;
+      enlace.href = urlArchivo(p.id, archivo);
+      enlace.setAttribute('aria-label', `Descargar ${archivo.nombre}`);
+      nodo.querySelector('[data-nombre]')!.textContent = archivo.nombre;
+      nodo.querySelector('[data-detalle]')!.textContent =
+        `${archivo.tipo.toUpperCase()} · ${formatearTamano(archivo.tamano)} · ${formatearFechaHora(archivo.subidoEn)}`;
+      return nodo;
+    });
+    document.getElementById('ficha-archivos')!.replaceChildren(...items);
+    document.getElementById('ficha-sin-archivos')!.classList.toggle('hidden', items.length > 0);
+  }
+
+  function pintar(p: Paciente): void {
+    paciente = p;
+    document.title = `${p.nombre} - PsicoGestión UADY`;
+    document.getElementById('titulo-pagina')!.textContent = p.nombre;
+    document.getElementById('ficha-titulo')!.textContent = p.nombre;
+    document.getElementById('ficha-iniciales')!.textContent = iniciales(p.nombre);
+    document.getElementById('ficha-id')!.textContent = `ID: ${formatearId(p.id)}`;
+    document.getElementById('baja-nombre')!.textContent = p.nombre;
+    document.getElementById('editar-btn')!.setAttribute('href', `/pacientes/editar?id=${p.id}`);
+
+    const valores: Record<string, string> = {
+      nombre: p.nombre,
+      curp: p.curp,
+      sexo: SEXOS[p.sexo] ?? p.sexo,
+      fechaNacimiento: formatearFecha(p.fechaNacimiento),
+      telefono: formatearTelefono(p.telefono),
+      fechaRegistro: formatearFechaHora(p.fechaRegistro),
+    };
+    document.querySelectorAll<HTMLElement>('[data-dato]').forEach((el) => {
+      el.textContent = valores[el.dataset.dato!];
+    });
+
+    const estado = document.getElementById('ficha-estado')!;
+    estado.textContent = p.activo ? 'PACIENTE ACTIVO' : `DADO DE BAJA${p.fechaBaja ? ` · ${formatearFechaHora(p.fechaBaja)}` : ''}`;
+    estado.className = `px-2.5 py-1 rounded-md text-xs font-bold ${p.activo ? 'bg-[#CCFBF1] text-[#0D9488]' : 'bg-red-50 text-red-700'}`;
+
+    estadoBtn.classList.toggle('border-red-300', p.activo);
+    estadoBtn.classList.toggle('text-red-600', p.activo);
+    estadoBtn.classList.toggle('hover:bg-red-50', p.activo);
+    estadoBtn.classList.toggle('border-[#E2E8F0]', !p.activo);
+    estadoBtn.classList.toggle('text-[#334155]', !p.activo);
+    estadoBtn.classList.toggle('hover:bg-[#F4F7F6]', !p.activo);
+    estadoBtn.querySelectorAll<HTMLElement>('[data-con]').forEach((el) => {
+      const visible = (el.dataset.con === 'activo') === p.activo;
+      el.classList.toggle('hidden', !visible);
+      el.classList.toggle('contents', visible);
+    });
+
+    pintarArchivos(p);
+  }
+
+  async function cargar(): Promise<void> {
+    try {
+      const p = await obtenerPaciente(id);
+      if (!p) {
+        mostrar('no-encontrado');
+        return;
+      }
+      pintar(p);
+      mostrar('ficha');
+    } catch {
+      mostrar('error-carga');
+    }
+  }
+
+  // RF 3.3.3: mensaje de confirmación tras la baja.
+  async function aplicarEstado(activo: boolean): Promise<void> {
+    estadoBtn.disabled = true;
+    try {
+      pintar(await cambiarEstado(paciente.id, activo));
+      mostrarAviso(activo ? 'Paciente reactivado.' : 'Paciente dado de baja. Ya no aparece en la lista de activos.', 'success');
+    } catch {
+      mostrarAviso('No se pudo cambiar el estado. Verifica tu conexión e intenta de nuevo.', 'error');
+    } finally {
+      estadoBtn.disabled = false;
+    }
+  }
+
+  estadoBtn.addEventListener('click', () => {
+    if (paciente.activo) {
+      dialogo.returnValue = ''; // Cerrar con Esc no debe reusar una confirmación anterior.
+      dialogo.showModal();
+    } else aplicarEstado(true);
+  });
+
+  dialogo.addEventListener('close', () => {
+    if (dialogo.returnValue === 'confirmar') aplicarEstado(false);
+  });
+
+  document.getElementById('reintentar')?.addEventListener('click', () => {
+    document.getElementById('cargando')?.classList.remove('hidden');
+    document.getElementById('error-carga')?.classList.add('hidden');
+    cargar();
+  });
+
+  // Aviso tras registrar o editar; se limpia de la URL para no repetirlo al recargar.
+  if (params.has('registrado')) mostrarAviso('Paciente registrado correctamente.', 'success');
+  if (params.has('actualizado')) mostrarAviso('Cambios guardados correctamente.', 'success');
+  if (params.has('registrado') || params.has('actualizado')) {
+    window.history.replaceState(null, '', `${window.location.pathname}?id=${id}`);
+  }
+
+  cargar();
+</script>

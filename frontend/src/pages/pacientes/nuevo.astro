@@ -1,0 +1,28 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import FormularioPaciente from '../../components/FormularioPaciente.astro';
+---
+<AppLayout title="Registrar Paciente" activo="pacientes" volverHref="/pacientes" volverEtiqueta="Volver a pacientes">
+  <FormularioPaciente
+    titulo="Información del Paciente"
+    descripcion="Complete el formulario para dar de alta al nuevo paciente en el sistema institucional."
+    textoGuardar="Guardar Paciente"
+    cancelarHref="/pacientes"
+  />
+</AppLayout>
+
+<script>
+  import { iniciarFormulario } from '../../utils/paciente';
+
+  // RF 3.1.1-3.1.12
+  const formulario = iniciarFormulario({ exigirArchivo: true });
+
+  formulario.form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const paciente = await formulario.enviar('POST', '/pacientes');
+    if (paciente) {
+      formulario.mostrarMensaje('Paciente registrado correctamente. Redirigiendo…', 'success');
+      window.location.href = `/pacientes/ver?id=${paciente.id}&registrado=1`;
+    }
+  });
+</script>

@@ -64,6 +64,27 @@ export function validateBusquedaPacientes(query = {}) {
 
 export { QUERY_MAX as PACIENTE_SEARCH_QUERY_MAX };
 
+export const EDAD_MINIMA = 7;
+
+/** Años cumplidos entre dos fechas UTC (sin hora). */
+function calcularEdad(nacimiento, hoy) {
+  let edad = hoy.getUTCFullYear() - nacimiento.getUTCFullYear();
+  const mes = hoy.getUTCMonth() - nacimiento.getUTCMonth();
+  if (mes < 0 || (mes === 0 && hoy.getUTCDate() < nacimiento.getUTCDate())) edad -= 1;
+  return edad;
+}
+
+const ESTADOS = ['activos', 'inactivos', 'todos'];
+const ORDENES = ['nombre', 'registro'];
+
+/** RF 3.2.1: parámetros del listado general. Los valores desconocidos toman el predeterminado. */
+export function validateListado(query = {}) {
+  const estado = ESTADOS.includes(query.estado) ? query.estado : 'activos';
+  const orden = ORDENES.includes(query.orden) ? query.orden : 'nombre';
+  return { estado, orden };
+}
+
+/** RF 3.1.2-3.1.11, RF 3.2.4-3.2.5: mismas reglas para registro y edición. */
 export function validatePaciente(body = {}, options = {}) {
   const { hoy = new Date() } = options;
   const errors = [];
@@ -107,7 +128,11 @@ export function validatePaciente(body = {}, options = {}) {
       if (Number.isNaN(birthDate.getTime())) {
         errors.push({ field: 'fecha_nacimiento', message: 'La fecha proporcionada no es válida.' });
       } else if (birthDate >= today) {
+        // RF 3.1.8, RNF 3.1.5
         errors.push({ field: 'fecha_nacimiento', message: 'La fecha de nacimiento debe ser anterior a la fecha actual.' });
+      } else if (calcularEdad(birthDate, today) < EDAD_MINIMA) {
+        // RF 3.1.9
+        errors.push({ field: 'fecha_nacimiento', message: `El paciente debe tener al menos ${EDAD_MINIMA} años cumplidos.` });
       }
     }
   }

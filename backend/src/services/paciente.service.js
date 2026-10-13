@@ -1,7 +1,41 @@
 import { pool } from '../db/pool.js';
+import { guardarArchivo, borrarArchivo } from '../utils/almacenamiento.js';
 import { ConflictError } from './auth.service.js';
 
 export { ConflictError };
+
+const CARPETA_ARCHIVOS = 'pacientes';
+
+export class NotFoundError extends Error {
+  constructor(message = 'Paciente no encontrado.') {
+    super(message);
+  }
+}
+
+/** La edición intentó quitar todos los adjuntos del paciente. */
+export class SinArchivosError extends Error {
+  constructor() {
+    super('El paciente debe conservar al menos un archivo adjunto.');
+    this.field = 'archivos';
+  }
+}
+
+const COLUMNAS = `id_paciente, nombre_completo, curp, sexo,
+  to_char(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento, telefono,
+  activo, fecha_baja, fecha_registro`;
+
+const COLUMNAS_ARCHIVO = 'id_archivo, nombre_original, tipo, tamano_bytes, subido_en';
+
+const CAMPOS_UNICOS = {
+  curp: { columna: 'curp', mensaje: 'Ese CURP ya está registrado' },
+  telefono: { columna: 'telefono', mensaje: 'Ese número telefónico ya está registrado' },
+};
+
+// Nombres por defecto que Postgres da a las restricciones UNIQUE de 004_create_paciente.sql.
+const CAMPO_POR_RESTRICCION = {
+  paciente_curp_key: 'curp',
+  paciente_telefono_key: 'telefono',
+};
 
 export const PACIENTE_SEARCH_LIMIT = 20;
 
@@ -97,115 +131,207 @@ export async function buscarPacientes(q, db = null) {
   return rows.map(mapearPatientSearchItem);
 }
 
-export async function createPaciente({ nombre_completo, curp, sexo, fecha_nacimiento, telefono }) {
-  const existing = await pool.query(
-    `SELECT id_paciente, curp, telefono
-     FROM paciente
-     WHERE curp = $1 OR telefono = $2`,
-    [curp, telefono]
+function toArchivo(row) {
+  return {
+    id: row.id_archivo,
+    nombre: row.nombre_original,
+    tipo: row.tipo,
+    tamano: row.tamano_bytes,
+    subidoEn: row.subido_en,
+  };
+}
+
+function toPaciente(row, archivos = []) {
+  return {
+    id: row.id_paciente,
+    nombre: row.nombre_completo,
+    curp: row.curp,
+    sexo: row.sexo,
+    fechaNacimiento: row.fecha_nacimiento,
+    telefono: row.telefono,
+    activo: row.activo,
+    fechaBaja: row.fecha_baja,
+    fechaRegistro: row.fecha_registro,
+    archivos: archivos.map(toArchivo),
+  };
+}
+
+function conflicto(campo, { inactivo = false } = {}) {
+  const { mensaje } = CAMPOS_UNICOS[campo];
+  // Un paciente dado de baja conserva sus datos: conviene reactivarlo en lugar de duplicarlo.
+  return new ConflictError(campo, inactivo ? `${mensaje} y pertenece a un paciente dado de baja.` : `${mensaje}.`);
+}
+
+/**
+ * RF 3.1.5, 3.1.11, 3.2.5: CURP y teléfono no pueden repetirse.
+ * En edición se excluye al propio paciente (`excluirId`).
+ */
+async function verificarUnicidad({ curp, telefono }, excluirId = null, db = pool) {
+  const { rows } = await db.query(
+    `SELECT curp, telefono, activo FROM paciente
+     WHERE (curp = $1 OR telefono = $2)
+       AND ($3::int IS NULL OR id_paciente <> $3)`,
+    [curp, telefono, excluirId]
   );
 
-  if (existing.rows.length > 0) {
-    const conflict = existing.rows[0];
-    if (conflict.curp === curp) {
-      throw new ConflictError('curp', 'Ya existe un paciente registrado con esta CURP.');
-    }
-    if (conflict.telefono === telefono) {
-      throw new ConflictError('telefono', 'Este número telefónico ya se encuentra registrado.');
-    }
-  }
-
-  try {
-    const { rows } = await pool.query(
-      `INSERT INTO paciente (nombre_completo, curp, sexo, fecha_nacimiento, telefono)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id_paciente, nombre_completo, curp, sexo,
-                 to_char(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento, telefono`,
-      [nombre_completo, curp, sexo, fecha_nacimiento, telefono]
-    );
-
-    return rows[0];
-  } catch (err) {
-    if (err.code === '23505') {
-      if (err.constraint === 'paciente_curp_key') {
-        throw new ConflictError('curp', 'Ya existe un paciente registrado con esta CURP.');
-      }
-      if (err.constraint === 'paciente_telefono_key') {
-        throw new ConflictError('telefono', 'Este número telefónico ya se encuentra registrado.');
-      }
-    }
-    throw err;
+  const valores = { curp, telefono };
+  for (const campo of Object.keys(CAMPOS_UNICOS)) {
+    const fila = rows.find((row) => row[CAMPOS_UNICOS[campo].columna] === valores[campo]);
+    if (fila) throw conflicto(campo, { inactivo: !fila.activo });
   }
 }
 
-export async function getPacientes() {
-  const { rows } = await pool.query(
-    `SELECT id_paciente, nombre_completo, curp, sexo,
-            to_char(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento,
-            telefono, activo, fecha_registro
-     FROM paciente
-     WHERE activo = TRUE
-     ORDER BY id_paciente DESC`
-  );
+/** Otro registro simultáneo pudo ganar la carrera después de verificarUnicidad. */
+function mapearErrorUnico(err) {
+  const campo = err.code === '23505' ? CAMPO_POR_RESTRICCION[err.constraint] : null;
+  return campo ? conflicto(campo) : err;
+}
 
+/**
+ * Escribe en disco los adjuntos ya validados ({ buffer, tipo, nombre, tamano }) y los registra.
+ * Cada ruta escrita se agrega a `rutasEscritas` para poder borrarla si la transacción falla.
+ */
+async function insertarArchivos(client, idPaciente, archivos, rutasEscritas) {
+  for (const archivo of archivos) {
+    const ruta = await guardarArchivo(CARPETA_ARCHIVOS, archivo.buffer, archivo.tipo);
+    rutasEscritas.push(ruta);
+    await client.query(
+      `INSERT INTO paciente_archivo (id_paciente, nombre_original, ruta, tipo, tamano_bytes)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [idPaciente, archivo.nombre, ruta, archivo.tipo, archivo.tamano]
+    );
+  }
+}
+
+async function listarArchivos(idPaciente, db = pool) {
+  const { rows } = await db.query(
+    `SELECT ${COLUMNAS_ARCHIVO} FROM paciente_archivo WHERE id_paciente = $1 ORDER BY subido_en, id_archivo`,
+    [idPaciente]
+  );
   return rows;
 }
 
-export async function getPacienteById(id) {
-  const { rows } = await pool.query(
-    `SELECT id_paciente, nombre_completo, curp, sexo,
-            to_char(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento,
-            telefono, activo, fecha_registro
-     FROM paciente
-     WHERE id_paciente = $1 AND activo = TRUE`,
-    [id]
-  );
+/**
+ * RF 3.1.1-3.1.12. `archivos` ya validados; se escriben antes del COMMIT y se borran si
+ * la transacción falla, para no dejar huérfanos.
+ */
+export async function registrarPaciente({ nombre_completo, curp, sexo, fecha_nacimiento, telefono }, archivos = []) {
+  await verificarUnicidad({ curp, telefono });
 
-  return rows[0] || null;
+  const client = await pool.connect();
+  const rutasEscritas = [];
+  try {
+    await client.query('BEGIN');
+    const { rows } = await client.query(
+      `INSERT INTO paciente (nombre_completo, curp, sexo, fecha_nacimiento, telefono)
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING ${COLUMNAS}`,
+      [nombre_completo, curp, sexo, fecha_nacimiento, telefono]
+    );
+    const paciente = rows[0];
+    await insertarArchivos(client, paciente.id_paciente, archivos, rutasEscritas);
+    const guardados = await listarArchivos(paciente.id_paciente, client);
+    await client.query('COMMIT');
+    return toPaciente(paciente, guardados);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    await Promise.all(rutasEscritas.map(borrarArchivo));
+    throw mapearErrorUnico(err);
+  } finally {
+    client.release();
+  }
 }
 
-export async function updatePaciente(id, { nombre_completo, curp, sexo, fecha_nacimiento, telefono }) {
-  const existing = await pool.query(
-    `SELECT id_paciente, curp, telefono
-     FROM paciente
-     WHERE (curp = $1 OR telefono = $2) AND id_paciente <> $3`,
-    [curp, telefono, id]
-  );
+/** RF 3.2.1: listado general; por defecto solo activos y por nombre. */
+export async function listarPacientes({ estado = 'activos', orden = 'nombre' } = {}) {
+  const where = estado === 'activos' ? 'WHERE activo' : estado === 'inactivos' ? 'WHERE NOT activo' : '';
+  const orderBy = orden === 'registro' ? 'fecha_registro DESC, id_paciente DESC' : 'nombre_completo, id_paciente';
+  const { rows } = await pool.query(`SELECT ${COLUMNAS} FROM paciente ${where} ORDER BY ${orderBy}`);
+  return rows.map((row) => toPaciente(row));
+}
 
-  if (existing.rows.length > 0) {
-    const conflict = existing.rows[0];
-    if (conflict.curp === curp) {
-      throw new ConflictError('curp', 'Ya existe un paciente registrado con esta CURP.');
-    }
-    if (conflict.telefono === telefono) {
-      throw new ConflictError('telefono', 'Este número telefónico ya se encuentra registrado.');
-    }
-  }
+/** RF 3.2.2-3.2.3: ficha del paciente (activo o dado de baja) con sus adjuntos. */
+export async function obtenerPaciente(id) {
+  const { rows } = await pool.query(`SELECT ${COLUMNAS} FROM paciente WHERE id_paciente = $1`, [id]);
+  if (rows.length === 0) throw new NotFoundError();
+  return toPaciente(rows[0], await listarArchivos(id));
+}
 
+/**
+ * RF 3.2.4-3.2.6: actualiza los datos con las mismas reglas que el registro.
+ * `archivosNuevos` se agregan y `quitarArchivos` (ids) se eliminan. Los quitados se borran del
+ * disco solo después del COMMIT; los nuevos se borran si la actualización falla.
+ */
+export async function actualizarPaciente(
+  id,
+  { nombre_completo, curp, sexo, fecha_nacimiento, telefono },
+  { archivosNuevos = [], quitarArchivos = [] } = {}
+) {
+  const client = await pool.connect();
+  const rutasEscritas = [];
   try {
-    const { rows } = await pool.query(
+    await client.query('BEGIN');
+
+    const actual = await client.query('SELECT id_paciente FROM paciente WHERE id_paciente = $1 FOR UPDATE', [id]);
+    if (actual.rows.length === 0) throw new NotFoundError();
+
+    await verificarUnicidad({ curp, telefono }, id, client);
+
+    const { rows } = await client.query(
       `UPDATE paciente
-       SET nombre_completo = $1,
-           curp = $2,
-           sexo = $3,
-           fecha_nacimiento = $4,
-           telefono = $5
-       WHERE id_paciente = $6 AND activo = TRUE
-       RETURNING id_paciente, nombre_completo, curp, sexo,
-                 to_char(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento, telefono, activo, fecha_registro`,
-      [nombre_completo, curp, sexo, fecha_nacimiento, telefono, id]
+       SET nombre_completo = $2, curp = $3, sexo = $4, fecha_nacimiento = $5, telefono = $6
+       WHERE id_paciente = $1
+       RETURNING ${COLUMNAS}`,
+      [id, nombre_completo, curp, sexo, fecha_nacimiento, telefono]
     );
 
-    return rows[0] || null;
-  } catch (err) {
-    if (err.code === '23505') {
-      if (err.constraint === 'paciente_curp_key') {
-        throw new ConflictError('curp', 'Ya existe un paciente registrado con esta CURP.');
-      }
-      if (err.constraint === 'paciente_telefono_key') {
-        throw new ConflictError('telefono', 'Este número telefónico ya se encuentra registrado.');
-      }
+    // Solo se quitan adjuntos de este mismo paciente; ids ajenos se ignoran.
+    let quitados = [];
+    if (quitarArchivos.length > 0) {
+      const res = await client.query(
+        'DELETE FROM paciente_archivo WHERE id_paciente = $1 AND id_archivo = ANY($2::int[]) RETURNING ruta',
+        [id, quitarArchivos]
+      );
+      quitados = res.rows.map((row) => row.ruta);
     }
-    throw err;
+
+    await insertarArchivos(client, id, archivosNuevos, rutasEscritas);
+    const guardados = await listarArchivos(id, client);
+    // Pacientes registrados antes de los adjuntos pueden no tener ninguno; solo se impide quitar el último.
+    if (quitados.length > 0 && guardados.length === 0) throw new SinArchivosError();
+    await client.query('COMMIT');
+
+    await Promise.all(quitados.map(borrarArchivo));
+    return toPaciente(rows[0], guardados);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    await Promise.all(rutasEscritas.map(borrarArchivo));
+    throw mapearErrorUnico(err);
+  } finally {
+    client.release();
   }
+}
+
+/** RF 3.3.1: baja lógica o reactivación; nunca se borra al paciente (citas e historial dependen de él). */
+export async function cambiarEstado(id, activo) {
+  const { rows } = await pool.query(
+    `UPDATE paciente
+     SET activo = $2,
+         fecha_baja = CASE WHEN $2 THEN NULL ELSE COALESCE(fecha_baja, NOW()) END
+     WHERE id_paciente = $1
+     RETURNING ${COLUMNAS}`,
+    [id, activo]
+  );
+  if (rows.length === 0) throw new NotFoundError();
+  return toPaciente(rows[0], await listarArchivos(id));
+}
+
+/** Adjunto de un paciente para descargarlo: { nombre, tipo, ruta }. */
+export async function obtenerArchivo(idPaciente, idArchivo) {
+  const { rows } = await pool.query(
+    'SELECT nombre_original, tipo, ruta FROM paciente_archivo WHERE id_paciente = $1 AND id_archivo = $2',
+    [idPaciente, idArchivo]
+  );
+  if (rows.length === 0) throw new NotFoundError('Archivo no encontrado.');
+  return { nombre: rows[0].nombre_original, tipo: rows[0].tipo, ruta: rows[0].ruta };
 }

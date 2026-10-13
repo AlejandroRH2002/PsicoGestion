@@ -1,3 +1,4 @@
+import path from 'node:path';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
@@ -24,7 +25,9 @@ app.get('/health', (req, res) => res.json({ ok: true }));
 app.use('/auth', authRouter);
 app.use('/pacientes', pacienteRouter);
 app.use('/terapeutas', terapeutaRouter);
-app.use('/uploads', express.static(env.uploadsDir));
+// Solo las fotos de terapeutas son públicas. Los adjuntos de pacientes (UPLOADS_DIR/pacientes) son
+// datos clínicos y se descargan únicamente por GET /pacientes/:id/archivos/:idArchivo (RNF 3.2.7).
+app.use('/uploads/terapeutas', express.static(path.join(env.uploadsDir, 'terapeutas')));
 
 app.use(notFoundHandler);
 app.use(errorHandler);

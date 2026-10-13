@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-const { validatePaciente, parsePacienteId } = await import('../src/validators/paciente.validators.js');
+const { validatePaciente, validateListado, parsePacienteId } = await import('../src/validators/paciente.validators.js');
 
 const pacienteValido = {
   nombre_completo: 'Luis García',
@@ -48,4 +48,19 @@ test('parsePacienteId: solo acepta enteros positivos', () => {
   for (const invalido of ['0', '-1', 'abc', '1.5', '', undefined]) {
     assert.equal(parsePacienteId(invalido), null, String(invalido));
   }
+});
+
+test('exige una edad mínima de 7 años cumplidos (RF 3.1.9)', () => {
+  const hoy = new Date(Date.UTC(2026, 5, 15));
+  const conFecha = (fecha_nacimiento) => validatePaciente({ ...pacienteValido, fecha_nacimiento }, { hoy }).errors;
+  assert.deepEqual(conFecha('15/06/2019'), []);
+  assert.deepEqual(conFecha('16/06/2019'), [
+    { field: 'fecha_nacimiento', message: 'El paciente debe tener al menos 7 años cumplidos.' },
+  ]);
+});
+
+test('validateListado: estado y orden con valores predeterminados', () => {
+  assert.deepEqual(validateListado({}), { estado: 'activos', orden: 'nombre' });
+  assert.deepEqual(validateListado({ estado: 'todos', orden: 'registro' }), { estado: 'todos', orden: 'registro' });
+  assert.deepEqual(validateListado({ estado: 'x', orden: ['nombre'] }), { estado: 'activos', orden: 'nombre' });
 });
