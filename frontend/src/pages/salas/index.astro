@@ -1,0 +1,123 @@
+---
+import { CalendarDays, Clock, DoorOpen, Plus, RefreshCw } from '@lucide/astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+---
+<AppLayout title="Salas" activo="salas">
+  <div class="flex flex-col gap-6 w-full max-w-6xl">
+    <div class="grid lg:grid-cols-[340px_1fr] gap-6">
+      <section class="flex flex-col gap-5 p-6 bg-white border border-[#E2E8F0] rounded-xl h-fit" aria-labelledby="registro-titulo">
+        <div>
+          <h2 id="registro-titulo" class="text-lg font-bold">Registrar sala</h2>
+          <p class="mt-1 text-sm text-[#64748B]">Agrega un consultorio al catálogo.</p>
+        </div>
+        <form id="sala-form" class="flex flex-col gap-4" novalidate>
+          <label for="nombre" class="flex flex-col gap-2 text-sm font-semibold text-[#334155]">
+            Nombre <span class="font-normal text-[#64748B]">(máximo 10 caracteres)</span>
+            <input id="nombre" name="nombre" maxlength="10" required autocomplete="off"
+              class="h-11 px-3 rounded-lg border border-[#CBD5E1] font-normal outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20" />
+          </label>
+          <div class="flex justify-between text-xs"><p id="nombre-error" class="hidden text-red-600" role="alert"></p><span id="contador" class="ml-auto text-[#64748B]">0 / 10</span></div>
+          <button id="guardar" type="submit" class="inline-flex items-center justify-center gap-2 h-11 rounded-lg bg-[#006847] text-white text-sm font-bold hover:bg-[#00563b] disabled:opacity-60 cursor-pointer">
+            <Plus class="size-4" /> Registrar sala
+          </button>
+          <p id="registro-mensaje" class="hidden p-3 rounded-lg text-sm" role="status"></p>
+        </form>
+      </section>
+
+      <section class="flex flex-col gap-5 p-6 bg-white border border-[#E2E8F0] rounded-xl" aria-labelledby="disponibilidad-titulo">
+        <div>
+          <h2 id="disponibilidad-titulo" class="text-lg font-bold">Disponibilidad</h2>
+          <p class="mt-1 text-sm text-[#64748B]">Consulta el día completo o un intervalo específico.</p>
+        </div>
+        <form id="consulta-form" class="grid sm:grid-cols-3 gap-4 items-end">
+          <label class="flex flex-col gap-2 text-sm font-semibold text-[#334155]"><span class="flex items-center gap-2"><CalendarDays class="size-4" /> Fecha</span><input id="fecha" type="date" required class="h-11 px-3 rounded-lg border border-[#CBD5E1] font-normal" /></label>
+          <label class="flex flex-col gap-2 text-sm font-semibold text-[#334155]"><span class="flex items-center gap-2"><Clock class="size-4" /> Desde</span><input id="hora-inicio" type="time" class="h-11 px-3 rounded-lg border border-[#CBD5E1] font-normal" /></label>
+          <label class="flex flex-col gap-2 text-sm font-semibold text-[#334155]"><span class="flex items-center gap-2"><Clock class="size-4" /> Hasta</span><input id="hora-fin" type="time" class="h-11 px-3 rounded-lg border border-[#CBD5E1] font-normal" /></label>
+          <button id="consultar" class="sm:col-span-3 inline-flex items-center justify-center gap-2 h-11 rounded-lg bg-[#0D9488] text-white text-sm font-bold hover:bg-[#0F766E] disabled:opacity-60 cursor-pointer"><RefreshCw class="size-4" /> Consultar disponibilidad</button>
+        </form>
+        <p id="consulta-error" class="hidden p-3 rounded-lg bg-red-50 text-sm text-red-700" role="alert"></p>
+        <p id="dependencia" class="hidden p-3 rounded-lg bg-amber-50 text-sm text-amber-800">El módulo de citas aún no está integrado; las salas se muestran libres porque todavía no existen reservas consultables.</p>
+        <div id="cargando" class="hidden text-sm text-[#64748B]" role="status">Consultando salas…</div>
+        <div id="vacio" class="hidden py-10 text-center text-sm text-[#64748B]">Aún no hay salas registradas.</div>
+        <div id="salas-lista" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4" aria-live="polite"></div>
+      </section>
+    </div>
+  </div>
+</AppLayout>
+
+<template id="sala-template">
+  <article class="flex flex-col gap-3 p-4 rounded-xl border border-[#E2E8F0]">
+    <div class="flex items-center justify-between gap-3"><span class="flex items-center gap-2 min-w-0"><DoorOpen class="size-5 text-[#0D9488] shrink-0" /><strong data-nombre class="truncate"></strong></span><span data-estado class="px-2 py-1 rounded-full text-xs font-bold"></span></div>
+    <p data-ocupaciones class="text-xs text-[#64748B]"></p>
+  </article>
+</template>
+
+<script>
+  import { consultarDisponibilidad, registrarSala, type SalaDisponible } from '../../utils/sala';
+  const form = document.getElementById('sala-form') as HTMLFormElement;
+  const nombre = document.getElementById('nombre') as HTMLInputElement;
+  const guardar = document.getElementById('guardar') as HTMLButtonElement;
+  const errorNombre = document.getElementById('nombre-error')!;
+  const mensaje = document.getElementById('registro-mensaje')!;
+  const consulta = document.getElementById('consulta-form') as HTMLFormElement;
+  const fecha = document.getElementById('fecha') as HTMLInputElement;
+  const inicio = document.getElementById('hora-inicio') as HTMLInputElement;
+  const fin = document.getElementById('hora-fin') as HTMLInputElement;
+  const lista = document.getElementById('salas-lista')!;
+  const plantilla = document.getElementById('sala-template') as HTMLTemplateElement;
+  fecha.value = new Date().toLocaleDateString('en-CA');
+
+  nombre.addEventListener('input', () => {
+    document.getElementById('contador')!.textContent = `${nombre.value.length} / 10`;
+    errorNombre.classList.add('hidden');
+    nombre.removeAttribute('aria-invalid');
+  });
+
+  function aviso(texto: string, ok: boolean) {
+    mensaje.textContent = texto;
+    mensaje.className = `p-3 rounded-lg text-sm ${ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`;
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const valor = nombre.value.trim().replace(/\s+/g, ' ');
+    if (!valor || valor.length > 10) {
+      errorNombre.textContent = !valor ? 'El nombre de la sala es obligatorio.' : 'El nombre no puede exceder 10 caracteres.';
+      errorNombre.classList.remove('hidden'); nombre.setAttribute('aria-invalid', 'true'); nombre.focus(); return;
+    }
+    guardar.disabled = true;
+    try {
+      const resultado = await registrarSala(valor);
+      if (resultado.errores) {
+        errorNombre.textContent = resultado.errores[0].message; errorNombre.classList.remove('hidden'); nombre.setAttribute('aria-invalid', 'true'); return;
+      }
+      form.reset(); document.getElementById('contador')!.textContent = '0 / 10'; aviso('Sala registrada correctamente.', true); await cargar();
+    } catch (error) { aviso(error instanceof Error ? error.message : 'No se pudo registrar la sala.', false); }
+    finally { guardar.disabled = false; }
+  });
+
+  function tarjeta(sala: SalaDisponible) {
+    const nodo = plantilla.content.cloneNode(true) as DocumentFragment;
+    nodo.querySelector('[data-nombre]')!.textContent = sala.nombre;
+    const estado = nodo.querySelector('[data-estado]')!;
+    estado.textContent = sala.estado === 'libre' ? 'Libre' : 'Reservada';
+    estado.className = `px-2 py-1 rounded-full text-xs font-bold ${sala.estado === 'libre' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`;
+    nodo.querySelector('[data-ocupaciones]')!.textContent = sala.ocupaciones.length ? `Ocupada: ${sala.ocupaciones.map((o) => `${o.horaInicio}–${o.horaFin}`).join(', ')}` : 'Sin ocupaciones en la consulta.';
+    return nodo;
+  }
+
+  async function cargar() {
+    const error = document.getElementById('consulta-error')!;
+    document.getElementById('cargando')!.classList.remove('hidden'); error.classList.add('hidden');
+    try {
+      const resultado = await consultarDisponibilidad(fecha.value, inicio.value, fin.value);
+      lista.replaceChildren(...resultado.salas.map(tarjeta));
+      document.getElementById('vacio')!.classList.toggle('hidden', resultado.salas.length > 0);
+      document.getElementById('dependencia')!.classList.toggle('hidden', resultado.fuenteOcupacion !== 'pendiente_modulo_citas');
+    } catch (e) { error.textContent = e instanceof Error ? e.message : 'No se pudo consultar la disponibilidad.'; error.classList.remove('hidden'); }
+    finally { document.getElementById('cargando')!.classList.add('hidden'); }
+  }
+  consulta.addEventListener('submit', (event) => { event.preventDefault(); cargar(); });
+  cargar();
+</script>
+
