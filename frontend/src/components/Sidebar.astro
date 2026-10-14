@@ -11,7 +11,7 @@ const { activo } = Astro.props;
 
 // Solo las secciones con href están construidas; el resto se muestra deshabilitado.
 const secciones = [
-  { clave: 'inicio', etiqueta: 'Inicio', icono: LayoutGrid },
+  { clave: 'inicio', etiqueta: 'Inicio', icono: LayoutGrid, href: '/inicio' },
   { clave: 'pacientes', etiqueta: 'Pacientes', icono: Users, href: '/pacientes' },
   { clave: 'terapeutas', etiqueta: 'Terapeutas', icono: Stethoscope, href: '/terapeutas' },
   { clave: 'salas', etiqueta: 'Salas', icono: DoorOpen, href: '/salas' },

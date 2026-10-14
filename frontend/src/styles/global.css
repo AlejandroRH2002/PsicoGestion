@@ -21,3 +21,32 @@ body {
   background-color: #F4F7F6;
   color: #0F172A;
 }
+/* RF 6.2: impresión de la agenda. utils/agenda-impresion.ts clona la hoja en #area-impresion
+   (hijo directo de <body>) y agrega .imprimiendo; aquí se oculta el resto de la app. */
+#area-impresion {
+  display: none;
+}
+
+@media print {
+  body.imprimiendo {
+    display: block;
+    height: auto;
+    visibility: visible;
+    background: #fff;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body.imprimiendo > :not(#area-impresion) {
+    display: none !important;
+  }
+
+  body.imprimiendo #area-impresion {
+    display: block;
+    visibility: visible;
+  }
+
+  #area-impresion tr {
+    break-inside: avoid;
+  }
+}
