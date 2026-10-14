@@ -1,0 +1,110 @@
+---
+import { CalendarDays, ChevronDown, Save } from '@lucide/astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+import SelectorBuscable from '../../components/citas/SelectorBuscable.astro';
+import RejillaSemanal from '../../components/citas/RejillaSemanal.astro';
+
+const select = 'w-full h-11 pl-3 pr-10 rounded-lg border border-[#E2E8F0] bg-white text-sm text-[#0F172A] appearance-none outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20';
+---
+<AppLayout title="Modificar Cita" activo="citas" volverHref="/citas" volverEtiqueta="Citas">
+  <div class="flex flex-col gap-6 w-full max-w-[1100px]">
+    <div>
+      <h2 class="text-[28px] font-bold text-[#0F172A]">Modificar Cita</h2>
+      <p class="mt-1 text-sm text-[#475569]">Edite la información y guarde los cambios en la agenda del consultorio.</p>
+    </div>
+
+    <p id="aviso" class="hidden p-3 rounded-lg bg-red-50 text-sm text-red-700" role="alert"></p>
+    <p id="cargando" class="text-sm text-[#64748B]" role="status">Cargando cita…</p>
+
+    <!-- RF 5.3.1–5.3.4 -->
+    <form id="form-cita" hidden novalidate class="flex flex-col gap-6 w-full max-w-[680px] p-6 bg-white border border-[#E2E8F0] rounded-2xl">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h3 class="text-lg font-semibold">Folio de la Reserva: <span id="folio"></span></h3>
+        <span id="estado-actual"></span>
+      </div>
+
+      <SelectorBuscable id="paciente" etiqueta="Paciente" placeholder="Buscar paciente por nombre o CURP…" />
+      <SelectorBuscable id="terapeuta" etiqueta="Terapeuta" placeholder="Seleccionar terapeuta…" />
+
+      <div class="flex flex-col gap-2">
+        <label for="sala" class="text-[13px] font-semibold text-[#334155]">Sala de Terapia <span class="text-[#EF4444]" aria-hidden="true">*</span></label>
+        <div class="relative">
+          <select id="sala" class={select} aria-describedby="salaId-error"></select>
+          <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-[#475569] pointer-events-none" />
+        </div>
+        <p id="salaId-error" class="hidden text-xs text-red-600" role="alert"></p>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <span id="horario-etiqueta" class="text-[13px] font-semibold text-[#334155]">Fecha y Hora de la Cita <span class="text-[#EF4444]" aria-hidden="true">*</span></span>
+        <div class="flex items-center gap-3 h-11 px-3 rounded-lg border border-[#E2E8F0]" aria-labelledby="horario-etiqueta">
+          <CalendarDays class="size-4 text-[#0D9488] shrink-0" />
+          <span id="horario-texto" class="flex-1 text-sm text-[#0F172A] truncate"></span>
+          <button id="modificar-horario" type="button" class="text-[12px] font-semibold text-[#0D9488] hover:underline cursor-pointer">Modificar Horario…</button>
+        </div>
+        <p id="horaInicio-error" class="hidden text-xs text-red-600" role="alert"></p>
+        <p id="duracion-error" class="hidden text-xs text-red-600" role="alert"></p>
+      </div>
+
+      <div class="flex flex-col gap-2">
+        <label for="estado" class="text-[13px] font-semibold text-[#334155]">Estatus <span class="text-[#EF4444]" aria-hidden="true">*</span></label>
+        <div class="relative">
+          <select id="estado" class={select} aria-describedby="estado-error">
+            <option>Pendiente</option>
+            <option>Cancelada</option>
+            <option>Vencida</option>
+          </select>
+          <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-[#475569] pointer-events-none" />
+        </div>
+        <p id="estado-error" class="hidden text-xs text-red-600" role="alert"></p>
+      </div>
+
+      <hr class="border-[#E2E8F0]" />
+      <div class="flex justify-between gap-3">
+        <a href="/citas" class="inline-flex items-center h-11 px-5 rounded-lg border border-[#E2E8F0] text-sm font-semibold text-[#334155] hover:bg-[#F8FAFC]">Cancelar</a>
+        <button id="guardar" type="submit" class="inline-flex items-center gap-2 h-11 px-5 rounded-lg bg-[#0D9488] text-white text-sm font-semibold hover:bg-[#0F766E] disabled:opacity-60 cursor-pointer">
+          <Save class="size-4" /> Guardar Cambios
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Selección de un nuevo horario (misma rejilla que el alta, excluyendo esta cita) -->
+  <dialog id="dialogo-horario" class="m-auto w-[calc(100%-2rem)] max-w-[920px] p-0 rounded-2xl backdrop:bg-[#0F172A]/40 shadow-xl">
+    <div class="flex flex-col gap-4 p-6">
+      <RejillaSemanal id="rejilla" />
+      <div class="flex flex-wrap items-end justify-between gap-4">
+        <label class="flex flex-col gap-2 text-[13px] font-semibold text-[#334155]">
+          Duración
+          <select id="duracion" class="h-10 px-3 rounded-lg border border-[#E2E8F0] bg-white text-sm font-normal">
+            <option value="30">30 minutos</option>
+            <option value="60">60 minutos</option>
+            <option value="90">90 minutos</option>
+          </select>
+        </label>
+        <p id="horario-seleccionado" class="text-sm text-[#475569]"></p>
+        <div class="flex gap-3">
+          <button id="horario-cerrar" type="button" class="h-10 px-4 rounded-lg border border-[#E2E8F0] text-sm font-semibold text-[#334155] hover:bg-[#F8FAFC] cursor-pointer">Cerrar</button>
+          <button id="horario-aplicar" type="button" disabled class="h-10 px-4 rounded-lg bg-[#0D9488] text-white text-sm font-semibold hover:bg-[#0F766E] disabled:opacity-60 cursor-pointer">Usar este horario</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- RF 5.3.5: confirmación antes de guardar -->
+  <dialog id="dialogo-confirmar" class="m-auto w-[calc(100%-2rem)] max-w-[440px] p-0 rounded-2xl backdrop:bg-[#0F172A]/40 shadow-xl">
+    <form method="dialog" class="flex flex-col gap-4 p-6">
+      <h2 class="text-lg font-bold text-[#0F172A]">¿Guardar los cambios de la cita?</h2>
+      <p id="confirmar-detalle" class="text-sm text-[#64748B]"></p>
+      <div class="flex justify-end gap-3">
+        <button value="cerrar" class="px-5 py-2.5 border border-[#E2E8F0] rounded-lg text-sm font-semibold text-[#334155] hover:bg-[#F4F7F6] cursor-pointer">Volver</button>
+        <button value="confirmar" class="px-5 py-2.5 bg-[#0D9488] hover:bg-[#0F766E] rounded-lg text-sm font-semibold text-white cursor-pointer">Guardar</button>
+      </div>
+    </form>
+  </dialog>
+</AppLayout>
+
+<script>
+  import { iniciarEditarCita } from '../../utils/cita-editar';
+  iniciarEditarCita();
+</script>

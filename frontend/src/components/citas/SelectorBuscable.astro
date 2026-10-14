@@ -1,0 +1,45 @@
+---
+import { Check, ChevronDown } from '@lucide/astro';
+
+interface Props {
+  id: string;
+  etiqueta: string;
+  placeholder: string;
+  ayuda?: string;
+}
+
+const { id, etiqueta, placeholder, ayuda } = Astro.props;
+---
+<div id={id} class="flex flex-col gap-2" data-selector>
+  <label for={`${id}-input`} class="text-[13px] font-semibold text-[#334155]">
+    {etiqueta} <span class="text-[#EF4444]" aria-hidden="true">*</span>
+  </label>
+  <div class="relative">
+    <input
+      id={`${id}-input`}
+      type="text"
+      role="combobox"
+      autocomplete="off"
+      aria-autocomplete="list"
+      aria-expanded="false"
+      aria-controls={`${id}-lista`}
+      aria-describedby={`${id}-error${ayuda ? ` ${id}-ayuda` : ''}`}
+      placeholder={placeholder}
+      class="w-full h-11 pl-3 pr-10 rounded-lg border border-[#E2E8F0] bg-white text-sm text-[#0F172A] placeholder:text-[#94A3B8] outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20 aria-[invalid=true]:border-[#EF4444]"
+    />
+    <ChevronDown class="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-[#475569] pointer-events-none" />
+    <ul
+      id={`${id}-lista`}
+      role="listbox"
+      class="hidden absolute top-full left-0 right-0 z-20 mt-1 max-h-64 overflow-y-auto p-1 rounded-lg border border-[#E2E8F0] bg-white shadow-lg"
+    ></ul>
+  </div>
+  {ayuda && <p id={`${id}-ayuda`} class="text-[12px] text-[#475569]">{ayuda}</p>}
+  <p id={`${id}-error`} class="hidden text-xs text-red-600" role="alert" data-error></p>
+  <template>
+    <li role="option" class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-md text-sm text-[#0F172A] cursor-pointer hover:bg-[#F1F5F9] aria-selected:font-semibold">
+      <span data-nombre class="truncate"></span>
+      <Check class="size-4 text-[#0D9488] shrink-0" data-check />
+    </li>
+  </template>
+</div>
