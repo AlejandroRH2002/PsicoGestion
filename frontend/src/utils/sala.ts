@@ -46,4 +46,3 @@ export async function consultarDisponibilidad(fecha: string, horaInicio = '', ho
   if (!response.ok) throw new Error(body?.errors?.[0]?.message ?? body?.error ?? 'No se pudo consultar la disponibilidad.');
   return body;
 }
-

@@ -92,4 +92,3 @@ export async function consultarDisponibilidad({ fecha, horaInicio, horaFin, sala
     salas: rows.map((row) => ({ ...toSala(row), estado: row.ocupaciones.length ? 'reservada' : 'libre', ocupaciones: row.ocupaciones })),
   };
 }
-

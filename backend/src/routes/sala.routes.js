@@ -8,4 +8,3 @@ salaRouter.get('/', listar);
 salaRouter.post('/', registrar);
 salaRouter.get('/disponibilidad', consultarTodas);
 salaRouter.get('/:id/disponibilidad', consultarUna);
-

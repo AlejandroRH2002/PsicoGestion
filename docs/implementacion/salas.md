@@ -62,4 +62,3 @@ Las pruebas de integración requieren `TEST_DATABASE_URL`, distinto de `DATABASE
 | EDT 1.4.2.5 / RF 4.1.1–4.1.4 | migración 007, validador, servicio, `POST /salas`, formulario | `sala.validators.test.js`, `sala.service.test.js`, `integracion/salas.test.js` |
 | EDT 1.4.2.6 / RF 4.3.1–4.3.3 | `GET /salas`, endpoints de disponibilidad, vista `/salas` | pruebas unitarias e integración de salas |
 | RF 5.1.3–5.1.4 | contrato por fecha/intervalo y reglas de superposición | casos parcial, completo, consecutivo, libre, reservada y módulo ausente |
-

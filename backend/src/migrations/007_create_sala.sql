@@ -9,4 +9,3 @@ CREATE TABLE IF NOT EXISTS sala (
 
 CREATE UNIQUE INDEX IF NOT EXISTS sala_nombre_normalizado_key
     ON sala (lower(regexp_replace(btrim(nombre_sala), '\s+', ' ', 'g')));
-

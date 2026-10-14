@@ -51,4 +51,3 @@ export function validateDisponibilidad(query = {}) {
   }
   return { errors, data: { fecha, horaInicio, horaFin } };
 }
-

@@ -20,4 +20,3 @@ describe('validaciones de salas', () => {
     for (const valor of ['0', '-1', 'abc', '']) assert.equal(parseSalaId(valor), null);
   });
 });
-

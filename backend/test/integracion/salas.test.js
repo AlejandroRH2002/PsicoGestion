@@ -45,4 +45,3 @@ describe('API de salas', { skip: omitir }, () => {
     assert.ok(res.body.salas.every((sala) => sala.estado === 'libre'));
   });
 });
-

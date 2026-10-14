@@ -55,4 +55,3 @@ describe('servicio de salas', () => {
     await assert.rejects(consultarDisponibilidad({ fecha: '2026-10-13', salaId: 99 }, db), SalaNotFoundError);
   });
 });
-

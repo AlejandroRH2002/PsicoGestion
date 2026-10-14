@@ -46,4 +46,3 @@ export function consultarUna(req, res, next) {
   if (!id) return res.status(404).json({ error: 'Sala no encontrada.' });
   return disponibilidad(req, res, next, id);
 }
-
