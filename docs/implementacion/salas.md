@@ -6,7 +6,7 @@ Implementación de **EDT 1.4.2.5** (registro) y **EDT 1.4.2.6** (consulta de dis
 
 `backend/src/migrations/007_create_sala.sql` crea `sala(id_sala, nombre_sala)`. El nombre es obligatorio, tiene como máximo 10 caracteres y posee un índice único sobre su forma recortada, con espacios compactados y en minúsculas. La API almacena la forma recortada y compactada. Así, `Sala A`, ` SALA   A ` y `sala a` representan el mismo nombre.
 
-La migración no crea citas ni horarios. Cuando se integre el módulo de citas de Juan Kao, las tablas ya diseñadas (`cita`, `cita_bloque` y `bloque_horario`) serán detectadas automáticamente por la consulta.
+La migración no crea citas ni horarios. Esas tablas (`cita`, `cita_bloque` y `bloque_horario`) las crea `008_create_cita.sql` del módulo de citas (ver `docs/implementacion/citas.md`) y la consulta las detecta automáticamente.
 
 ## API (sesión de secretaria obligatoria)
 
@@ -38,9 +38,9 @@ Respuesta para consumo del formulario de citas:
 
 La ocupación considera únicamente citas `Pendiente` y aplica `inicioOcupado < finConsultado && finOcupado > inicioConsultado`; dos intervalos consecutivos no chocan. Citas `Cancelada` y `Vencida` no reservan la sala. La respuesta nunca expone paciente, terapeuta ni folio.
 
-Mientras el módulo de citas no exista, la respuesta usa `fuenteOcupacion: "pendiente_modulo_citas"`, devuelve las salas como libres y la interfaz muestra expresamente esa limitación. No se fabrican reservas.
+Si las tablas de citas no existieran (base sin migrar hasta 008), la respuesta usa `fuenteOcupacion: "pendiente_modulo_citas"`, devuelve las salas como libres y la interfaz muestra expresamente esa limitación. No se fabrican reservas.
 
-La prevención concurrente definitiva de doble reserva corresponde a la transacción de creación de citas. La rama de citas inspeccionada usa bloqueo transaccional por sala/terapeuta y vuelve a comprobar la superposición antes del `INSERT`; el endpoint de este módulo es una consulta, no un bloqueo.
+La prevención concurrente definitiva de doble reserva corresponde a la transacción de creación de citas. El módulo de citas toma un bloqueo transaccional por sala/terapeuta/paciente y fecha y vuelve a comprobar la superposición antes de escribir; el endpoint de este módulo es una consulta, no un bloqueo.
 
 ## Ejecución y pruebas
 

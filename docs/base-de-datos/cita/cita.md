@@ -31,3 +31,10 @@ funciones.
   históricos de citas. Esto conviene tenerlo presente al decidir si se eliminan
   pacientes, terapeutas o salas, ya que el borrado en cascada eliminaría sus
   citas.
+
+## Implementación (`backend/src/migrations/008_create_cita.sql`)
+
+- `folio` es `VARCHAR(20)` con formato `CIT-AAAA-NNNNN`, derivado de `id_cita`. El formato del diseño no cabe en 10 caracteres.
+- Las FK hacia `paciente`, `terapeuta` y `sala` usan `ON DELETE RESTRICT`, no `CASCADE`. Esas entidades se dan de baja con borrado lógico y el historial de citas se conserva.
+- Se agregan `creado_en`/`actualizado_en`, y `estado` tiene por defecto `'Pendiente'`.
+- Ver `docs/implementacion/citas.md`.
