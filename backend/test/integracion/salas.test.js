@@ -36,12 +36,12 @@ describe('API de salas', { skip: omitir }, () => {
     assert.deepEqual(resultados.map((r) => r.status).sort(), [201, 409]);
   });
 
-  test('consulta vacía, fecha inválida, sala inexistente y ausencia del módulo de citas', async () => {
+  test('consulta vacía, fecha inválida, sala inexistente y ocupación desde el módulo de citas', async () => {
     assert.equal((await api('GET', '/salas/disponibilidad?fecha=2026-02-30')).status, 400);
     assert.equal((await api('GET', '/salas/999999/disponibilidad?fecha=2026-10-13')).status, 404);
     const res = await api('GET', '/salas/disponibilidad?fecha=2026-10-13&horaInicio=09:00&horaFin=10:00');
     assert.equal(res.status, 200);
-    assert.equal(res.body.fuenteOcupacion, 'pendiente_modulo_citas');
+    assert.equal(res.body.fuenteOcupacion, 'citas');
     assert.ok(res.body.salas.every((sala) => sala.estado === 'libre'));
   });
 });
