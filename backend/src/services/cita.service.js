@@ -334,6 +334,25 @@ export async function obtenerCita(id, db = pool) {
 }
 
 /**
+ * RF 6.1 / RF 7.1: citas de la agenda en un rango de fechas. Solo Pendientes y Vencidas (lo que ocupó u
+ * ocupará la clínica); las Canceladas liberaron su horario y no se muestran. Sin paginación: un mes de
+ * la clínica es un volumen pequeño.
+ */
+export async function agendaEntre({ desde, hasta, terapeutaId = null, salaId = null }, db = pool) {
+  await marcarVencidas(db);
+  const { rows } = await db.query(
+    `${SELECT_CITA}
+     WHERE c.estado IN ('Pendiente', 'Vencida')
+       AND h.fecha BETWEEN $1 AND $2
+       AND ($3::int IS NULL OR c.id_terapeuta = $3)
+       AND ($4::int IS NULL OR c.id_sala = $4)
+     ORDER BY h.fecha, h.inicio, lower(s.nombre_sala), c.id_cita`,
+    [desde, hasta, terapeutaId, salaId]
+  );
+  return rows.map(toCita);
+}
+
+/**
  * RF 5.2.1–5.2.3: directorio paginado. `conteos` aplica todos los filtros salvo el de estado, para
  * alimentar las pestañas Todas/Pendientes/Canceladas/Vencidas.
  */
