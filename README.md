@@ -17,6 +17,8 @@ El Producto Mínimo Viable (MVP) contempla principalmente las siguientes funcion
 
 El desarrollo del proyecto se realiza mediante un modelo **incremental e iterativo**, permitiendo desarrollar, validar e integrar progresivamente las diferentes funcionalidades del sistema.
 
+La implementación y el contrato de integración del módulo de salas se documentan en [`docs/implementacion/salas.md`](docs/implementacion/salas.md).
+
 ---
 
 # Gestión de Configuración con GitHub
