@@ -66,11 +66,21 @@ export { QUERY_MAX as PACIENTE_SEARCH_QUERY_MAX };
 
 export const EDAD_MINIMA = 7;
 
-/** Años cumplidos entre dos fechas UTC (sin hora). */
-function calcularEdad(nacimiento, hoy) {
-  let edad = hoy.getUTCFullYear() - nacimiento.getUTCFullYear();
-  const mes = hoy.getUTCMonth() - nacimiento.getUTCMonth();
-  if (mes < 0 || (mes === 0 && hoy.getUTCDate() < nacimiento.getUTCDate())) edad -= 1;
+function fechaCalendarioMerida(fecha) {
+  const partes = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Merida',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(fecha);
+  const valores = Object.fromEntries(partes.map(({ type, value }) => [type, value]));
+  return { anio: Number(valores.year), mes: Number(valores.month), dia: Number(valores.day) };
+}
+
+/** Años cumplidos usando la fecha civil de Mérida. */
+function calcularEdad(anioNacimiento, mesNacimiento, diaNacimiento, hoy) {
+  let edad = hoy.anio - anioNacimiento;
+  if (hoy.mes < mesNacimiento || (hoy.mes === mesNacimiento && hoy.dia < diaNacimiento)) edad -= 1;
   return edad;
 }
 
@@ -121,16 +131,17 @@ export function validatePaciente(body = {}, options = {}) {
     if (!fechaNacimiento) {
       errors.push({ field: 'fecha_nacimiento', message: 'Formato de fecha inválido. Usa dd/mm/aaaa.' });
     } else {
-      const birthDate = new Date(`${fechaNacimiento}T00:00:00Z`);
-      const today = new Date(hoy);
-      today.setUTCHours(0, 0, 0, 0);
+      const [anioNacimiento, mesNacimiento, diaNacimiento] = fechaNacimiento.split('-').map(Number);
+      const hoyMerida = fechaCalendarioMerida(hoy);
+      const esHoyOFutura =
+        anioNacimiento > hoyMerida.anio ||
+        (anioNacimiento === hoyMerida.anio && mesNacimiento > hoyMerida.mes) ||
+        (anioNacimiento === hoyMerida.anio && mesNacimiento === hoyMerida.mes && diaNacimiento >= hoyMerida.dia);
 
-      if (Number.isNaN(birthDate.getTime())) {
-        errors.push({ field: 'fecha_nacimiento', message: 'La fecha proporcionada no es válida.' });
-      } else if (birthDate >= today) {
+      if (esHoyOFutura) {
         // RF 3.1.8, RNF 3.1.5
         errors.push({ field: 'fecha_nacimiento', message: 'La fecha de nacimiento debe ser anterior a la fecha actual.' });
-      } else if (calcularEdad(birthDate, today) < EDAD_MINIMA) {
+      } else if (calcularEdad(anioNacimiento, mesNacimiento, diaNacimiento, hoyMerida) < EDAD_MINIMA) {
         // RF 3.1.9
         errors.push({ field: 'fecha_nacimiento', message: `El paciente debe tener al menos ${EDAD_MINIMA} años cumplidos.` });
       }

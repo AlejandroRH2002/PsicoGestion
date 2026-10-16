@@ -16,14 +16,13 @@ import {
   buscarPacientes,
   ConflictError,
   NotFoundError,
-  SinArchivosError,
 } from '../services/paciente.service.js';
 
 /**
  * Valida los campos del formulario y cada adjunto por su contenido real.
- * Compartido por registro y edición; `exigirArchivo` solo aplica al registro.
+ * Compartido por registro y edición; los adjuntos son opcionales en ambos casos.
  */
-function validarFormulario(req, { exigirArchivo }) {
+function validarFormulario(req) {
   const { errors, data } = validatePaciente(req.body);
 
   const archivos = [];
@@ -34,10 +33,6 @@ function validarFormulario(req, { exigirArchivo }) {
       break;
     }
     archivos.push({ buffer: file.buffer, tipo, nombre: file.originalname.slice(0, 255), tamano: file.size });
-  }
-
-  if (exigirArchivo && (req.files ?? []).length === 0) {
-    errors.push({ field: 'archivos', message: 'Debes adjuntar al menos un archivo (PDF, JPG o PNG).' });
   }
 
   return { errors, data, archivos };
@@ -53,9 +48,6 @@ function manejarError(err, res, next) {
   if (err instanceof ConflictError) {
     return res.status(409).json({ errors: [{ field: err.field, message: err.message }] });
   }
-  if (err instanceof SinArchivosError) {
-    return res.status(400).json({ errors: [{ field: err.field, message: err.message }] });
-  }
   if (err instanceof NotFoundError) {
     return res.status(404).json({ error: err.message });
   }
@@ -66,10 +58,10 @@ function noEncontrado(res) {
   return res.status(404).json({ error: new NotFoundError().message });
 }
 
-/** RF 3.1.1-3.1.12: alta de paciente (multipart/form-data, al menos un adjunto en "archivos"). */
+/** RF 3.1.1-3.1.12: alta de paciente; los adjuntos son opcionales. */
 export async function create(req, res, next) {
   try {
-    const { errors, data, archivos } = validarFormulario(req, { exigirArchivo: true });
+    const { errors, data, archivos } = validarFormulario(req);
     if (errors.length > 0) {
       return res.status(400).json({ errors });
     }
@@ -131,7 +123,7 @@ export async function update(req, res, next) {
   const id = parsePacienteId(req.params.id);
   if (!id) return noEncontrado(res);
   try {
-    const { errors, data, archivos } = validarFormulario(req, { exigirArchivo: false });
+    const { errors, data, archivos } = validarFormulario(req);
     if (errors.length > 0) {
       return res.status(400).json({ errors });
     }

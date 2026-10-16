@@ -15,7 +15,7 @@ import FormularioPaciente from '../../components/FormularioPaciente.astro';
   import { iniciarFormulario } from '../../utils/paciente';
 
   // RF 3.1.1-3.1.12
-  const formulario = iniciarFormulario({ exigirArchivo: true });
+  const formulario = iniciarFormulario();
 
   formulario.form.addEventListener('submit', async (e) => {
     e.preventDefault();

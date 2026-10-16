@@ -155,9 +155,8 @@ function errorDeArchivo(archivo: File): string | null {
  * Conecta el formulario de components/FormularioPaciente.astro: máscaras, contador, adjuntos,
  * validación en cliente (mismas reglas y mensajes que backend/src/validators/paciente.validators.js),
  * errores por campo y envío. RF 3.1.1-3.1.12, RF 3.2.4-3.2.6.
- * `exigirArchivo`: el registro requiere al menos un adjunto; la edición solo impide quitar el último.
  */
-export function iniciarFormulario({ exigirArchivo }: { exigirArchivo: boolean }) {
+export function iniciarFormulario() {
   const form = document.getElementById('paciente-form') as HTMLFormElement;
   const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
   const formMessage = document.getElementById('form-message') as HTMLElement;
@@ -170,6 +169,7 @@ export function iniciarFormulario({ exigirArchivo }: { exigirArchivo: boolean })
   let nuevos: File[] = [];
   let existentes: ArchivoPaciente[] = [];
   let idPaciente: number | null = null;
+  let huellaInicial = '';
   const quitados = new Set<number>();
 
   // --- Máscaras de entrada ---
@@ -261,13 +261,6 @@ export function iniciarFormulario({ exigirArchivo }: { exigirArchivo: boolean })
     if (!telefono) errores.push({ field: 'telefono', message: 'El teléfono es obligatorio.' });
     else if (telefono.length !== 10) errores.push({ field: 'telefono', message: 'El teléfono debe contener 10 dígitos.' });
 
-    const total = conservados().length + nuevos.length;
-    if (exigirArchivo && nuevos.length === 0) {
-      errores.push({ field: 'archivos', message: 'Debes adjuntar al menos un archivo (PDF, JPG o PNG).' });
-    } else if (!exigirArchivo && quitados.size > 0 && total === 0) {
-      errores.push({ field: 'archivos', message: 'El paciente debe conservar al menos un archivo adjunto.' });
-    }
-
     return errores;
   }
 
@@ -317,6 +310,7 @@ export function iniciarFormulario({ exigirArchivo }: { exigirArchivo: boolean })
           () => {
             quitados.add(a.id);
             pintarArchivos();
+            actualizarEstadoFormulario();
           },
           idPaciente ? urlArchivo(idPaciente, a) : undefined
         )
@@ -350,6 +344,7 @@ export function iniciarFormulario({ exigirArchivo }: { exigirArchivo: boolean })
     }
     inputArchivos.value = ''; // Permite volver a elegir un archivo que se quitó.
     pintarArchivos();
+    actualizarEstadoFormulario();
   }
 
   zona.addEventListener('click', () => inputArchivos.click());
@@ -394,6 +389,8 @@ export function iniciarFormulario({ exigirArchivo }: { exigirArchivo: boolean })
     nuevos = [];
     actualizarContador();
     pintarArchivos();
+    huellaInicial = huella();
+    actualizarEstadoFormulario();
   }
 
   /** Huella de los valores actuales, para detectar cambios sin guardar. */
@@ -404,6 +401,13 @@ export function iniciarFormulario({ exigirArchivo }: { exigirArchivo: boolean })
       [...quitados].sort(),
     ]);
   }
+
+  function actualizarEstadoFormulario(): void {
+    form.dataset.unsavedChanges = String(huellaInicial !== '' && huella() !== huellaInicial);
+  }
+
+  form.addEventListener('input', actualizarEstadoFormulario);
+  form.addEventListener('change', actualizarEstadoFormulario);
 
   function construirDatos(): FormData {
     const datos = new FormData();
@@ -454,6 +458,9 @@ export function iniciarFormulario({ exigirArchivo }: { exigirArchivo: boolean })
     }
     return null;
   }
+
+  huellaInicial = huella();
+  actualizarEstadoFormulario();
 
   return { form, rellenar, huella, enviar, mostrarMensaje };
 }

@@ -13,13 +13,6 @@ export class NotFoundError extends Error {
 }
 
 /** La edición intentó quitar todos los adjuntos del paciente. */
-export class SinArchivosError extends Error {
-  constructor() {
-    super('El paciente debe conservar al menos un archivo adjunto.');
-    this.field = 'archivos';
-  }
-}
-
 const COLUMNAS = `id_paciente, nombre_completo, curp, sexo,
   to_char(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento, telefono,
   activo, fecha_baja, fecha_registro`;
@@ -297,8 +290,6 @@ export async function actualizarPaciente(
 
     await insertarArchivos(client, id, archivosNuevos, rutasEscritas);
     const guardados = await listarArchivos(id, client);
-    // Pacientes registrados antes de los adjuntos pueden no tener ninguno; solo se impide quitar el último.
-    if (quitados.length > 0 && guardados.length === 0) throw new SinArchivosError();
     await client.query('COMMIT');
 
     await Promise.all(quitados.map(borrarArchivo));

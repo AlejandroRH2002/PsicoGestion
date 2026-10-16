@@ -84,10 +84,11 @@ describe('API de pacientes', { skip: omitir }, () => {
       assert.equal(dupTel.body.errors[0].field, 'telefono');
     });
 
-    test('exige al menos un adjunto', async () => {
-      const res = await api('POST', '/pacientes', { form: datos() });
-      assert.equal(res.status, 400);
-      assert.equal(res.body.errors[0].field, 'archivos');
+    test('permite registrar sin adjuntos y devuelve una lista vacía', async () => {
+      const p = await registrar({}, []);
+      assert.deepEqual(p.archivos, []);
+      const ficha = await api('GET', `/pacientes/${p.id}`);
+      assert.deepEqual(ficha.body.paciente.archivos, []);
     });
 
     test('rechaza un adjunto cuyo contenido no es PDF, JPG ni PNG aunque lo declare', async () => {
@@ -215,19 +216,16 @@ describe('API de pacientes', { skip: omitir }, () => {
       assert.equal((await api('GET', `/pacientes/${p.id}/archivos/${b.id}`, { crudo: true })).status, 200);
     });
 
-    test('no permite quitar el último adjunto', async () => {
+    test('permite quitar el último adjunto y lo borra del disco', async () => {
       const p = await registrar();
       const antes = (await archivosEnDisco()).length;
       const res = await api('PUT', `/pacientes/${p.id}`, {
         form: { ...datos({ curp: p.curp, telefono: p.telefono }), quitarArchivos: String(p.archivos[0].id) },
       });
-      assert.equal(res.status, 400);
-      assert.deepEqual(res.body.errors[0], {
-        field: 'archivos',
-        message: 'El paciente debe conservar al menos un archivo adjunto.',
-      });
-      assert.equal((await archivosEnDisco()).length, antes, 'el archivo no se borra si la edición falla');
-      assert.equal((await api('GET', `/pacientes/${p.id}`)).body.paciente.archivos.length, 1);
+      assert.equal(res.status, 200, JSON.stringify(res.body));
+      assert.deepEqual(res.body.paciente.archivos, []);
+      assert.equal((await archivosEnDisco()).length, antes - 1);
+      assert.deepEqual((await api('GET', `/pacientes/${p.id}`)).body.paciente.archivos, []);
     });
 
     test('id inexistente responde 404', async () => {

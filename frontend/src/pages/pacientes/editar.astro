@@ -27,7 +27,7 @@ import FormularioPaciente from '../../components/FormularioPaciente.astro';
 
   // RF 3.2.4-3.2.6, RNF 3.2.2, RNF 3.2.6
   const id = new URLSearchParams(window.location.search).get('id');
-  const formulario = iniciarFormulario({ exigirArchivo: false });
+  const formulario = iniciarFormulario();
   let huellaGuardada = '';
   let guardado = false;
 

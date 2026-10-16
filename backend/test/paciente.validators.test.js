@@ -51,12 +51,23 @@ test('parsePacienteId: solo acepta enteros positivos', () => {
 });
 
 test('exige una edad mínima de 7 años cumplidos (RF 3.1.9)', () => {
-  const hoy = new Date(Date.UTC(2026, 5, 15));
+  const hoy = new Date('2026-06-15T18:00:00.000Z');
   const conFecha = (fecha_nacimiento) => validatePaciente({ ...pacienteValido, fecha_nacimiento }, { hoy }).errors;
   assert.deepEqual(conFecha('15/06/2019'), []);
   assert.deepEqual(conFecha('16/06/2019'), [
     { field: 'fecha_nacimiento', message: 'El paciente debe tener al menos 7 años cumplidos.' },
   ]);
+});
+
+test('usa la fecha civil de Mérida después de medianoche UTC (RF 3.1.8, RNF 3.1.5)', () => {
+  const hoy = new Date('2026-10-08T01:00:00.000Z');
+  const resultado = validatePaciente({ ...pacienteValido, fecha_nacimiento: '07/10/2026' }, { hoy });
+  assert.deepEqual(resultado.errors, [
+    { field: 'fecha_nacimiento', message: 'La fecha de nacimiento debe ser anterior a la fecha actual.' },
+  ]);
+
+  const anterior = validatePaciente({ ...pacienteValido, fecha_nacimiento: '06/10/2019' }, { hoy });
+  assert.deepEqual(anterior.errors, []);
 });
 
 test('validateListado: estado y orden con valores predeterminados', () => {

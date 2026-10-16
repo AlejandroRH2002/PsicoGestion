@@ -72,7 +72,23 @@ const secciones = [
 <script>
   import { cerrarSesion } from '../utils/sesion';
 
+  function marcarFormularioModificado(event: Event): void {
+    const control = event.target;
+    if (!(control instanceof HTMLElement)) return;
+    const formulario = control.closest('form');
+    if (formulario && formulario.id !== 'paciente-form') formulario.dataset.unsavedChanges = 'true';
+  }
+
+  document.addEventListener('input', marcarFormularioModificado, true);
+  document.addEventListener('change', marcarFormularioModificado, true);
+
   document.getElementById('cerrar-sesion')?.addEventListener('click', async () => {
+    if (
+      document.querySelector('form[data-unsaved-changes="true"]') &&
+      !window.confirm('Hay un registro en curso. Si cierras sesión, se perderán los cambios no guardados. ¿Quieres continuar?')
+    ) {
+      return;
+    }
     await cerrarSesion();
     window.location.href = '/';
   });
