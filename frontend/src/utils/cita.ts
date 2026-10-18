@@ -1,4 +1,4 @@
-import { API_URL } from './sesion';
+import { pedirApi as pedir } from './sesion';
 import { buscarPacientes } from './paciente';
 import { listarTerapeutas } from './terapeuta';
 import { listarSalas, type Sala } from './sala';
@@ -60,16 +60,6 @@ export interface ResultadoListado {
   total: number;
   page: number;
   limit: number;
-}
-
-async function pedir(ruta: string, init: RequestInit = {}) {
-  const response = await fetch(`${API_URL}${ruta}`, { credentials: 'include', ...init });
-  if (response.status === 401) {
-    window.location.replace('/');
-    throw new Error('Tu sesión expiró.');
-  }
-  const body = await response.json().catch(() => null);
-  return { response, body };
 }
 
 function json(method: string, datos: unknown): RequestInit {

@@ -1,5 +1,26 @@
 export const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001';
 
+export const MENSAJE_SIN_CONEXION = 'No se pudo conectar con el servidor. Verifica tu conexión e intenta de nuevo.';
+
+/**
+ * Cliente común de la API: envía la cookie de sesión, redirige al login en un 401 (equivalente a
+ * requireAuth) y convierte el «Failed to fetch» del navegador en un mensaje en español.
+ */
+export async function pedirApi(ruta: string, init: RequestInit = {}) {
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${ruta}`, { credentials: 'include', ...init });
+  } catch {
+    throw new Error(MENSAJE_SIN_CONEXION);
+  }
+  if (response.status === 401) {
+    window.location.replace('/');
+    throw new Error('Tu sesión expiró.');
+  }
+  const body = await response.json().catch(() => null);
+  return { response, body };
+}
+
 export interface Usuario {
   id: number;
   nombre: string;

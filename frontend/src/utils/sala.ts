@@ -1,4 +1,4 @@
-import { API_URL } from './sesion';
+import { pedirApi as pedir } from './sesion';
 
 export interface Sala { id: number; nombre: string }
 export interface Ocupacion { horaInicio: string; horaFin: string }
@@ -9,16 +9,6 @@ export interface ResultadoDisponibilidad {
   horaFin: string | null;
   fuenteOcupacion: 'citas' | 'pendiente_modulo_citas';
   salas: SalaDisponible[];
-}
-
-async function pedir(ruta: string, init: RequestInit = {}) {
-  const response = await fetch(`${API_URL}${ruta}`, { credentials: 'include', ...init });
-  if (response.status === 401) {
-    window.location.replace('/');
-    throw new Error('Tu sesión expiró.');
-  }
-  const body = await response.json().catch(() => null);
-  return { response, body };
 }
 
 export async function listarSalas(): Promise<Sala[]> {

@@ -1,4 +1,4 @@
-import { API_URL } from './sesion';
+import { API_URL, pedirApi as pedir } from './sesion';
 import { formatearFecha, formatearTamano, formatearTelefonoLocal, mascaraFecha } from './formato';
 
 export { formatearTelefono, formatearFecha, formatearFechaHora, formatearTamano } from './formato';
@@ -56,17 +56,6 @@ export function urlArchivo(idPaciente: number, archivo: Pick<ArchivoPaciente, 'i
 }
 
 // --- API ---
-
-/** Para cargas de página: sin sesión se regresa al login. */
-async function pedir(ruta: string, init: RequestInit = {}): Promise<{ response: Response; body: any }> {
-  const response = await fetch(`${API_URL}${ruta}`, { credentials: 'include', ...init });
-  if (response.status === 401) {
-    window.location.replace('/');
-    throw new Error('Sesión expirada');
-  }
-  const body = await response.json().catch(() => null);
-  return { response, body };
-}
 
 /** RF 3.2.1: listado general con filtros de estado y orden. */
 export async function listarPacientes(filtros: { estado: EstadoFiltro; orden: OrdenFiltro }): Promise<Paciente[]> {

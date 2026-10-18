@@ -1,4 +1,4 @@
-import { API_URL } from './sesion';
+import { pedirApi as pedir } from './sesion';
 import { listarTerapeutas } from './terapeuta';
 import {
   HORA_FIN_JORNADA,
@@ -20,16 +20,6 @@ export interface Agenda { vista: Vista; fecha: string; desde: string; hasta: str
 export const VISTAS: Vista[] = ['dia', 'semana', 'mes'];
 const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-
-async function pedir(ruta: string) {
-  const response = await fetch(`${API_URL}${ruta}`, { credentials: 'include' });
-  if (response.status === 401) {
-    window.location.replace('/');
-    throw new Error('Tu sesión expiró.');
-  }
-  const body = await response.json().catch(() => null);
-  return { response, body };
-}
 
 /** RF 6.1: citas Pendientes y Vencidas del periodo de la vista. */
 export async function obtenerAgenda(filtros: FiltrosAgenda): Promise<Agenda> {
