@@ -109,6 +109,15 @@ export function agruparPor<T>(lista: T[], clave: (x: T) => string): Map<string, 
   return mapa;
 }
 
+/**
+ * Citas que empezaron antes de `hora` y siguen en curso a esa hora (p. ej. el 2.º y 3.er bloque de una
+ * cita de 90 min). Cada cita se dibuja en su bloque de inicio; estas marcan los siguientes como ocupados.
+ */
+export function citasEnCurso(citas: Cita[], fecha: string, hora: string): Cita[] {
+  const m = horaAMinutos(hora);
+  return citas.filter((c) => c.fecha === fecha && horaAMinutos(c.horaInicio) < m && horaAMinutos(c.horaFin) > m);
+}
+
 /** "Ana Beatriz Canul Dzib" → "Ana Beatriz" en el mes (espacio reducido). */
 function nombreBreve(nombre: string): string {
   return nombre.split(/\s+/).slice(0, 2).join(' ');
@@ -137,7 +146,7 @@ function enlaceCita(cita: Cita, clase: string): HTMLAnchorElement {
   return a;
 }
 
-/** RF 6.1 (día): filas de 30 min; cada cita aparece en el bloque en que inicia. */
+/** RF 6.1 (día): filas de 30 min; cada cita aparece en el bloque en que inicia y los bloques siguientes la muestran como «Continúa». */
 export function renderDia(agenda: Agenda): HTMLElement {
   const porHora = agruparPor(agenda.citas, (c) => c.horaInicio);
   const lista = el('ol', 'flex flex-col gap-2');
@@ -145,9 +154,18 @@ export function renderDia(agenda: Agenda): HTMLElement {
     const fila = el('li', 'grid grid-cols-[56px_1fr] gap-4 items-center');
     fila.append(el('span', 'text-[13px] font-semibold text-[#334155]', hora));
     const citas = porHora.get(hora) ?? [];
+    const enCurso = citasEnCurso(agenda.citas, agenda.fecha, hora);
     const contenido = el('div', 'flex flex-col gap-2 min-w-0');
-    if (!citas.length) {
+    if (!citas.length && !enCurso.length) {
       contenido.append(el('p', 'px-3 py-2.5 rounded-lg border border-dashed border-[#E2E8F0] text-[11px] text-[#64748B]', 'Espacio disponible para cita'));
+    }
+    for (const cita of enCurso) {
+      const continua = enlaceCita(cita, 'flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-[#0D9488] bg-[#F0FDFA]/60 text-[11px] text-[#0F766E] hover:bg-[#CCFBF1] transition-colors min-w-0');
+      continua.append(
+        el('span', 'font-semibold shrink-0', 'Continúa:'),
+        el('span', 'truncate', `${cita.paciente.nombre} · ${cita.sala.nombre} (hasta ${cita.horaFin})`),
+      );
+      contenido.append(continua);
     }
     for (const cita of citas) {
       const tarjeta = enlaceCita(cita, 'flex items-start justify-between gap-3 px-3 py-2.5 rounded-lg border border-[#0D9488] bg-[#F0FDFA] hover:bg-[#CCFBF1] transition-colors');
@@ -174,7 +192,7 @@ export function renderDia(agenda: Agenda): HTMLElement {
   return lista;
 }
 
-/** RF 6.1 (semana): Lun–Vie × filas de 1 h; cada cita en la hora en que inicia. */
+/** RF 6.1 (semana): Lun–Vie × filas de 1 h; cada cita en la hora en que inicia y, atenuada, en las horas que sigue ocupando. */
 export function renderSemana(agenda: Agenda): HTMLElement {
   const dias = diasSemana(agenda.fecha);
   const hoy = hoyLocal();
@@ -195,8 +213,18 @@ export function renderSemana(agenda: Agenda): HTMLElement {
     tabla.append(el('span', 'pt-3 text-[12px] font-semibold text-[#475569]', hora));
     for (const fecha of dias) {
       const citas = porCelda.get(`${fecha} ${hora.slice(0, 2)}`) ?? [];
+      const enCurso = citasEnCurso(agenda.citas, fecha, hora);
       const celda = el('div', 'flex flex-col gap-1 min-h-[44px] p-1 rounded-md border border-[#E2E8F0] min-w-0');
-      if (!citas.length) celda.append(el('span', 'm-auto text-[10px] text-[#94A1B0]', '-'));
+      if (!citas.length && !enCurso.length) celda.append(el('span', 'm-auto text-[10px] text-[#94A1B0]', '-'));
+      for (const cita of enCurso) {
+        const { texto } = colorSala(cita);
+        const chip = enlaceCita(cita, 'flex flex-col px-1.5 py-1 rounded border border-dashed border-[#99F6E4] hover:bg-[#F0FDFA] min-w-0');
+        chip.append(
+          el('span', 'text-[11px] font-semibold text-[#475569] truncate', `↳ ${cita.paciente.nombre}`),
+          el('span', `text-[9px] font-semibold ${texto} truncate`, `hasta ${cita.horaFin} · ${cita.sala.nombre}`),
+        );
+        celda.append(chip);
+      }
       for (const cita of citas) {
         const { fondo, texto } = colorSala(cita);
         const chip = enlaceCita(cita, `flex flex-col px-1.5 py-1 rounded ${fondo} hover:brightness-95 min-w-0`);
