@@ -6,8 +6,10 @@ import {
   validateDisponibilidadSemana,
   lunesDe,
   sumarDias,
+  parseFolio,
 } from '../src/validators/cita.validators.js';
 import { calcularRejilla } from '../src/services/cita.service.js';
+import { redactarConfirmacion } from '../src/utils/notificador.js';
 
 // Martes 13 de octubre de 2026, 10:15 hora local.
 const AHORA = new Date(2026, 9, 13, 10, 15);
@@ -118,5 +120,29 @@ describe('calcularRejilla', () => {
     assert.equal(slot(dias, '2026-10-12', '15:00').estado, 'pasado');
     assert.equal(slot(dias, '2026-10-13', '10:00').estado, 'pasado');
     assert.equal(slot(dias, '2026-10-13', '10:30').estado, 'disponible');
+  });
+});
+
+describe('parseFolio (RF 5.4.2)', () => {
+  test('normaliza mayúsculas y espacios; rechaza otros formatos', () => {
+    assert.equal(parseFolio(' cit-2026-00012 '), 'CIT-2026-00012');
+    assert.equal(parseFolio('CIT-2026-123456'), 'CIT-2026-123456');
+    for (const valor of ['', 'CIT-26-00001', 'CIT-2026-1234', 'XYZ-2026-00001', 'CIT-2026-00001x', undefined]) {
+      assert.equal(parseFolio(valor), null, String(valor));
+    }
+  });
+});
+
+describe('redactarConfirmacion (RF 5.1.14)', () => {
+  test('incluye nombre, fecha y hora, folio, terapeuta y sala', () => {
+    const cita = {
+      folio: 'CIT-2026-00007', estado: 'Pendiente', fecha: '2026-10-14', horaInicio: '09:30', horaFin: '10:30',
+      paciente: { nombre: 'Ana Canul' }, terapeuta: { nombre: 'Luis Pech' }, sala: { nombre: 'Sala 3' },
+    };
+    const { asunto, texto } = redactarConfirmacion('agendada', cita);
+    assert.match(asunto, /CIT-2026-00007/);
+    for (const fragmento of ['Ana Canul', 'miércoles 14 de octubre de 2026', '09:30 a 10:30', 'CIT-2026-00007', 'Luis Pech', 'Sala 3']) {
+      assert.ok(texto.includes(fragmento), fragmento);
+    }
   });
 });

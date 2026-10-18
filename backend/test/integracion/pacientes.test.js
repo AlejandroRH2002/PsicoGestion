@@ -179,6 +179,17 @@ describe('API de pacientes', { skip: omitir }, () => {
       assert.equal(ficha.archivos.length, 1, 'sin cambios en adjuntos se conservan');
     });
 
+    test('guarda, edita y borra el correo opcional (RF 5.1.14)', async () => {
+      const p = await registrar({ correo: 'Tutor@Example.com' });
+      assert.equal(p.correo, 'tutor@example.com');
+      const sin = await api('PUT', `/pacientes/${p.id}`, { form: datos({ curp: p.curp, telefono: p.telefono, correo: '' }) });
+      assert.equal(sin.status, 200, JSON.stringify(sin.body));
+      assert.equal((await api('GET', `/pacientes/${p.id}`)).body.paciente.correo, null);
+      const invalido = await api('PUT', `/pacientes/${p.id}`, { form: datos({ curp: p.curp, telefono: p.telefono, correo: 'no-es-correo' }) });
+      assert.equal(invalido.status, 400);
+      assert.deepEqual(invalido.body.errors.map((e) => e.field), ['correo']);
+    });
+
     test('puede conservar su propio CURP y teléfono, pero no tomar los de otro', async () => {
       const p = await registrar();
       const otro = await registrar();

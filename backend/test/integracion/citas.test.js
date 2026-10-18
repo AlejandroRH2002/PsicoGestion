@@ -207,4 +207,36 @@ describe('API de citas', { skip: omitir }, () => {
 
     assert.equal((await api('GET', '/citas?page=99')).body.citas.length, 0);
   });
+
+  test('busca por folio para cancelar (RF 5.4.2)', async () => {
+    const { folio } = (await api('GET', `/citas/${ids.cita1}`)).body.cita;
+    const res = await api('GET', `/citas/folio/${folio.toLowerCase()}`);
+    assert.equal(res.status, 200, JSON.stringify(res.body));
+    assert.equal(res.body.cita.id, ids.cita1);
+    const inexistente = await api('GET', '/citas/folio/CIT-1999-99999');
+    assert.equal(inexistente.status, 404);
+    assert.equal(inexistente.body.error, 'No existe una cita con ese folio.');
+    const invalido = await api('GET', '/citas/folio/abc');
+    assert.equal(invalido.status, 400);
+    assert.equal(invalido.body.errors[0].field, 'folio');
+    assert.equal((await api('GET', `/citas/folio/${folio}`, { sinSesion: true })).status, 401);
+  });
+
+  test('informa el envío de la confirmación al paciente (RF 5.1.14)', async () => {
+    const datos = (extra) => cita({ pacienteId: ids.p3, terapeutaId: ids.t3, salaId: ids.s2, fecha: MARTES, horaInicio: '15:00', duracion: 30, ...extra });
+    const sinCorreo = await api('POST', '/citas', { json: datos() });
+    assert.equal(sinCorreo.status, 201, JSON.stringify(sinCorreo.body));
+    assert.deepEqual(sinCorreo.body.notificacion, { enviada: false, motivo: 'sin_correo' });
+    const id = sinCorreo.body.cita.id;
+
+    await db.query("UPDATE paciente SET correo = 'paciente3@example.com' WHERE id_paciente = $1", [ids.p3]);
+    const conCorreo = await api('PUT', `/citas/${id}`, { json: datos({ horaInicio: '15:30', estado: 'Pendiente' }) });
+    assert.equal(conCorreo.status, 200, JSON.stringify(conCorreo.body));
+    assert.deepEqual(conCorreo.body.notificacion, { enviada: true, destino: 'paciente3@example.com' });
+    assert.equal(conCorreo.body.cita.paciente.correo, undefined, 'el correo no se expone en la cita');
+
+    const cancelada = await api('PUT', `/citas/${id}`, { json: datos({ horaInicio: '15:30', estado: 'Cancelada' }) });
+    assert.equal(cancelada.status, 200, JSON.stringify(cancelada.body));
+    assert.deepEqual(cancelada.body.notificacion, { enviada: false, motivo: 'no_aplica' });
+  });
 });
