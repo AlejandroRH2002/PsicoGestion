@@ -5,7 +5,7 @@ Implementa RF 6.1 (vista de agenda por día, semana o mes), RF 6.2 (impresión d
 ## Decisiones
 
 - **Qué citas se muestran:** solo las `Pendiente` y las `Vencida`, es decir, lo que ocupará u ocupó la clínica. Las vencidas aparecen atenuadas. Las `Cancelada` no se muestran porque su horario quedó libre.
-- **Posición de cada cita:** una cita aparece en el bloque en el que inicia y muestra su duración. Los bloques siguientes no se marcan como ocupados, porque en ese horario puede haber otras salas libres. Si varias citas inician a la misma hora (en salas distintas), se apilan.
+- **Posición de cada cita:** una cita aparece completa en el bloque en el que inicia y muestra su duración. En los bloques siguientes que sigue ocupando (p. ej. una cita de 90 min) se muestra una fila atenuada «Continúa: paciente · sala (hasta hh:mm)», en lugar de «Espacio disponible» (`citasEnCurso` en `utils/agenda.ts`). En la vista semanal, esas horas muestran un chip «↳ paciente». Si varias citas inician a la misma hora (en salas distintas), se apilan.
 - **Jornada:** 07:00–17:00 en bloques de 30 min, con las mismas constantes que el módulo de citas. La vista semanal agrupa por hora (07:00–16:00) y antepone `hh:30` a las citas que inician a la media hora.
 - **Filtros:** terapeuta y sala. No vienen en el diseño, pero se agregaron por acuerdo con el usuario. También se aplican a la impresión, y la hoja los menciona.
 - **Impresión:** se imprime la vista actual, en tamaño carta.

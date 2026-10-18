@@ -15,7 +15,9 @@ Implementación de RF 5.1 (agendar), RF 5.2 (visualizar), RF 5.3 (modificar) y R
   2. Ya con los locks, vuelven a comprobar si hay cruces.
 
   De dos solicitudes simultáneas por el mismo recurso y horario, solo una se registra (está cubierto por una prueba).
-- **Notificación (RF 5.1.14):** el paciente solo tiene teléfono y todavía no hay canal de envío. `backend/src/utils/notificador.js` solo escribe el aviso en el log, después del COMMIT. Para conectar SMS o WhatsApp basta con cambiar el cuerpo de esas funciones. La interfaz no promete que se envíe nada.
+- **Notificación (RF 5.1.14):** la confirmación se envía por correo al `paciente.correo` (campo opcional, migración `010_paciente_correo.sql`) con el mailer existente (`utils/mailer.js`). Incluye nombre, fecha y hora, folio, terapeuta y sala. `backend/src/utils/notificador.js` se llama después del COMMIT y nunca lanza: devuelve `notificacion` = `{ enviada: true, destino }` o `{ enviada: false, motivo }`, con `motivo` `sin_correo`, `error` o `no_aplica` (la cita modificada ya no está `Pendiente`). La interfaz muestra ese resultado tras agendar o modificar. Sin `SMTP_HOST` (desarrollo y pruebas) el correo se imprime en consola en lugar de enviarse.
+- **Cancelación por folio (RF 5.4.2):** `/citas` tiene un campo «Cancelar por folio» que busca la cita con `GET /citas/folio/:folio` y abre el mismo diálogo de confirmación que el botón de cada fila. El botón de la fila se conserva como atajo.
+- **Salas eliminadas:** una cita `Pendiente` solo puede asignarse a una sala activa (RF 4.2, baja lógica). `verificarReferencias` lee la sala con `FOR SHARE` para serializarse con `sala.service.js#eliminarSala`.
 - **Activos:** una cita `Pendiente` solo se puede asignar a pacientes y terapeutas activos. Si la cita se cancela o vence, se conserva aunque la persona se dé de baja después.
 
 ## API (requiere sesión de secretaria)
@@ -24,9 +26,10 @@ Implementación de RF 5.1 (agendar), RF 5.2 (visualizar), RF 5.3 (modificar) y R
 |---|---|---|
 | `GET /citas?q&estado&salaId&terapeutaId&periodo=dia\|semana\|mes&fecha&page` | Directorio paginado (10 por página). `q` busca por nombre de paciente o folio. `periodo` filtra respecto a `fecha` (hoy por defecto). | `{ citas, conteos: { todas, pendientes, canceladas, vencidas }, total, page, limit }` |
 | `GET /citas/disponibilidad?terapeutaId&semana=AAAA-MM-DD&duracion&excluir` | Rejilla de la semana (lunes a viernes) que contiene `semana`. `excluir` deja fuera una cita, para editarla. | `{ semana: { inicio, fin }, duracion, jornada, dias: [{ fecha, slots: [{ horaInicio, horaFin, estado, motivo, salasLibres }] }] }` |
+| `GET /citas/folio/:folio` | Busca una cita por folio (`CIT-AAAA-NNNNN`, sin distinguir mayúsculas). `400` si el formato es inválido, `404` si no existe. | `{ cita }` |
 | `GET /citas/:id` | Detalle de una cita. | `{ cita }` |
-| `POST /citas` | `{ pacienteId, terapeutaId, salaId, fecha, horaInicio, duracion }`. Siempre se crea como `Pendiente`. | `201 { message, cita }` |
-| `PUT /citas/:id` | Mismos campos más `estado`. Solo se revalidan los conflictos si la cita queda `Pendiente`. | `{ message, cita }` |
+| `POST /citas` | `{ pacienteId, terapeutaId, salaId, fecha, horaInicio, duracion }`. Siempre se crea como `Pendiente`. | `201 { message, cita, notificacion }` |
+| `PUT /citas/:id` | Mismos campos más `estado`. Solo se revalidan los conflictos si la cita queda `Pendiente`. | `{ message, cita, notificacion }` |
 | `PATCH /citas/:id/cancelar` | Pasa la cita a `Cancelada`. | `{ message, cita }` |
 
 `cita = { id, folio, estado, paciente: {id, nombre}, terapeuta: {id, nombre}, sala: {id, nombre}, fecha, horaInicio, horaFin, duracion }`.
@@ -60,8 +63,8 @@ El código de la interfaz está repartido así:
 |---|---|---|
 | RF 5.1.1–5.1.5 | `validateCita`, `disponibilidadSemana`/`calcularRejilla`, pasos 1 y 2 de `/citas/nueva` | `cita.validators.test.js`, `integracion/citas.test.js` (rejilla) |
 | RF 5.1.6–5.1.13 | `crearCita` (transacción, locks, folio), paso 3 y pantalla de éxito | `integracion/citas.test.js` (alta, conflictos, carrera) |
-| RF 5.1.14 | `utils/notificador.js` (stub) | — |
+| RF 5.1.14 | `utils/notificador.js` (correo al paciente), campo `correo` del paciente | `cita.validators.test.js` (redacción), `integracion/citas.test.js` (resultado del envío), `integracion/pacientes.test.js` (correo) |
 | RF 5.2.1–5.2.3 | `listarCitas`, `/citas` | `integracion/citas.test.js` (conteos, filtros, búsqueda, paginación) |
 | RF 5.3.1–5.3.6 | `actualizarCita`, `/citas/editar` | `integracion/citas.test.js` (edición y conflicto al editar) |
-| RF 5.4.1–5.4.4 | `cancelarCita`, diálogo del directorio | `integracion/citas.test.js` (cancelación que libera el horario) |
+| RF 5.4.1–5.4.4 | `cancelarCita`, `GET /citas/folio/:folio`, campo «Cancelar por folio» y diálogo del directorio | `cita.validators.test.js` (`parseFolio`), `integracion/citas.test.js` (cancelación y búsqueda por folio) |
 | RF 4.3.3 (salas) | `sala.service.js#consultarDisponibilidad` lee `cita`/`cita_bloque` | `integracion/citas.test.js`, `integracion/salas.test.js` |

@@ -20,3 +20,12 @@ funciones.
 - El único dato propio de la sala es su nombre, que debe ser único.
 - La disponibilidad de la sala se modela en `disponibilidad_sala`, y su uso en
   las citas mediante la tabla `cita`.
+
+## Implementación
+
+- `009_sala_estado.sql` agrega `activo` y `fecha_baja`. "Eliminar sala"
+  (RF 4.2) es una baja lógica: las citas referencian la sala con `ON DELETE
+  RESTRICT` y el historial debe conservarse. Se rechaza si la sala tiene citas
+  `Pendiente` por ocurrir.
+- La unicidad de `nombre_sala` se aplica solo entre salas activas (índice
+  único parcial `WHERE activo`), así que una sala eliminada libera su nombre.

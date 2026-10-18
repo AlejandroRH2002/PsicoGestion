@@ -36,5 +36,9 @@ funciones.
   baja al paciente, igual que en `Terapeuta`. La "eliminación" de RF 3.3.1 es
   esta baja lógica: el paciente nunca se borra porque citas e historial
   dependen de él, y puede reactivarse.
+- **Implementación:** `correo` (`VARCHAR(100)`, opcional, sin `UNIQUE`) se
+  agregó en `010_paciente_correo.sql` como dato de contacto para la
+  confirmación de cita (RF 5.1.14). No es único porque un tutor puede
+  registrar el mismo correo para varios pacientes.
 - Los documentos adjuntos del paciente viven en la entidad
   [`PacienteArchivo`](../paciente-archivo/paciente-archivo.md).
