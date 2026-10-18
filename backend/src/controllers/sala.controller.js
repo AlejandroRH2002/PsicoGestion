@@ -1,5 +1,5 @@
 import { validateSala, validateDisponibilidad, parseSalaId } from '../validators/sala.validators.js';
-import { registrarSala, listarSalas, consultarDisponibilidad, SalaNotFoundError } from '../services/sala.service.js';
+import { registrarSala, listarSalas, eliminarSala, consultarDisponibilidad, SalaNotFoundError } from '../services/sala.service.js';
 import { ConflictError } from '../services/auth.service.js';
 
 function manejarError(err, res, next) {
@@ -24,6 +24,18 @@ export async function listar(req, res, next) {
     return res.json({ salas: await listarSalas() });
   } catch (err) {
     return next(err);
+  }
+}
+
+// RF 4.2.1–4.2.5
+export async function eliminar(req, res, next) {
+  const id = parseSalaId(req.params.id);
+  if (!id) return res.status(404).json({ error: 'Sala no encontrada.' });
+  try {
+    await eliminarSala(id);
+    return res.json({ message: 'Sala eliminada correctamente.' });
+  } catch (err) {
+    return manejarError(err, res, next);
   }
 }
 

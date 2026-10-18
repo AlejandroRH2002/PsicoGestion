@@ -154,7 +154,7 @@ export async function disponibilidadSemana({ terapeutaId, lunes, duracion, exclu
   await marcarVencidas(db, ahora);
   const viernes = sumarDias(lunes, 4);
   const [{ rows: salas }, ocupaciones] = await Promise.all([
-    db.query('SELECT id_sala, nombre_sala FROM sala ORDER BY lower(nombre_sala), id_sala'),
+    db.query('SELECT id_sala, nombre_sala FROM sala WHERE activo ORDER BY lower(nombre_sala), id_sala'),
     ocupacionesPendientes(db, lunes, viernes, excluirCitaId),
   ]);
   return {
@@ -172,21 +172,25 @@ export async function disponibilidadSemana({ terapeutaId, lunes, duracion, exclu
   };
 }
 
-/** Comprueba que las referencias existan y, si la cita queda Pendiente, que paciente y terapeuta estén activos. */
+/**
+ * Comprueba que las referencias existan y, si la cita queda Pendiente, que paciente, terapeuta y sala estén
+ * activos. La sala se lee con FOR SHARE para serializar contra sala.service.js#eliminarSala.
+ */
 async function verificarReferencias(client, { pacienteId, terapeutaId, salaId, estado }) {
   const { rows } = await client.query(
     `SELECT (SELECT activo FROM paciente WHERE id_paciente = $1) AS paciente,
-            (SELECT activo FROM terapeuta WHERE id_terapeuta = $2) AS terapeuta,
-            EXISTS (SELECT 1 FROM sala WHERE id_sala = $3) AS sala`,
-    [pacienteId, terapeutaId, salaId]
+            (SELECT activo FROM terapeuta WHERE id_terapeuta = $2) AS terapeuta`,
+    [pacienteId, terapeutaId]
   );
-  const ref = rows[0];
+  const sala = await client.query('SELECT activo FROM sala WHERE id_sala = $1 FOR SHARE', [salaId]);
+  const ref = { ...rows[0], sala: sala.rows[0]?.activo ?? null };
   if (ref.paciente === null) throw new ReferenciaInvalidaError('pacienteId', 'El paciente seleccionado no existe.');
   if (ref.terapeuta === null) throw new ReferenciaInvalidaError('terapeutaId', 'El terapeuta seleccionado no existe.');
-  if (!ref.sala) throw new ReferenciaInvalidaError('salaId', 'La sala seleccionada no existe.');
+  if (ref.sala === null) throw new ReferenciaInvalidaError('salaId', 'La sala seleccionada no existe.');
   if (estado === 'Pendiente') {
     if (!ref.paciente) throw new ConflictError('pacienteId', 'El paciente está dado de baja; reactívalo antes de agendarle una cita.');
     if (!ref.terapeuta) throw new ConflictError('terapeutaId', 'El terapeuta está dado de baja; reactívalo antes de asignarle una cita.');
+    if (!ref.sala) throw new ConflictError('salaId', 'La sala fue eliminada; elige otra sala.');
   }
 }
 

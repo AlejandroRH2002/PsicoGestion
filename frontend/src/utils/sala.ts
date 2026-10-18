@@ -26,6 +26,12 @@ export async function registrarSala(nombre: string): Promise<{ sala?: Sala; erro
   throw new Error(body?.error ?? 'No se pudo registrar la sala.');
 }
 
+/** RF 4.2.1–4.2.5: baja lógica; el backend rechaza (409) si la sala tiene citas pendientes. */
+export async function eliminarSala(id: number): Promise<void> {
+  const { response, body } = await pedir(`/salas/${id}`, { method: 'DELETE' });
+  if (!response.ok) throw new Error(body?.errors?.[0]?.message ?? body?.error ?? 'No se pudo eliminar la sala.');
+}
+
 export async function consultarDisponibilidad(fecha: string, horaInicio = '', horaFin = ''): Promise<ResultadoDisponibilidad> {
   const params = new URLSearchParams({ fecha });
   if (horaInicio && horaFin) {
