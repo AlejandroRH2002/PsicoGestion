@@ -1,5 +1,5 @@
 ---
-import { CalendarPlus, Pencil, Search, Trash2 } from '@lucide/astro';
+import { CalendarPlus, CalendarX, Pencil, Search, Trash2 } from '@lucide/astro';
 import AppLayout from '../../layouts/AppLayout.astro';
 
 const pestanas = [
@@ -23,9 +23,23 @@ const select = 'h-10 pl-3 pr-8 rounded-lg border border-[#E2E8F0] bg-white text-
         <h2 class="text-[28px] font-bold text-[#0F172A]">Directorio de Citas</h2>
         <p class="mt-1 text-sm text-[#475569]">Revise, edite o cancele las citas registradas en el sistema.</p>
       </div>
-      <a href="/citas/nueva" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-[#0D9488] text-white text-sm font-semibold hover:bg-[#0F766E]">
-        <CalendarPlus class="size-4" /> Agendar Cita
-      </a>
+      <div class="flex flex-wrap items-start gap-3">
+        <!-- RF 5.4.2: la cancelación se solicita con el folio de la cita -->
+        <form id="cancelar-folio-form" class="flex flex-col gap-1" novalidate>
+          <div class="flex gap-2">
+            <label for="folio" class="sr-only">Folio de la cita a cancelar</label>
+            <input id="folio" placeholder="CIT-AAAA-NNNNN" autocomplete="off" aria-describedby="folio-error"
+              class="w-[170px] h-10 px-3 rounded-lg border border-[#E2E8F0] bg-white text-[13px] uppercase placeholder:normal-case outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20 aria-invalid:border-red-500" />
+            <button type="submit" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-[#FCA5A5] bg-white text-sm font-semibold text-[#B91C1C] hover:bg-red-50 disabled:opacity-60 cursor-pointer">
+              <CalendarX class="size-4" /> Cancelar por folio
+            </button>
+          </div>
+          <p id="folio-error" class="hidden text-xs text-red-600"></p>
+        </form>
+        <a href="/citas/nueva" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-[#0D9488] text-white text-sm font-semibold hover:bg-[#0F766E]">
+          <CalendarPlus class="size-4" /> Agendar Cita
+        </a>
+      </div>
     </div>
 
     <p id="aviso" class="hidden p-3 rounded-lg text-sm" role="status"></p>

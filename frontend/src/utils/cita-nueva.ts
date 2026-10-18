@@ -8,10 +8,12 @@ import {
   mostrarErrorCampo,
   opcionesPacientes,
   opcionesTerapeutas,
+  textoNotificacion,
   validar,
   type Cita,
   type DatosCita,
   type FieldError,
+  type Notificacion,
 } from './cita';
 
 const SUBTITULOS = [
@@ -135,7 +137,7 @@ export function iniciarNuevaCita() {
     try {
       const resultado = await crearCita(datos());
       if (resultado.cita) {
-        mostrarExito(resultado.cita);
+        mostrarExito(resultado.cita, resultado.notificacion);
         return;
       }
       // 409 por un cruce que ocurrió mientras se confirmaba: se vuelve al paso 2 con la rejilla actualizada,
@@ -154,7 +156,12 @@ export function iniciarNuevaCita() {
     }
   });
 
-  function mostrarExito(cita: Cita) {
+  function mostrarExito(cita: Cita, notificacion?: Notificacion) {
+    const texto = textoNotificacion(notificacion);
+    const avisoNotificacion = $('exito-notificacion');
+    avisoNotificacion.textContent = texto ?? '';
+    avisoNotificacion.hidden = !texto;
+    avisoNotificacion.className = `text-sm ${notificacion?.enviada ? 'text-[#006847]' : 'text-[#B45309]'}`;
     $('exito-folio').textContent = cita.folio;
     $('exito-paciente').textContent = cita.paciente.nombre;
     $('exito-terapeuta').textContent = cita.terapeuta.nombre;

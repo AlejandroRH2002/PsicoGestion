@@ -201,6 +201,14 @@ export async function obtenerCita(id: string | null): Promise<Cita | null> {
   return body.cita;
 }
 
+/** RF 5.4.2: null si no existe una cita con ese folio. Lanza con el mensaje del backend si el formato es inválido. */
+export async function obtenerCitaPorFolio(folio: string): Promise<Cita | null> {
+  const { response, body } = await pedir(`/citas/folio/${encodeURIComponent(folio)}`);
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(body?.errors?.[0]?.message ?? body?.error ?? 'No se pudo buscar la cita.');
+  return body.cita;
+}
+
 export async function disponibilidadSemana(terapeutaId: number, semana: string, duracion: number, excluir?: number): Promise<Semana> {
   const params = new URLSearchParams({ terapeutaId: String(terapeutaId), semana, duracion: String(duracion) });
   if (excluir) params.set('excluir', String(excluir));
@@ -209,11 +217,25 @@ export async function disponibilidadSemana(terapeutaId: number, semana: string, 
   return body;
 }
 
-type ResultadoGuardar = { cita?: Cita; errores?: FieldError[] };
+/** RF 5.1.14: resultado del envío de la confirmación al paciente (backend/src/utils/notificador.js). */
+export type Notificacion =
+  | { enviada: true; destino: string }
+  | { enviada: false; motivo: 'sin_correo' | 'no_aplica' | 'error' };
+
+/** Texto para el aviso de la pantalla; null cuando no aplica (la cita ya no está Pendiente). */
+export function textoNotificacion(n: { enviada: boolean; destino?: string; motivo?: string } | undefined): string | null {
+  if (!n) return null;
+  if (n.enviada) return n.destino ? `Se envió la confirmación a ${n.destino}.` : 'Se envió la confirmación al correo del paciente.';
+  if (n.motivo === 'sin_correo') return 'El paciente no tiene correo registrado; no se envió confirmación.';
+  if (n.motivo === 'error') return 'No se pudo enviar la confirmación por correo.';
+  return null;
+}
+
+type ResultadoGuardar = { cita?: Cita; notificacion?: Notificacion; errores?: FieldError[] };
 
 async function guardar(ruta: string, method: string, datos: DatosCita): Promise<ResultadoGuardar> {
   const { response, body } = await pedir(ruta, json(method, datos));
-  if (response.ok) return { cita: body.cita };
+  if (response.ok) return { cita: body.cita, notificacion: body.notificacion };
   if (body?.errors) return { errores: body.errors };
   throw new Error(body?.error ?? 'No se pudo guardar la cita.');
 }

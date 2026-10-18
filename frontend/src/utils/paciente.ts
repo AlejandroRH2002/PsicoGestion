@@ -20,6 +20,7 @@ export interface Paciente {
   /** ISO aaaa-mm-dd */
   fechaNacimiento: string;
   telefono: string;
+  correo: string | null;
   activo: boolean;
   fechaBaja: string | null;
   fechaRegistro: string;
@@ -100,9 +101,11 @@ export async function cambiarEstado(id: number, activo: boolean): Promise<Pacien
 
 // --- Formulario de registro / edición (components/FormularioPaciente.astro) ---
 
-export const CAMPOS = ['nombre_completo', 'curp', 'sexo', 'fecha_nacimiento', 'telefono', 'archivos'] as const;
+export const CAMPOS = ['nombre_completo', 'curp', 'sexo', 'fecha_nacimiento', 'telefono', 'correo', 'archivos'] as const;
 export type Campo = (typeof CAMPOS)[number];
 const CAMPOS_TEXTO = CAMPOS.filter((c) => c !== 'archivos');
+// Igual que backend/src/validators/paciente.validators.js.
+const CORREO_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Deben coincidir con backend/src/utils/archivo.js y backend/src/routes/paciente.routes.js.
 const EXTENSIONES = ['pdf', 'jpg', 'jpeg', 'png'];
@@ -232,6 +235,7 @@ export function iniciarFormulario({ exigirArchivo }: { exigirArchivo: boolean })
     const sexo = control('sexo').value;
     const fecha = control('fecha_nacimiento').value.trim();
     const telefono = control('telefono').value.replace(/\D/g, '');
+    const correo = control('correo').value.trim().toLowerCase();
 
     if (!nombre) errores.push({ field: 'nombre_completo', message: 'El nombre completo es obligatorio.' });
     else if (nombre.length > 50) errores.push({ field: 'nombre_completo', message: 'El nombre completo no puede exceder 50 caracteres.' });
@@ -249,6 +253,10 @@ export function iniciarFormulario({ exigirArchivo }: { exigirArchivo: boolean })
 
     if (!telefono) errores.push({ field: 'telefono', message: 'El teléfono es obligatorio.' });
     else if (telefono.length !== 10) errores.push({ field: 'telefono', message: 'El teléfono debe contener 10 dígitos.' });
+
+    if (correo && (correo.length > 100 || !CORREO_REGEX.test(correo))) {
+      errores.push({ field: 'correo', message: 'Ingresa un correo electrónico válido.' });
+    }
 
     const total = conservados().length + nuevos.length;
     if (exigirArchivo && nuevos.length === 0) {
@@ -378,6 +386,7 @@ export function iniciarFormulario({ exigirArchivo }: { exigirArchivo: boolean })
     control('sexo').value = p.sexo;
     control('fecha_nacimiento').value = formatearFecha(p.fechaNacimiento);
     control('telefono').value = formatearTelefonoLocal(p.telefono);
+    control('correo').value = p.correo ?? '';
     existentes = p.archivos;
     quitados.clear();
     nuevos = [];
@@ -401,6 +410,7 @@ export function iniciarFormulario({ exigirArchivo }: { exigirArchivo: boolean })
     datos.append('sexo', control('sexo').value);
     datos.append('fecha_nacimiento', control('fecha_nacimiento').value.trim());
     datos.append('telefono', control('telefono').value.replace(/\D/g, ''));
+    datos.append('correo', control('correo').value.trim().toLowerCase());
     nuevos.forEach((archivo) => datos.append('archivos', archivo));
     quitados.forEach((id) => datos.append('quitarArchivos', String(id)));
     return datos;

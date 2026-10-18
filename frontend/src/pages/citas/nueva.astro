@@ -127,6 +127,8 @@ const btnSecundario = 'inline-flex items-center justify-center gap-2 h-11 px-5 r
         <div class="flex justify-between gap-4"><dt class="text-[#475569]">Sala asignada</dt><dd id="exito-sala" class="font-semibold text-right"></dd></div>
         <div class="flex justify-between gap-4"><dt class="text-[#475569]">Fecha y Hora</dt><dd id="exito-fecha" class="font-semibold text-right"></dd></div>
       </dl>
+      <!-- RF 5.1.14: resultado del envío de la confirmación al paciente -->
+      <p id="exito-notificacion" hidden></p>
       <div class="grid sm:grid-cols-2 gap-3 w-full">
         <button id="agendar-otra" type="button" class={btnSecundario}><ArrowLeft class="size-4" /> Agendar Otra</button>
         <a href="/citas" class={btnPrimario}><FileText class="size-4" /> Ver Citas</a>

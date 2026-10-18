@@ -45,6 +45,13 @@ export function lunesDe(fecha) {
 }
 
 /** Acepta número o cadena de dígitos; devuelve el id positivo o null. */
+/** RF 5.4.2: folio CIT-AAAA-NNNNN (sin distinguir mayúsculas, con espacios alrededor tolerados). */
+export function parseFolio(valor) {
+  if (typeof valor !== 'string') return null;
+  const folio = valor.trim().toUpperCase();
+  return /^CIT-\d{4}-\d{5,9}$/.test(folio) ? folio : null;
+}
+
 export function parseId(valor) {
   if (typeof valor === 'number') return Number.isInteger(valor) && valor > 0 && valor < 1e9 ? valor : null;
   if (typeof valor !== 'string' || !/^\d{1,9}$/.test(valor)) return null;

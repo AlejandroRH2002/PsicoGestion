@@ -147,7 +147,9 @@ export async function iniciarEditarCita() {
     try {
       const resultado = await actualizarCita(id, datos());
       if (resultado.cita) {
-        location.assign('/citas?actualizada=1');
+        const n = resultado.notificacion;
+        const confirmacion = !n ? '' : n.enviada ? 'enviada' : n.motivo === 'no_aplica' ? '' : n.motivo;
+        location.assign(`/citas?actualizada=1${confirmacion ? `&confirmacion=${confirmacion}` : ''}`);
         return;
       }
       const errores = resultado.errores ?? [];

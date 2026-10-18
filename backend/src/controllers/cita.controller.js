@@ -1,9 +1,10 @@
-import { validateCita, validateListado, validateDisponibilidadSemana, parseId } from '../validators/cita.validators.js';
+import { validateCita, validateListado, validateDisponibilidadSemana, parseId, parseFolio } from '../validators/cita.validators.js';
 import {
   crearCita,
   actualizarCita,
   cancelarCita,
   obtenerCita,
+  obtenerCitaPorFolio,
   listarCitas,
   disponibilidadSemana,
   CitaNotFoundError,
@@ -48,12 +49,24 @@ export async function obtener(req, res, next) {
   }
 }
 
+// RF 5.4.2
+export async function obtenerPorFolio(req, res, next) {
+  const folio = parseFolio(req.params.folio);
+  if (!folio) return res.status(400).json({ errors: [{ field: 'folio', message: 'Ingresa un folio válido con formato CIT-AAAA-NNNNN.' }] });
+  try {
+    return res.json({ cita: await obtenerCitaPorFolio(folio) });
+  } catch (err) {
+    if (err instanceof CitaNotFoundError) return res.status(404).json({ error: 'No existe una cita con ese folio.' });
+    return manejarError(err, res, next);
+  }
+}
+
 export async function registrar(req, res, next) {
   const { errors, data } = validateCita(req.body);
   if (errors.length) return res.status(400).json({ errors });
   try {
-    const cita = await crearCita(data);
-    return res.status(201).json({ message: 'Cita agendada correctamente.', cita });
+    const { cita, notificacion } = await crearCita(data);
+    return res.status(201).json({ message: 'Cita agendada correctamente.', cita, notificacion });
   } catch (err) {
     return manejarError(err, res, next);
   }
@@ -65,8 +78,8 @@ export async function actualizar(req, res, next) {
   const { errors, data } = validateCita(req.body, { edicion: true });
   if (errors.length) return res.status(400).json({ errors });
   try {
-    const cita = await actualizarCita(id, data);
-    return res.json({ message: 'Cambios guardados correctamente.', cita });
+    const { cita, notificacion } = await actualizarCita(id, data);
+    return res.json({ message: 'Cambios guardados correctamente.', cita, notificacion });
   } catch (err) {
     return manejarError(err, res, next);
   }

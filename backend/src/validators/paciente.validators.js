@@ -2,6 +2,10 @@ export function normalizeTelefono(telefono) {
   return typeof telefono === 'string' ? telefono.replace(/\D/g, '') : '';
 }
 
+export function normalizeCorreo(correo) {
+  return typeof correo === 'string' ? correo.trim().toLowerCase() : '';
+}
+
 export function parseFechaNacimiento(fechaStr) {
   if (typeof fechaStr !== 'string') return null;
 
@@ -84,6 +88,9 @@ export function validateListado(query = {}) {
   return { estado, orden };
 }
 
+// Formato general (no institucional): el correo es del paciente o su tutor.
+const CORREO_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /** RF 3.1.2-3.1.11, RF 3.2.4-3.2.5: mismas reglas para registro y edición. */
 export function validatePaciente(body = {}, options = {}) {
   const { hoy = new Date() } = options;
@@ -94,6 +101,7 @@ export function validatePaciente(body = {}, options = {}) {
   const sexo = typeof body.sexo === 'string' ? body.sexo.trim().toUpperCase() : '';
   const rawFecha = typeof body.fecha_nacimiento === 'string' ? body.fecha_nacimiento.trim() : '';
   const telefono = normalizeTelefono(body.telefono);
+  const correo = normalizeCorreo(body.correo);
 
   if (!nombre_completo) {
     errors.push({ field: 'nombre_completo', message: 'El nombre completo es obligatorio.' });
@@ -143,6 +151,11 @@ export function validatePaciente(body = {}, options = {}) {
     errors.push({ field: 'telefono', message: 'El teléfono debe contener 10 dígitos.' });
   }
 
+  // RF 5.1.14: opcional; es el destino de la confirmación de cita.
+  if (correo && (correo.length > 100 || !CORREO_REGEX.test(correo))) {
+    errors.push({ field: 'correo', message: 'Ingresa un correo electrónico válido.' });
+  }
+
   return {
     errors,
     data: {
@@ -151,6 +164,7 @@ export function validatePaciente(body = {}, options = {}) {
       sexo,
       fecha_nacimiento: fechaNacimiento,
       telefono,
+      correo: correo || null,
     },
   };
 }

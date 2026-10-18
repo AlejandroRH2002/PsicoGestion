@@ -21,7 +21,7 @@ export class SinArchivosError extends Error {
 }
 
 const COLUMNAS = `id_paciente, nombre_completo, curp, sexo,
-  to_char(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento, telefono,
+  to_char(fecha_nacimiento, 'YYYY-MM-DD') AS fecha_nacimiento, telefono, correo,
   activo, fecha_baja, fecha_registro`;
 
 const COLUMNAS_ARCHIVO = 'id_archivo, nombre_original, tipo, tamano_bytes, subido_en';
@@ -149,6 +149,7 @@ function toPaciente(row, archivos = []) {
     sexo: row.sexo,
     fechaNacimiento: row.fecha_nacimiento,
     telefono: row.telefono,
+    correo: row.correo,
     activo: row.activo,
     fechaBaja: row.fecha_baja,
     fechaRegistro: row.fecha_registro,
@@ -215,7 +216,7 @@ async function listarArchivos(idPaciente, db = pool) {
  * RF 3.1.1-3.1.12. `archivos` ya validados; se escriben antes del COMMIT y se borran si
  * la transacción falla, para no dejar huérfanos.
  */
-export async function registrarPaciente({ nombre_completo, curp, sexo, fecha_nacimiento, telefono }, archivos = []) {
+export async function registrarPaciente({ nombre_completo, curp, sexo, fecha_nacimiento, telefono, correo = null }, archivos = []) {
   await verificarUnicidad({ curp, telefono });
 
   const client = await pool.connect();
@@ -223,10 +224,10 @@ export async function registrarPaciente({ nombre_completo, curp, sexo, fecha_nac
   try {
     await client.query('BEGIN');
     const { rows } = await client.query(
-      `INSERT INTO paciente (nombre_completo, curp, sexo, fecha_nacimiento, telefono)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO paciente (nombre_completo, curp, sexo, fecha_nacimiento, telefono, correo)
+       VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING ${COLUMNAS}`,
-      [nombre_completo, curp, sexo, fecha_nacimiento, telefono]
+      [nombre_completo, curp, sexo, fecha_nacimiento, telefono, correo]
     );
     const paciente = rows[0];
     await insertarArchivos(client, paciente.id_paciente, archivos, rutasEscritas);
@@ -264,7 +265,7 @@ export async function obtenerPaciente(id) {
  */
 export async function actualizarPaciente(
   id,
-  { nombre_completo, curp, sexo, fecha_nacimiento, telefono },
+  { nombre_completo, curp, sexo, fecha_nacimiento, telefono, correo = null },
   { archivosNuevos = [], quitarArchivos = [] } = {}
 ) {
   const client = await pool.connect();
@@ -279,10 +280,10 @@ export async function actualizarPaciente(
 
     const { rows } = await client.query(
       `UPDATE paciente
-       SET nombre_completo = $2, curp = $3, sexo = $4, fecha_nacimiento = $5, telefono = $6
+       SET nombre_completo = $2, curp = $3, sexo = $4, fecha_nacimiento = $5, telefono = $6, correo = $7
        WHERE id_paciente = $1
        RETURNING ${COLUMNAS}`,
-      [id, nombre_completo, curp, sexo, fecha_nacimiento, telefono]
+      [id, nombre_completo, curp, sexo, fecha_nacimiento, telefono, correo]
     );
 
     // Solo se quitan adjuntos de este mismo paciente; ids ajenos se ignoran.

@@ -270,10 +270,16 @@ async function cargarCita(db, id) {
   return rows[0] ? toCita(rows[0]) : null;
 }
 
-/** RF 5.1.5–5.1.14: registra la cita como Pendiente, genera su folio y notifica. */
+/** RF 5.1.14: destino de la confirmación. Se lee aparte para no exponer el correo en los listados de citas. */
+async function correoPaciente(db, pacienteId) {
+  const { rows } = await db.query('SELECT correo FROM paciente WHERE id_paciente = $1', [pacienteId]);
+  return rows[0]?.correo ?? null;
+}
+
+/** RF 5.1.5–5.1.14: registra la cita como Pendiente, genera su folio y notifica. Devuelve { cita, notificacion }. */
 export async function crearCita(datos) {
   const horaFin = minutosAHora(horaAMinutos(datos.horaInicio) + datos.duracion);
-  const cita = await enTransaccion(async (client) => {
+  const { cita, correo } = await enTransaccion(async (client) => {
     await verificarReferencias(client, { ...datos, estado: 'Pendiente' });
     await bloquearRecursos(client, datos);
     await verificarConflictos(client, datos, horaFin);
@@ -290,16 +296,16 @@ export async function crearCita(datos) {
       [id]
     );
     await asignarBloques(client, id, datos, horaFin);
-    return cargarCita(client, id);
+    return { cita: await cargarCita(client, id), correo: await correoPaciente(client, datos.pacienteId) };
   });
-  await notificarCitaAgendada(cita);
-  return cita;
+  const notificacion = await notificarCitaAgendada(cita, correo);
+  return { cita, notificacion };
 }
 
-/** RF 5.3.1–5.3.6: modifica paciente, terapeuta, sala, horario y estatus revalidando conflictos. */
+/** RF 5.3.1–5.3.6: modifica paciente, terapeuta, sala, horario y estatus revalidando conflictos. Devuelve { cita, notificacion }. */
 export async function actualizarCita(id, datos) {
   const horaFin = minutosAHora(horaAMinutos(datos.horaInicio) + datos.duracion);
-  const cita = await enTransaccion(async (client) => {
+  const { cita, correo } = await enTransaccion(async (client) => {
     const actual = await client.query('SELECT 1 FROM cita WHERE id_cita = $1 FOR UPDATE', [id]);
     if (actual.rows.length === 0) throw new CitaNotFoundError();
     await verificarReferencias(client, datos);
@@ -313,10 +319,10 @@ export async function actualizarCita(id, datos) {
       [id, datos.pacienteId, datos.terapeutaId, datos.salaId, datos.estado]
     );
     await asignarBloques(client, id, datos, horaFin);
-    return cargarCita(client, id);
+    return { cita: await cargarCita(client, id), correo: await correoPaciente(client, datos.pacienteId) };
   });
-  await notificarCitaModificada(cita);
-  return cita;
+  const notificacion = await notificarCitaModificada(cita, correo);
+  return { cita, notificacion };
 }
 
 /** RF 5.4.1–5.4.4: la cancelación es un cambio de estado; la cita nunca se borra. */
@@ -335,6 +341,14 @@ export async function obtenerCita(id, db = pool) {
   const cita = await cargarCita(db, id);
   if (!cita) throw new CitaNotFoundError();
   return cita;
+}
+
+/** RF 5.4.2: la cancelación parte del folio que da el paciente. */
+export async function obtenerCitaPorFolio(folio, db = pool) {
+  await marcarVencidas(db);
+  const { rows } = await db.query(`${SELECT_CITA} WHERE c.folio = $1`, [folio]);
+  if (!rows[0]) throw new CitaNotFoundError();
+  return toCita(rows[0]);
 }
 
 /**

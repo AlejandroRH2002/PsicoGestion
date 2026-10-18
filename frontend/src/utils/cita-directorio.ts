@@ -5,7 +5,9 @@ import {
   hoyLocal,
   listarCitas,
   listarSalas,
+  obtenerCitaPorFolio,
   pintarEstado,
+  textoNotificacion,
   type Cita,
   type EstadoCita,
   type FiltrosCitas,
@@ -41,7 +43,11 @@ export function iniciarDirectorioCitas() {
     aviso.textContent = texto;
     aviso.className = `p-3 rounded-lg text-sm ${tipo === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`;
   }
-  if (url.has('actualizada')) mostrarAviso('Cambios guardados correctamente.', 'success');
+  if (url.has('actualizada')) {
+    const c = url.get('confirmacion');
+    const notificacion = textoNotificacion(c === 'enviada' ? { enviada: true } : c ? { enviada: false, motivo: c } : undefined);
+    mostrarAviso(['Cambios guardados correctamente.', notificacion].filter(Boolean).join(' '), 'success');
+  }
 
   function sincronizarUrl() {
     const params = new URLSearchParams();
@@ -155,6 +161,41 @@ export function iniciarDirectorioCitas() {
       await cargar();
     } catch (err) {
       mostrarAviso(err instanceof Error ? err.message : 'No se pudo cancelar la cita.', 'error');
+    }
+  });
+
+  // RF 5.4.2: cancelar a partir del folio; reutiliza el mismo diálogo de confirmación (RF 5.4.3–5.4.4).
+  const folioForm = $<HTMLFormElement>('cancelar-folio-form');
+  const folio = $<HTMLInputElement>('folio');
+  const folioError = $('folio-error');
+  function errorFolio(texto: string | null) {
+    folioError.textContent = texto ?? '';
+    folioError.classList.toggle('hidden', !texto);
+    if (texto) folio.setAttribute('aria-invalid', 'true'); else folio.removeAttribute('aria-invalid');
+  }
+  folio.addEventListener('input', () => errorFolio(null));
+  folioForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const valor = folio.value.trim().toUpperCase();
+    // Mismo formato y mensaje que backend/src/validators/cita.validators.js#parseFolio.
+    if (!/^CIT-\d{4}-\d{5,9}$/.test(valor)) {
+      errorFolio('Ingresa un folio válido con formato CIT-AAAA-NNNNN.');
+      return;
+    }
+    const boton = folioForm.querySelector('button')!;
+    boton.disabled = true;
+    try {
+      const cita = await obtenerCitaPorFolio(valor);
+      if (!cita) errorFolio('No existe una cita con ese folio.');
+      else if (cita.estado !== 'Pendiente') errorFolio(`La cita ${cita.folio} ya está ${cita.estado.toLowerCase()}.`);
+      else {
+        folio.value = '';
+        pedirCancelacion(cita);
+      }
+    } catch (err) {
+      errorFolio(err instanceof Error ? err.message : 'No se pudo buscar la cita.');
+    } finally {
+      boton.disabled = false;
     }
   });
 

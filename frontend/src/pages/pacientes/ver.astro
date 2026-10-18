@@ -9,6 +9,7 @@ const datos = [
   { clave: 'sexo', etiqueta: 'Sexo' },
   { clave: 'fechaNacimiento', etiqueta: 'Fecha de Nacimiento' },
   { clave: 'telefono', etiqueta: 'Teléfono de Contacto' },
+  { clave: 'correo', etiqueta: 'Correo Electrónico' },
   { clave: 'fechaRegistro', etiqueta: 'Fecha de Registro' },
 ];
 ---
@@ -212,6 +213,7 @@ const datos = [
       sexo: SEXOS[p.sexo] ?? p.sexo,
       fechaNacimiento: formatearFecha(p.fechaNacimiento),
       telefono: formatearTelefono(p.telefono),
+      correo: p.correo ?? 'Sin registrar',
       fechaRegistro: formatearFechaHora(p.fechaRegistro),
     };
     document.querySelectorAll<HTMLElement>('[data-dato]').forEach((el) => {
