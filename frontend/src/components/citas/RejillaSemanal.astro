@@ -1,0 +1,37 @@
+---
+import { ChevronLeft, ChevronRight } from '@lucide/astro';
+
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+---
+<section id={id} class="flex flex-col gap-4 min-w-0" aria-labelledby={`${id}-titulo`}>
+  <div class="flex flex-wrap items-start justify-between gap-3">
+    <div>
+      <h2 id={`${id}-titulo`} class="text-lg font-semibold text-[#0F172A]">Disponibilidad de Salas</h2>
+      <div class="flex items-center gap-2 mt-1">
+        <button type="button" data-anterior aria-label="Semana anterior" class="p-1 rounded-md text-[#475569] hover:bg-[#F1F5F9] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+          <ChevronLeft class="size-4" />
+        </button>
+        <p data-rango class="text-[13px] text-[#475569]" aria-live="polite"></p>
+        <button type="button" data-siguiente aria-label="Semana siguiente" class="p-1 rounded-md text-[#475569] hover:bg-[#F1F5F9] cursor-pointer">
+          <ChevronRight class="size-4" />
+        </button>
+      </div>
+    </div>
+    <ul class="flex items-center gap-4 text-[11px] text-[#475569]" aria-label="Leyenda">
+      <li class="flex items-center gap-1.5"><span class="size-3 rounded-[2px] border border-[#0D9488] bg-[#CCFBF1]"></span>Disponible</li>
+      <li class="flex items-center gap-1.5"><span class="size-3 rounded-[2px] bg-[#F1F5F9]"></span>Ocupado</li>
+      <li class="flex items-center gap-1.5"><span class="size-3 rounded-[2px] bg-[#0D9488]"></span>Seleccionado</li>
+    </ul>
+  </div>
+  <p data-estado class="hidden" role="status"></p>
+  <div class="overflow-x-auto rounded-lg border border-[#E2E8F0]">
+    <table class="w-full min-w-[560px] table-fixed border-collapse">
+      <thead class="bg-[#F8FAFC]"><tr data-cabecera></tr></thead>
+      <tbody data-cuerpo></tbody>
+    </table>
+  </div>
+</section>

@@ -11,11 +11,11 @@ const { activo } = Astro.props;
 
 // Solo las secciones con href están construidas; el resto se muestra deshabilitado.
 const secciones = [
-  { clave: 'inicio', etiqueta: 'Inicio', icono: LayoutGrid },
+  { clave: 'inicio', etiqueta: 'Inicio', icono: LayoutGrid, href: '/inicio' },
   { clave: 'pacientes', etiqueta: 'Pacientes', icono: Users, href: '/pacientes' },
   { clave: 'terapeutas', etiqueta: 'Terapeutas', icono: Stethoscope, href: '/terapeutas' },
-  { clave: 'salas', etiqueta: 'Salas', icono: DoorOpen },
-  { clave: 'citas', etiqueta: 'Citas', icono: CalendarDays },
+  { clave: 'salas', etiqueta: 'Salas', icono: DoorOpen, href: '/salas' },
+  { clave: 'citas', etiqueta: 'Citas', icono: CalendarDays, href: '/citas' },
 ] as const;
 ---
 <aside class="hidden lg:flex flex-col justify-between w-[260px] shrink-0 h-full p-6 bg-white border-r border-[#E2E8F0]">
@@ -69,10 +69,29 @@ const secciones = [
   </div>
 </aside>
 
+<!-- Fuera del <aside>: un <dialog> dentro de un ancestro display:none no se muestra. -->
+<dialog id="confirmar-cierre-sesion" class="m-auto w-[calc(100%-2rem)] max-w-[440px] p-0 rounded-2xl backdrop:bg-[#0F172A]/40 shadow-xl">
+  <form method="dialog" class="flex flex-col gap-4 p-6">
+    <h2 class="text-lg font-bold text-[#0F172A]">¿Cerrar sesión?</h2>
+    <p class="text-sm text-[#64748B]">
+      Tendrás que volver a iniciar sesión para continuar. Los cambios que no hayas guardado se perderán.
+    </p>
+    <div class="flex justify-end gap-3">
+      <button value="cerrar" class="px-5 py-2.5 border border-[#E2E8F0] rounded-lg text-sm font-semibold text-[#334155] hover:bg-[#F4F7F6] cursor-pointer">Volver</button>
+      <button value="confirmar" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold text-white cursor-pointer">Cerrar sesión</button>
+    </div>
+  </form>
+</dialog>
+
 <script>
   import { cerrarSesion } from '../utils/sesion';
 
-  document.getElementById('cerrar-sesion')?.addEventListener('click', async () => {
+  const dialogo = document.getElementById('confirmar-cierre-sesion') as HTMLDialogElement;
+
+  document.getElementById('cerrar-sesion')?.addEventListener('click', () => dialogo.showModal());
+
+  dialogo.addEventListener('close', async () => {
+    if (dialogo.returnValue !== 'confirmar') return;
     await cerrarSesion();
     window.location.href = '/';
   });

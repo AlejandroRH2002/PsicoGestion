@@ -91,6 +91,19 @@ const sexos = [
       />
     </div>
 
+    <!-- RF 5.1.14: destino de la confirmación de cita -->
+    <CampoTexto
+      id="correo"
+      label="Correo electrónico (opcional)"
+      type="email"
+      inputmode="email"
+      maxlength={100}
+      placeholder="Ej. paciente@gmail.com"
+      ayuda="Se usa para enviar la confirmación de sus citas"
+      autocomplete="email"
+      opcional
+    />
+
     <!-- Adjuntos: expediente, consentimiento, identificación, etc. -->
     <div class="flex flex-col gap-1.5">
       <div class="flex items-center justify-between">

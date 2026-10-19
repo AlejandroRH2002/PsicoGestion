@@ -1,0 +1,68 @@
+---
+import { ChevronLeft, ChevronRight, Printer } from '@lucide/astro';
+import AppLayout from '../layouts/AppLayout.astro';
+import ModalImpresion from '../components/agenda/ModalImpresion.astro';
+
+const vistas = [
+  { valor: 'dia', etiqueta: 'Día' },
+  { valor: 'semana', etiqueta: 'Semana' },
+  { valor: 'mes', etiqueta: 'Mes' },
+];
+const select = 'h-10 pl-3 pr-8 rounded-lg border border-[#E2E8F0] bg-white text-[13px] font-semibold text-[#0F172A] max-w-[200px]';
+const flecha = 'flex items-center justify-center size-8 rounded-md bg-[#F1F5F9] text-[#334155] hover:bg-[#E2E8F0] cursor-pointer';
+---
+<AppLayout title="Agenda" activo="inicio">
+  <div class="flex flex-col gap-6 w-full max-w-[1100px]">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h2 id="titulo-vista" class="text-2xl font-bold text-[#0F172A]">Agenda del Día</h2>
+        <p id="subtitulo-vista" class="mt-1 text-sm text-[#64748B]"></p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3">
+        <label class="flex items-center gap-1 text-[13px] text-[#475569]">
+          <span class="sr-only">Filtrar por terapeuta</span>
+          <select id="filtro-terapeuta" class={select}><option value="">Todos los terapeutas</option></select>
+        </label>
+        <label class="flex items-center gap-1 text-[13px] text-[#475569]">
+          <span class="sr-only">Filtrar por sala</span>
+          <select id="filtro-sala" class={select}><option value="">Todas las salas</option></select>
+        </label>
+        <!-- RF 6.1.2: filtro por día, semana o mes -->
+        <div role="radiogroup" aria-label="Vista" class="flex p-1 rounded-xl border border-[#E2E8F0] bg-white">
+          {vistas.map(({ valor, etiqueta }) => (
+            <button type="button" role="radio" data-vista={valor} aria-checked="false"
+              class="h-9 px-4 rounded-lg text-[13px] font-semibold text-[#334155] aria-checked:bg-[#0D9488] aria-checked:text-white hover:bg-[#F1F5F9] aria-checked:hover:bg-[#0D9488] cursor-pointer">
+              {etiqueta}
+            </button>
+          ))}
+        </div>
+        <button id="btn-abrir-impresion" type="button" class="inline-flex items-center gap-2 h-11 px-4 rounded-xl border border-[#E2E8F0] bg-white text-[13px] font-semibold text-[#0F172A] hover:bg-[#F8FAFC] cursor-pointer">
+          <Printer class="size-4" /> Imprimir
+        </button>
+      </div>
+    </div>
+
+    <section class="flex flex-col gap-5 p-6 bg-white border border-[#E2E8F0] rounded-2xl" aria-labelledby="titulo-periodo">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-[#E2E8F0]">
+        <div class="flex items-center gap-2">
+          <button id="periodo-anterior" type="button" aria-label="Periodo anterior" class={flecha}><ChevronLeft class="size-4" /></button>
+          <button id="periodo-siguiente" type="button" aria-label="Periodo siguiente" class={flecha}><ChevronRight class="size-4" /></button>
+          <h3 id="titulo-periodo" class="ml-2 text-lg font-semibold text-[#0F172A]" aria-live="polite"></h3>
+          <button id="periodo-hoy" type="button" class="ml-2 h-8 px-3 rounded-md border border-[#E2E8F0] text-[12px] font-semibold text-[#334155] hover:bg-[#F8FAFC] cursor-pointer">Hoy</button>
+        </div>
+        <p id="horario-jornada" class="text-[13px] text-[#64748B]">Horario: 7:00 AM - 17:00 PM</p>
+      </div>
+      <p id="estado-agenda" class="hidden" role="status"></p>
+      <div id="vista-agenda" class="overflow-x-auto"></div>
+    </section>
+  </div>
+
+  <ModalImpresion />
+</AppLayout>
+
+<script>
+  import { iniciarAgenda } from '../utils/agenda';
+  import { iniciarImpresion } from '../utils/agenda-impresion';
+  const agenda = iniciarAgenda();
+  iniciarImpresion(agenda.estado, agenda.nombresFiltros);
+</script>

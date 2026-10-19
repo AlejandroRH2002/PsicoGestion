@@ -18,3 +18,7 @@ horario.
   cita.
 - Ambas llaves foráneas usan `ON DELETE CASCADE`, según la restricción de
   integridad de borrado en cascada.
+
+## Implementación (`008_create_cita.sql`)
+
+- La FK a `cita` es `CASCADE`: al editar el horario se reemplazan los bloques de la cita. La FK a `bloque_horario` es `RESTRICT`.

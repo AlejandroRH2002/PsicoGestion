@@ -1,0 +1,143 @@
+---
+import { ArrowLeft, ArrowRight, CalendarDays, CircleAlert, CircleCheck, CircleHelp, CircleUser, Clock, DoorOpen, FileText, Users } from '@lucide/astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+import Stepper from '../../components/citas/Stepper.astro';
+import SelectorBuscable from '../../components/citas/SelectorBuscable.astro';
+import RejillaSemanal from '../../components/citas/RejillaSemanal.astro';
+
+const filasResumen = [
+  { clave: 'paciente', etiqueta: 'Paciente', icono: Users },
+  { clave: 'terapeuta', etiqueta: 'Terapeuta', icono: CircleUser },
+  { clave: 'sala', etiqueta: 'Sala de Terapia', icono: DoorOpen },
+  { clave: 'fecha', etiqueta: 'Fecha Programada', icono: CalendarDays },
+  { clave: 'horario', etiqueta: 'Horario Reservado', icono: Clock },
+];
+const btnPrimario = 'inline-flex items-center justify-center gap-2 h-11 px-5 rounded-lg bg-[#0D9488] text-white text-sm font-semibold hover:bg-[#0F766E] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer';
+const btnSecundario = 'inline-flex items-center justify-center gap-2 h-11 px-5 rounded-lg border border-[#E2E8F0] bg-white text-sm font-semibold text-[#334155] hover:bg-[#F8FAFC] cursor-pointer';
+---
+<AppLayout title="Citas de la Clínica" activo="citas" volverHref="/citas" volverEtiqueta="Citas">
+  <div class="flex flex-col gap-6 w-full max-w-[1100px]">
+    <div id="encabezado" class="flex flex-col gap-5">
+      <div>
+        <h2 class="text-[28px] font-bold text-[#0F172A]">Nueva Cita</h2>
+        <p id="subtitulo" class="mt-1 text-sm text-[#475569]">Complete el paso 1 de selección para programar una sesión.</p>
+      </div>
+      <Stepper />
+    </div>
+
+    <p id="aviso" class="hidden p-3 rounded-lg bg-red-50 text-sm text-red-700" role="alert"></p>
+
+    <!-- Paso 1: paciente y terapeuta (RF 5.1.2) -->
+    <section id="paso-1" class="flex flex-col gap-6 w-full max-w-[640px] p-6 bg-white border border-[#E2E8F0] rounded-2xl" aria-labelledby="paso-1-titulo">
+      <h3 id="paso-1-titulo" class="text-lg font-semibold">Paso 1: Selección de Paciente y Terapeuta</h3>
+      <SelectorBuscable id="paciente" etiqueta="Paciente" placeholder="Buscar paciente por nombre o CURP…" />
+      <SelectorBuscable
+        id="terapeuta"
+        etiqueta="Terapeuta"
+        placeholder="Seleccionar terapeuta…"
+        ayuda="Los horarios disponibles se actualizarán según el terapeuta seleccionado."
+      />
+      <div class="flex justify-end pt-2">
+        <button id="paso-1-siguiente" type="button" class={btnPrimario}>Siguiente <ArrowRight class="size-4" /></button>
+      </div>
+    </section>
+
+    <!-- Paso 2: horario y sala (RF 5.1.3–5.1.5) -->
+    <section id="paso-2" hidden class="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
+      <div class="p-5 bg-white border border-[#E2E8F0] rounded-2xl min-w-0">
+        <RejillaSemanal id="rejilla" />
+      </div>
+      <aside class="flex flex-col gap-5 p-5 bg-white border border-[#E2E8F0] rounded-2xl" aria-labelledby="resumen-seleccion-titulo">
+        <h3 id="resumen-seleccion-titulo" class="text-lg font-semibold">Resumen de Selección</h3>
+        <dl class="flex flex-col gap-3 text-sm">
+          <div><dt class="text-[12px] text-[#475569]">Fecha</dt><dd id="sel-fecha" class="font-semibold text-[#0F172A]">Selecciona un horario</dd></div>
+          <div><dt class="text-[12px] text-[#475569]">Hora</dt><dd id="sel-hora" class="font-semibold text-[#0F172A]">—</dd></div>
+        </dl>
+        <label class="flex flex-col gap-2 text-[13px] font-semibold text-[#334155]">
+          Duración
+          <select id="duracion" class="h-11 px-3 rounded-lg border border-[#E2E8F0] bg-white text-sm font-normal">
+            <option value="30">30 minutos</option>
+            <option value="60" selected>60 minutos</option>
+            <option value="90">90 minutos</option>
+          </select>
+        </label>
+        <p id="duracion-error" class="hidden -mt-3 text-xs text-red-600" role="alert"></p>
+        <label class="flex flex-col gap-2 text-[13px] font-semibold text-[#334155]">
+          Sala Seleccionada
+          <select id="sala" disabled class="h-11 px-3 rounded-lg border border-[#E2E8F0] bg-white text-sm font-normal disabled:bg-[#F8FAFC] disabled:text-[#94A3B8]">
+            <option>Selecciona un horario</option>
+          </select>
+        </label>
+        <p id="salaId-error" class="hidden -mt-3 text-xs text-red-600" role="alert"></p>
+        <hr class="border-[#E2E8F0]" />
+        <label class="flex flex-col gap-2 text-[13px] font-semibold text-[#334155]">
+          Estatus Inicial
+          <select disabled class="h-11 px-3 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] text-sm font-normal text-[#475569]" aria-describedby="estatus-ayuda">
+            <option>Pendiente</option>
+          </select>
+          <span id="estatus-ayuda" class="text-[11px] font-normal text-[#64748B]">Toda cita nueva se registra como Pendiente.</span>
+        </label>
+        <p id="horaInicio-error" class="hidden text-xs text-red-600" role="alert"></p>
+        <div class="flex flex-col gap-3">
+          <button id="paso-2-siguiente" type="button" disabled class={btnPrimario}>Siguiente <ArrowRight class="size-4" /></button>
+          <button id="paso-2-anterior" type="button" class={btnSecundario}><ArrowLeft class="size-4" /> Anterior</button>
+        </div>
+      </aside>
+    </section>
+
+    <!-- Paso 3: confirmación (RF 5.1.6–5.1.11) -->
+    <section id="paso-3" hidden class="flex flex-col gap-5 w-full max-w-[680px] p-6 bg-white border border-[#E2E8F0] rounded-2xl" aria-labelledby="paso-3-titulo">
+      <div>
+        <h3 id="paso-3-titulo" class="text-lg font-semibold">Resumen de la Cita</h3>
+        <p class="mt-1 text-[13px] text-[#475569]">Verifique la agenda y los datos asociados.</p>
+      </div>
+      <dl class="flex flex-col gap-3">
+        {filasResumen.map(({ clave, etiqueta, icono: Icono }) => (
+          <div class="flex items-center gap-4 px-3 py-3 rounded-lg bg-[#F8FAFC]">
+            <span class="flex items-center justify-center size-9 rounded-lg border border-[#E2E8F0] bg-white text-[#0D9488]"><Icono class="size-4" /></span>
+            <div><dt class="text-[11px] text-[#475569]">{etiqueta}</dt><dd id={`conf-${clave}`} class="text-sm font-semibold text-[#0F172A]"></dd></div>
+          </div>
+        ))}
+        <div class="flex items-center gap-4 px-3 py-3 rounded-lg bg-[#F8FAFC]">
+          <span class="flex items-center justify-center size-9 rounded-lg border border-[#E2E8F0] bg-white text-[#B45309]"><CircleAlert class="size-4" /></span>
+          <div><dt class="text-[11px] text-[#475569]">Estatus Inicial</dt><dd class="mt-1"><span class="inline-flex px-2 py-0.5 rounded-md text-[11px] font-bold bg-[#FEF3C7] text-[#B45309]">Pendiente</span></dd></div>
+        </div>
+      </dl>
+      <hr class="border-[#E2E8F0]" />
+      <p class="flex items-center gap-3 px-4 py-3 rounded-lg bg-[#E0F2FE] text-[13px] font-semibold text-[#075985]">
+        <CircleHelp class="size-4 shrink-0" /> ¿Confirma que los datos son correctos?
+      </p>
+      <div class="flex justify-between gap-3">
+        <button id="paso-3-anterior" type="button" class={btnSecundario}><ArrowLeft class="size-4" /> Anterior</button>
+        <button id="confirmar" type="button" class={btnPrimario}>Confirmar Cita <CircleCheck class="size-4" /></button>
+      </div>
+    </section>
+
+    <!-- Éxito (RF 5.1.12–5.1.13) -->
+    <section id="exito" hidden class="self-center flex flex-col items-center gap-6 w-full max-w-[600px] p-8 bg-white border border-[#E2E8F0] rounded-2xl text-center" role="status" aria-labelledby="exito-titulo">
+      <span class="flex items-center justify-center size-16 rounded-full bg-[#DCFCE7] text-[#006847] shadow-[0_0_0_8px_#F0FDF4]"><CircleCheck class="size-8" /></span>
+      <div>
+        <h3 id="exito-titulo" class="text-2xl font-bold">¡Cita Agendada con Éxito!</h3>
+        <p class="mt-1 text-sm text-[#475569]">La cita quedó registrada como Pendiente en la agenda.</p>
+      </div>
+      <dl class="w-full flex flex-col gap-3 p-4 rounded-xl bg-[#F8FAFC] text-[13px]">
+        <div class="flex justify-between gap-4"><dt class="text-[#475569]">Folio de Cita</dt><dd id="exito-folio" class="font-bold text-[#006847]"></dd></div>
+        <div class="flex justify-between gap-4"><dt class="text-[#475569]">Paciente</dt><dd id="exito-paciente" class="font-semibold text-right"></dd></div>
+        <div class="flex justify-between gap-4"><dt class="text-[#475569]">Terapeuta</dt><dd id="exito-terapeuta" class="font-semibold text-right"></dd></div>
+        <div class="flex justify-between gap-4"><dt class="text-[#475569]">Sala asignada</dt><dd id="exito-sala" class="font-semibold text-right"></dd></div>
+        <div class="flex justify-between gap-4"><dt class="text-[#475569]">Fecha y Hora</dt><dd id="exito-fecha" class="font-semibold text-right"></dd></div>
+      </dl>
+      <!-- RF 5.1.14: resultado del envío de la confirmación al paciente -->
+      <p id="exito-notificacion" hidden></p>
+      <div class="grid sm:grid-cols-2 gap-3 w-full">
+        <button id="agendar-otra" type="button" class={btnSecundario}><ArrowLeft class="size-4" /> Agendar Otra</button>
+        <a href="/citas" class={btnPrimario}><FileText class="size-4" /> Ver Citas</a>
+      </div>
+    </section>
+  </div>
+</AppLayout>
+
+<script>
+  import { iniciarNuevaCita } from '../../utils/cita-nueva';
+  iniciarNuevaCita();
+</script>

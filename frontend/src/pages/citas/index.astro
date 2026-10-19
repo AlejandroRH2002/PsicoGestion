@@ -1,0 +1,153 @@
+---
+import { CalendarPlus, CalendarX, Pencil, Search, Trash2 } from '@lucide/astro';
+import AppLayout from '../../layouts/AppLayout.astro';
+
+const pestanas = [
+  { estado: '', etiqueta: 'Todas', conteo: 'todas' },
+  { estado: 'Pendiente', etiqueta: 'Pendientes', conteo: 'pendientes' },
+  { estado: 'Cancelada', etiqueta: 'Canceladas', conteo: 'canceladas' },
+  { estado: 'Vencida', etiqueta: 'Vencidas', conteo: 'vencidas' },
+];
+const periodos = [
+  { valor: '', etiqueta: 'Todo' },
+  { valor: 'dia', etiqueta: 'Día' },
+  { valor: 'semana', etiqueta: 'Semana' },
+  { valor: 'mes', etiqueta: 'Mes' },
+];
+const select = 'h-10 pl-3 pr-8 rounded-lg border border-[#E2E8F0] bg-white text-[13px] text-[#0F172A] font-semibold';
+---
+<AppLayout title="Gestión de Citas" activo="citas">
+  <div class="flex flex-col gap-6 w-full max-w-[1100px]">
+    <div class="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <h2 class="text-[28px] font-bold text-[#0F172A]">Directorio de Citas</h2>
+        <p class="mt-1 text-sm text-[#475569]">Revise, edite o cancele las citas registradas en el sistema.</p>
+      </div>
+      <div class="flex flex-wrap items-start gap-3">
+        <!-- RF 5.4.2: la cancelación se solicita con el folio de la cita -->
+        <form id="cancelar-folio-form" class="flex flex-col gap-1" novalidate>
+          <div class="flex gap-2">
+            <label for="folio" class="sr-only">Folio de la cita a cancelar</label>
+            <input id="folio" placeholder="CIT-AAAA-NNNNN" autocomplete="off" aria-describedby="folio-error"
+              class="w-[170px] h-10 px-3 rounded-lg border border-[#E2E8F0] bg-white text-[13px] uppercase placeholder:normal-case outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20 aria-invalid:border-red-500" />
+            <button type="submit" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg border border-[#FCA5A5] bg-white text-sm font-semibold text-[#B91C1C] hover:bg-red-50 disabled:opacity-60 cursor-pointer">
+              <CalendarX class="size-4" /> Cancelar por folio
+            </button>
+          </div>
+          <p id="folio-error" class="hidden text-xs text-red-600"></p>
+        </form>
+        <a href="/citas/nueva" class="inline-flex items-center gap-2 h-10 px-4 rounded-lg bg-[#0D9488] text-white text-sm font-semibold hover:bg-[#0F766E]">
+          <CalendarPlus class="size-4" /> Agendar Cita
+        </a>
+      </div>
+    </div>
+
+    <p id="aviso" class="hidden p-3 rounded-lg text-sm" role="status"></p>
+
+    <!-- RF 5.2.2: agrupación por estado -->
+    <div role="tablist" aria-label="Estatus" class="flex flex-wrap gap-1 p-1 bg-white border border-[#E2E8F0] rounded-lg">
+      {pestanas.map(({ estado, etiqueta, conteo }) => (
+        <button type="button" role="tab" data-estado={estado} aria-selected="false"
+          class="inline-flex items-center gap-2 h-9 px-3 rounded-md border border-transparent text-sm font-medium text-[#475569] hover:bg-[#F8FAFC] aria-selected:border-[#0D9488] aria-selected:text-[#0F766E] aria-selected:font-semibold cursor-pointer">
+          {etiqueta}
+          <span data-conteo={conteo} class="min-w-6 px-1.5 rounded-full bg-[#F1F5F9] text-[11px] font-semibold text-[#94A3B8]">0</span>
+        </button>
+      ))}
+    </div>
+
+    <!-- RF 5.2.3: filtros -->
+    <form id="filtros" class="flex flex-wrap items-center gap-3" role="search" onsubmit="return false">
+      <label class="relative flex-1 min-w-[220px] max-w-[320px]">
+        <span class="sr-only">Buscar por paciente o folio</span>
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-[#475569]" />
+        <input id="q" type="search" placeholder="Buscar por paciente o folio…" autocomplete="off"
+          class="w-full h-10 pl-9 pr-3 rounded-lg border border-[#E2E8F0] bg-white text-[13px] outline-none focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20" />
+      </label>
+      <label class="flex items-center gap-1 text-[13px] text-[#475569]">
+        <span class="sr-only sm:not-sr-only">Sala:</span>
+        <select id="sala" class={select}><option value="">Todas</option></select>
+      </label>
+      <label class="flex items-center gap-1 text-[13px] text-[#475569]">
+        <span class="sr-only sm:not-sr-only">Terapeuta:</span>
+        <select id="terapeuta" class={select}><option value="">Todos</option></select>
+      </label>
+      <div role="radiogroup" aria-label="Periodo" class="flex p-1 rounded-lg bg-[#E2E8F0]">
+        {periodos.map(({ valor, etiqueta }) => (
+          <button type="button" role="radio" data-periodo={valor} aria-checked="false"
+            class="h-8 px-3 rounded-md text-[12px] font-medium text-[#475569] aria-checked:bg-white aria-checked:font-semibold aria-checked:text-[#0F172A] aria-checked:shadow-sm cursor-pointer">
+            {etiqueta}
+          </button>
+        ))}
+      </div>
+      <label class="flex items-center gap-1 text-[13px] text-[#475569]" id="fecha-ref-label" hidden>
+        <span class="sr-only">Fecha de referencia</span>
+        <input id="fecha" type="date" class="h-10 px-3 rounded-lg border border-[#E2E8F0] bg-white text-[13px]" />
+      </label>
+    </form>
+
+    <section class="bg-white border border-[#E2E8F0] rounded-2xl overflow-hidden" aria-live="polite">
+      <div class="overflow-x-auto">
+        <table class="w-full min-w-[820px] text-left">
+          <thead class="border-b border-[#E2E8F0]">
+            <tr class="text-[12px] font-semibold text-[#334155]">
+              <th scope="col" class="px-5 py-3">Folio</th>
+              <th scope="col" class="px-3 py-3">Paciente</th>
+              <th scope="col" class="px-3 py-3">Terapeuta</th>
+              <th scope="col" class="px-3 py-3">Sala</th>
+              <th scope="col" class="px-3 py-3">Fecha y Hora</th>
+              <th scope="col" class="px-3 py-3">Estatus</th>
+              <th scope="col" class="px-5 py-3 text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="filas"></tbody>
+        </table>
+      </div>
+      <p id="estado-lista" class="hidden px-5 py-10 text-center text-sm text-[#64748B]"></p>
+      <div class="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-t border-[#E2E8F0]">
+        <p id="resumen" class="text-[12px] text-[#475569]"></p>
+        <nav id="paginacion" aria-label="Paginación" class="flex items-center gap-2"></nav>
+      </div>
+    </section>
+  </div>
+
+  <template id="fila-template">
+    <tr class="border-b border-[#F1F5F9] last:border-0 text-[13px]">
+      <td class="px-5 py-4 font-semibold text-[#0F172A]" data-folio></td>
+      <td class="px-3 py-4 font-medium text-[#0F172A]" data-paciente></td>
+      <td class="px-3 py-4 text-[#475569]" data-terapeuta></td>
+      <td class="px-3 py-4 text-[#475569]" data-sala></td>
+      <td class="px-3 py-4 text-[#0F172A]" data-fecha></td>
+      <td class="px-3 py-4"><span data-estatus></span></td>
+      <td class="px-5 py-4">
+        <div class="flex items-center justify-center gap-2">
+          <a data-editar class="flex items-center justify-center size-8 rounded-full border border-[#E2E8F0] text-[#334155] hover:bg-[#F8FAFC]">
+            <Pencil class="size-3.5" />
+          </a>
+          <button type="button" data-cancelar class="flex items-center justify-center size-8 rounded-full border border-[#E2E8F0] text-[#B91C1C] hover:bg-red-50 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer">
+            <Trash2 class="size-3.5" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  </template>
+
+  <!-- RF 5.4.2: confirmación de cancelación -->
+  <dialog id="confirmar-cancelacion" class="m-auto w-[calc(100%-2rem)] max-w-[440px] p-0 rounded-2xl backdrop:bg-[#0F172A]/40 shadow-xl">
+    <form method="dialog" class="flex flex-col gap-4 p-6">
+      <h2 class="text-lg font-bold text-[#0F172A]">¿Cancelar la cita <span id="cancelar-folio"></span>?</h2>
+      <p class="text-sm text-[#64748B]">
+        La cita de <strong id="cancelar-paciente" class="text-[#334155]"></strong> pasará a estatus Cancelada y su horario quedará libre.
+        El registro se conserva en el historial.
+      </p>
+      <div class="flex justify-end gap-3">
+        <button value="cerrar" class="px-5 py-2.5 border border-[#E2E8F0] rounded-lg text-sm font-semibold text-[#334155] hover:bg-[#F4F7F6] cursor-pointer">Volver</button>
+        <button value="confirmar" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 rounded-lg text-sm font-semibold text-white cursor-pointer">Cancelar cita</button>
+      </div>
+    </form>
+  </dialog>
+</AppLayout>
+
+<script>
+  import { iniciarDirectorioCitas } from '../../utils/cita-directorio';
+  iniciarDirectorioCitas();
+</script>

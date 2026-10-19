@@ -20,7 +20,20 @@ test('acepta un paciente válido y normaliza los datos', () => {
     sexo: 'M',
     fecha_nacimiento: '1996-01-01',
     telefono: '9991234567',
+    correo: null,
   });
+});
+
+test('correo opcional: se normaliza si viene y se valida su formato (RF 5.1.14)', () => {
+  const hoy = { hoy: new Date(2026, 0, 1) };
+  const conCorreo = validatePaciente({ ...pacienteValido, correo: '  Luis.Garcia@Gmail.com ' }, hoy);
+  assert.deepEqual(conCorreo.errors, []);
+  assert.equal(conCorreo.data.correo, 'luis.garcia@gmail.com');
+  assert.equal(validatePaciente({ ...pacienteValido, correo: '' }, hoy).data.correo, null);
+  for (const correo of ['sin-arroba', 'a@b', 'a b@c.mx', `${'a'.repeat(95)}@uady.mx`]) {
+    const { errors } = validatePaciente({ ...pacienteValido, correo }, hoy);
+    assert.deepEqual(errors, [{ field: 'correo', message: 'Ingresa un correo electrónico válido.' }], correo);
+  }
 });
 
 test('exige campos obligatorios del paciente', () => {

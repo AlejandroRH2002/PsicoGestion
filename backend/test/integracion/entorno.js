@@ -57,7 +57,7 @@ export async function iniciarEntorno() {
   const client = await pool.connect();
   try {
     await aplicarMigraciones(client);
-    await client.query('TRUNCATE paciente_archivo, paciente, terapeuta, codigo_recuperacion, secretaria RESTART IDENTITY CASCADE');
+    await client.query('TRUNCATE cita_bloque, cita, bloque_horario, paciente_archivo, sala, paciente, terapeuta, codigo_recuperacion, secretaria RESTART IDENTITY CASCADE');
   } finally {
     client.release();
   }
