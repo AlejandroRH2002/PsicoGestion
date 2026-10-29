@@ -1,0 +1,2596 @@
+{
+  "meta": {
+    "repo": "AlejandroRH2002/PsicoGestion",
+    "fecha": "2026-10-29T16:46:35.565Z",
+    "headMain": "112b591083cc9d8fc0e1b7e73089b9593377c21a",
+    "sinGithub": false
+  },
+  "criterios": [
+    {
+      "id": "C1",
+      "titulo": "Sin commits directos a `main`",
+      "fuente": "README §3, §13",
+      "cumple": 10,
+      "total": 15
+    },
+    {
+      "id": "C2",
+      "titulo": "Ramas con prefijo `feature/` o `fix/`",
+      "fuente": "README §3.1–3.2",
+      "cumple": 21,
+      "total": 24
+    },
+    {
+      "id": "C3a",
+      "titulo": "Commits con formato `tipo: descripción`",
+      "fuente": "README §9",
+      "cumple": 58,
+      "total": 69
+    },
+    {
+      "id": "C3b",
+      "titulo": "Commits trazables a RF/RNF o tarea",
+      "fuente": "CLAUDE.md / SQAP",
+      "cumple": 13,
+      "total": 69
+    },
+    {
+      "id": "C4",
+      "titulo": "Integraciones a `main` mediante PR",
+      "fuente": "README §4, §11",
+      "cumple": 10,
+      "total": 15
+    },
+    {
+      "id": "C5",
+      "titulo": "PR fusionados con aprobación de otra persona",
+      "fuente": "README §12–13",
+      "cumple": 0,
+      "total": 14
+    },
+    {
+      "id": "C6",
+      "titulo": "PR con la descripción de la plantilla completa",
+      "fuente": "README §11",
+      "cumple": 5,
+      "total": 19
+    },
+    {
+      "id": "C7",
+      "titulo": "Ramas remotas vigentes (no quedaron tras fusionarse)",
+      "fuente": "README §14, Regla 2",
+      "cumple": 6,
+      "total": 21
+    },
+    {
+      "id": "C8",
+      "titulo": "`main` protegida en GitHub",
+      "fuente": "README §3, §13",
+      "cumple": 0,
+      "total": 0
+    }
+  ],
+  "commits": [
+    {
+      "hash": "4fc457864e7cdcadc92f4f687f692a6bd5aa82ee",
+      "padres": [
+        "112b591083cc9d8fc0e1b7e73089b9593377c21a"
+      ],
+      "autor": "Emiliano Antonio Arceo Márquez",
+      "correo": "74621218+EmilianoArceo1@users.noreply.github.com",
+      "fecha": "2026-10-28T20:41:13-06:00",
+      "asunto": "docs: actualizar manual técnico v0.2.0",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "112b591083cc9d8fc0e1b7e73089b9593377c21a",
+      "padres": [
+        "3a5317cf90d94b3ae7bb073ebd97255a80169495"
+      ],
+      "autor": "Emiliano Antonio Arceo Márquez",
+      "correo": "74621218+EmilianoArceo1@users.noreply.github.com",
+      "fecha": "2026-10-23T17:36:35-06:00",
+      "asunto": "Add files via upload",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": false,
+        "motivo": "sin prefijo `tipo: descripción`"
+      },
+      "trazable": false
+    },
+    {
+      "hash": "5bbbfc0d333edcff84ec3fb04df335c827d8944f",
+      "padres": [
+        "706f60b2f237d506405929907d081a63a325efe4"
+      ],
+      "autor": "Emiliano Antonio Arceo Márquez",
+      "correo": "74621218+EmilianoArceo1@users.noreply.github.com",
+      "fecha": "2026-10-23T16:40:07-06:00",
+      "asunto": "agregar manual de usuario PsicoGestión v0.2.0",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": false,
+        "motivo": "sin prefijo `tipo: descripción`"
+      },
+      "trazable": false
+    },
+    {
+      "hash": "3a5317cf90d94b3ae7bb073ebd97255a80169495",
+      "padres": [
+        "b19f11c6f418f1f34e6020b5e16b252ebde170a4",
+        "fd458069ca1c2944af79f65100b8ff043f619002"
+      ],
+      "autor": "VictorHugoRok",
+      "correo": "142284911+VictorHugoRok@users.noreply.github.com",
+      "fecha": "2026-10-19T10:28:11-06:00",
+      "asunto": "Merge pull request #19 from AlejandroRH2002/fix/observaciones-fca-02",
+      "cuerpo": "fix: corregir observaciones FCA-02 de salas, citas y agenda (RF 4.2, RF 5.1.14, RF 5.4.2)",
+      "esMerge": true,
+      "formato": null,
+      "trazable": true
+    },
+    {
+      "hash": "fd458069ca1c2944af79f65100b8ff043f619002",
+      "padres": [
+        "50b982bc255f262cf6e15baaef85fcad16196dbb"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-18T00:06:51-06:00",
+      "asunto": "feat(sesion): confirmar antes de cerrar sesión",
+      "cuerpo": "El botón «Cerrar Sesión» del sidebar cerraba la sesión al primer clic, y\nun clic accidental descartaba lo capturado en un formulario. Ahora abre un\ndiálogo «¿Cerrar sesión?» (Volver / Cerrar sesión), con el mismo estilo\nque los de cancelar cita y eliminar sala. Como el sidebar vive en\nAppLayout, aplica a todas las vistas con sesión.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "50b982bc255f262cf6e15baaef85fcad16196dbb",
+      "padres": [
+        "eea07e5afeb5eacb5e6f5e6ce5d9836aec5ad462"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-17T23:54:09-06:00",
+      "asunto": "docs: documentar correcciones FCA-02 (salas, citas, agenda)",
+      "cuerpo": "Contrato de DELETE /salas/:id y GET /citas/folio/:folio, notificación por\ncorreo, migraciones 009/010, render de continuidad en la agenda y notas de\nimplementación de Sala y Paciente.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "eea07e5afeb5eacb5e6f5e6ce5d9836aec5ad462",
+      "padres": [
+        "8971afa824b5faa112a400de8f8f46d601ea84af"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-17T23:54:03-06:00",
+      "asunto": "test: cubrir eliminación de salas, correo del paciente, confirmación y folio",
+      "cuerpo": "- salas: baja lógica, 404, 409 con citas pendientes, nombre liberado y\n  rechazo de citas nuevas en una sala eliminada (RF 4.2).\n- pacientes: correo opcional (alta, edición, borrado, formato).\n- citas: GET /citas/folio/:folio (200/400/404/401) y resultado de\n  `notificacion` (sin_correo, enviada, no_aplica) (RF 5.1.14, RF 5.4.2).\n- unitarias: parseFolio, redactarConfirmacion y validación del correo.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "8971afa824b5faa112a400de8f8f46d601ea84af",
+      "padres": [
+        "702a487370b7c0b1bb1a0b4551dbd1509042f7de"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-17T23:54:02-06:00",
+      "asunto": "fix(agenda): marcar los bloques que ocupa una cita de más de 30 min (RF 6.1, RF 6.2.3)",
+      "cuerpo": "Los bloques posteriores al de inicio aparecían como «Espacio disponible».\nAhora la vista de día muestra «Continúa: paciente · sala (hasta hh:mm)» y\nla semanal un chip «↳ paciente» en las horas que la cita sigue ocupando\n(citasEnCurso). La impresión hereda el cambio porque clona la vista.\n\nObservación FCA-02 (agenda).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "702a487370b7c0b1bb1a0b4551dbd1509042f7de",
+      "padres": [
+        "aede32cd0858b692631b73b6613991d79e10c43c"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-17T23:54:02-06:00",
+      "asunto": "feat(citas): confirmación por correo al paciente y cancelación por folio (RF 5.1.14, RF 5.4.2)",
+      "cuerpo": "RF 5.1.14\n- Migración 010: paciente.correo opcional (sin UNIQUE: un tutor puede\n  compartirlo). Validado en backend y frontend con el mismo mensaje; se\n  captura en el formulario de paciente y se muestra en su perfil.\n- utils/notificador.js deja de ser un stub de log: redacta la confirmación\n  (nombre, fecha y hora, folio, terapeuta, sala) y la envía con el mailer\n  existente después del COMMIT. Nunca lanza; devuelve `notificacion`\n  (enviada/destino o motivo sin_correo|error|no_aplica).\n- POST/PUT /citas incluyen `notificacion`; la pantalla de éxito y el aviso\n  tras modificar informan si se envió o por qué no.\n\nRF 5.4.2\n- GET /citas/folio/:folio (formato CIT-AAAA-NNNNN, sin distinguir\n  mayúsculas; 400/404).\n- /citas: campo «Cancelar por folio» que abre el mismo diálogo de\n  confirmación (RF 5.4.3–5.4.4); informa si el folio no existe o la cita ya\n  no está Pendiente.\n\nFalla FCA-02 (RF 5.1.14) y observación de cancelación por folio.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "aede32cd0858b692631b73b6613991d79e10c43c",
+      "padres": [
+        "bde7f4d1f9898ba11062f73b28c0aa17cd65efcb"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-17T23:39:06-06:00",
+      "asunto": "feat(salas): eliminar sala con baja lógica y aviso de nombre largo (RF 4.2, RF 4.1.3)",
+      "cuerpo": "- Migración 009: sala.activo/fecha_baja; el índice único de nombre pasa a\n  ser parcial (solo salas activas), así una sala eliminada libera su nombre.\n- DELETE /salas/:id: baja lógica; 409 si la sala tiene citas Pendientes por\n  ocurrir, 404 si no existe o ya fue eliminada. FOR UPDATE contra el\n  FOR SHARE de verificarReferencias evita agendar en una sala que se elimina.\n- Catálogo, disponibilidad y rejilla de citas solo ofrecen salas activas;\n  las citas históricas conservan su sala.\n- /salas: botón Eliminar por tarjeta, diálogo de confirmación y mensaje de\n  resultado (RF 4.2.2–4.2.5).\n- El campo nombre ya no usa maxlength (recortaba en silencio lo escrito o\n  pegado): el contador se pone en rojo y el error aparece en vivo, con el\n  mismo mensaje que el validador del backend.\n\nFalla FCA-02 (RF 4.2) y observación de nombre de sala.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "bde7f4d1f9898ba11062f73b28c0aa17cd65efcb",
+      "padres": [
+        "e437d886a58b33e67c94d5d3006d05758f39f5c9"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-17T23:38:55-06:00",
+      "asunto": "fix(frontend): mensaje en español cuando no hay conexión con el servidor",
+      "cuerpo": "Salas, Citas y la agenda mostraban el «Failed to fetch» del navegador.\nLas copias locales de pedir() en sala/cita/agenda/terapeuta/paciente se\nsustituyen por pedirApi() en utils/sesion.ts, que traduce el error de red\na «No se pudo conectar con el servidor…» y conserva el redirect en 401.\n\nObservación FCA-02 (sin conexión).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "7324e40ccddb9ed9b628bb9b56f30f22f4f85857",
+      "padres": [
+        "b19f11c6f418f1f34e6020b5e16b252ebde170a4"
+      ],
+      "autor": "Tyrone J",
+      "correo": "tyronejjd24@gmail.com",
+      "fecha": "2026-10-16T02:06:09-06:00",
+      "asunto": "Fix: corregir errores resaltados en auditoria realizada",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": false,
+        "motivo": "tipo con mayúsculas (`Fix`)"
+      },
+      "trazable": false
+    },
+    {
+      "hash": "e437d886a58b33e67c94d5d3006d05758f39f5c9",
+      "padres": [
+        "1e0cf43853821d70afb0b2def8ea82f783eb97d9"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-14T00:08:53-06:00",
+      "asunto": "docs(agenda): documentar contrato, decisiones y trazabilidad",
+      "cuerpo": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "1e0cf43853821d70afb0b2def8ea82f783eb97d9",
+      "padres": [
+        "c5ed6d71f972a4e5dd7c7b4164d2723df9bcbe7d"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-14T00:08:52-06:00",
+      "asunto": "feat(agenda): pantalla de inicio con agenda e impresión carta",
+      "cuerpo": "RF 6.1-6.2 / RF 7.1-7.2 según diseño Figma: vistas de día, semana y mes,\nfiltros de terapeuta y sala, vista previa e impresión de la vista actual;\nhabilita Inicio en el sidebar y lo usa como destino tras iniciar sesión.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "c5ed6d71f972a4e5dd7c7b4164d2723df9bcbe7d",
+      "padres": [
+        "8f39c025e4b0890f466df50306a13857142ac0ff"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-14T00:08:51-06:00",
+      "asunto": "test(agenda): cubrir rangos por vista, filtros y estados visibles",
+      "cuerpo": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "8f39c025e4b0890f466df50306a13857142ac0ff",
+      "padres": [
+        "c02d84f8c3409200bedcec9d63bde7b601a03b8d"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-14T00:08:49-06:00",
+      "asunto": "feat(agenda): endpoint GET /agenda por día, semana o mes",
+      "cuerpo": "RF 6.1 / RF 7.1. Devuelve citas Pendientes y Vencidas del rango de la vista,\ncon filtros opcionales de terapeuta y sala.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "c02d84f8c3409200bedcec9d63bde7b601a03b8d",
+      "padres": [
+        "9150b4c6f71a68beb67472aa32ea4da80b90ab21"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-13T21:41:26-06:00",
+      "asunto": "docs(citas): documentar contrato, decisiones y trazabilidad",
+      "cuerpo": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "9150b4c6f71a68beb67472aa32ea4da80b90ab21",
+      "padres": [
+        "9dd10c49161e41f90faf1c9c3967db542e7d341f"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-13T21:41:25-06:00",
+      "asunto": "feat(citas): vistas de directorio, nueva cita y modificación",
+      "cuerpo": "RF 5.1-5.4 según diseño Figma: asistente en 3 pasos con rejilla semanal,\ndirectorio con pestañas por estatus, filtros y paginación, edición con\nselector de horario y confirmación; habilita Citas en el sidebar.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "9dd10c49161e41f90faf1c9c3967db542e7d341f",
+      "padres": [
+        "0b61417eff49e184345149b171c4d6d3d3d016d3"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-13T21:41:24-06:00",
+      "asunto": "test(citas): cubrir validación, rejilla, conflictos y concurrencia",
+      "cuerpo": "Incluye carrera de dos altas simultáneas ([201, 409]) e integración con la\ndisponibilidad de salas (RF 4.3.3), que ahora lee la ocupación desde citas.\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "0b61417eff49e184345149b171c4d6d3d3d016d3",
+      "padres": [
+        "ba0e69bab64533e0393f16b01600762768c5f4b5"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-13T21:41:23-06:00",
+      "asunto": "feat(citas): API de agendar, listar, modificar y cancelar citas",
+      "cuerpo": "RF 5.1-5.4. Migración 008 (bloque_horario, cita, cita_bloque) con FK RESTRICT,\nrejilla de 30 min L-V 07:00-17:00, disponibilidad derivada de citas Pendiente,\nrevalidación de cruces bajo pg_advisory_xact_lock, folio CIT-AAAA-NNNNN,\nvencimiento perezoso y notificador stub (RF 5.1.14).\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "ba0e69bab64533e0393f16b01600762768c5f4b5",
+      "padres": [
+        "cc90b87abb826d2433abdb0bc3a92f809552bc87"
+      ],
+      "autor": "Emiliano",
+      "correo": "a19204003@alumnos.uady.mx",
+      "fecha": "2026-10-13T19:19:55-06:00",
+      "asunto": "style(salas): normalizar finales de archivo",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": false,
+        "motivo": "tipo no definido en README (`style`)"
+      },
+      "trazable": false
+    },
+    {
+      "hash": "cc90b87abb826d2433abdb0bc3a92f809552bc87",
+      "padres": [
+        "392e335c4a67d60e0e1ead3c72ff26f691687a48"
+      ],
+      "autor": "Emiliano",
+      "correo": "a19204003@alumnos.uady.mx",
+      "fecha": "2026-10-13T19:19:20-06:00",
+      "asunto": "docs(salas): documentar contrato y trazabilidad",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "392e335c4a67d60e0e1ead3c72ff26f691687a48",
+      "padres": [
+        "ef7c8e5ce97d833ef2fdc2cfcd75f5481284e54b"
+      ],
+      "autor": "Emiliano",
+      "correo": "a19204003@alumnos.uady.mx",
+      "fecha": "2026-10-13T19:19:19-06:00",
+      "asunto": "test(salas): cubrir registro y reglas de disponibilidad",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "ef7c8e5ce97d833ef2fdc2cfcd75f5481284e54b",
+      "padres": [
+        "b19f11c6f418f1f34e6020b5e16b252ebde170a4"
+      ],
+      "autor": "Emiliano",
+      "correo": "a19204003@alumnos.uady.mx",
+      "fecha": "2026-10-13T19:19:19-06:00",
+      "asunto": "feat(salas): implementar registro y disponibilidad",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "b19f11c6f418f1f34e6020b5e16b252ebde170a4",
+      "padres": [
+        "ecb9b6c47521869a97f689dab1f5cb6d53a2b160",
+        "fde93f10275157437f56ffc51a0316a532b894f7"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "142283435+DanielKao72@users.noreply.github.com",
+      "fecha": "2026-10-13T16:26:48-06:00",
+      "asunto": "Merge pull request #15 from AlejandroRH2002/feature/perfil-baja-pacientes",
+      "cuerpo": "fix(pacientes): perfil, baja lógica, adjuntos y búsqueda por CURP (RF 3.1-3.3)",
+      "esMerge": true,
+      "formato": null,
+      "trazable": true
+    },
+    {
+      "hash": "867feb3eb04ba4ae9dc0935b175262b9ce3990ea",
+      "padres": [
+        "c9b7e48a7562ba32f9f657279406f853b972a381"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.mx",
+      "fecha": "2026-10-09T14:30:06-06:00",
+      "asunto": "fix(agenda): corregir tipo para asignacion de textContent en vista de mes",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "c9b7e48a7562ba32f9f657279406f853b972a381",
+      "padres": [
+        "7498f2e03c84aee5185aa0441c803cf1486d5c52"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.mx",
+      "fecha": "2026-10-09T14:26:55-06:00",
+      "asunto": "feat(citas): implementar directorio, modificacion de citas y conexion con backend",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "7498f2e03c84aee5185aa0441c803cf1486d5c52",
+      "padres": [
+        "c577b1d79f023ad00413d71d18f27190f133fec9",
+        "73b114ecb811a727338e33b04d5422522e85ecf2"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.mx",
+      "fecha": "2026-10-09T13:54:36-06:00",
+      "asunto": "Merge branch 'feature/agenda-citas' into feature/calentario-frontend",
+      "cuerpo": "",
+      "esMerge": true,
+      "formato": null,
+      "trazable": false
+    },
+    {
+      "hash": "c577b1d79f023ad00413d71d18f27190f133fec9",
+      "padres": [
+        "88aa6490e90475bd79de898d2d33ce45e4f0f7b1"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.mx",
+      "fecha": "2026-10-09T13:53:15-06:00",
+      "asunto": "refactor(citas): mover vista de calendario a /citas/calendario y actualizar sidebar",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": false,
+        "motivo": "tipo no definido en README (`refactor`)"
+      },
+      "trazable": false
+    },
+    {
+      "hash": "73b114ecb811a727338e33b04d5422522e85ecf2",
+      "padres": [
+        "ecb9b6c47521869a97f689dab1f5cb6d53a2b160"
+      ],
+      "autor": "Tyrone Johnson",
+      "correo": "tyronejjd24@gmail.com",
+      "fecha": "2026-10-09T13:25:02-06:00",
+      "asunto": "feat: flujo e interfaz de registro de citas",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "88aa6490e90475bd79de898d2d33ce45e4f0f7b1",
+      "padres": [
+        "ecb9b6c47521869a97f689dab1f5cb6d53a2b160"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.mx",
+      "fecha": "2026-10-09T13:12:30-06:00",
+      "asunto": "feat(citas): implementar modulo de agenda modular y conectar ruta en el sidebar",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "ecb9b6c47521869a97f689dab1f5cb6d53a2b160",
+      "padres": [
+        "87ae0160a45a71aff4e5eb84b7d19f586144dc3d",
+        "62bfed7bf3fb6048368d9e4b41688a54396aeb81"
+      ],
+      "autor": "Israel Cruz Morales",
+      "correo": "isracruzm@hotmail.com",
+      "fecha": "2026-10-07T15:39:18-06:00",
+      "asunto": "Merge pull request #14 from AlejandroRH2002/feature/PG-REQ-001-busqueda-pacientes-curp",
+      "cuerpo": "[PG-REQ-001] Búsqueda de pacientes y validación de CURP",
+      "esMerge": true,
+      "formato": null,
+      "trazable": true
+    },
+    {
+      "hash": "fde93f10275157437f56ffc51a0316a532b894f7",
+      "padres": [
+        "3509afe8eae249eb022570233d095613b8af1838"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-07T13:24:31-06:00",
+      "asunto": "docs: entidad paciente_archivo y fecha_baja de paciente",
+      "cuerpo": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "3509afe8eae249eb022570233d095613b8af1838",
+      "padres": [
+        "58a72ee54670f1c46837e7053633a0dad6c87651"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-07T13:24:31-06:00",
+      "asunto": "feat(pacientes): perfil, baja/reactivación, filtros y formulario compartido (RF 3.2-3.3)",
+      "cuerpo": "- pages/pacientes/{nuevo,editar,ver}.astro reemplazan registro-paciente y editar-paciente\n- FormularioPaciente.astro + iniciarFormulario() en utils/paciente.ts, con\n  mensajes idénticos al backend, aviso de cambios sin guardar y manejo de 401\n- Listado con filtros de estado/orden y enlaces al perfil\n- utils/formato.ts compartido con terapeutas\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "58a72ee54670f1c46837e7053633a0dad6c87651",
+      "padres": [
+        "ffd43096fe6fb1791e0b34df31313706fd2b9da9"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-07T13:24:30-06:00",
+      "asunto": "test(pacientes): pruebas de integración del módulo y de detección de adjuntos",
+      "cuerpo": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "ffd43096fe6fb1791e0b34df31313706fd2b9da9",
+      "padres": [
+        "62bfed7bf3fb6048368d9e4b41688a54396aeb81"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-07T13:24:29-06:00",
+      "asunto": "feat(pacientes): perfil, baja lógica y archivos adjuntos en la API (RF 3.1-3.3)",
+      "cuerpo": "- 005: fecha_baja + CHECK; 006: tabla paciente_archivo\n- PATCH /pacientes/:id/estado y ficha/edición sin filtro activo = TRUE\n- Listado con filtros estado/orden; conflicto 409 indica paciente dado de baja\n- Adjuntos validados por cabecera real, guardados en UPLOADS_DIR/pacientes y\n  descargables solo con sesión (GET /pacientes/:id/archivos/:idArchivo)\n- RF 3.1.9: edad mínima de 7 años también en el backend\n- Solo /uploads/terapeutas se sirve estáticamente (RNF 3.2.7)\n- Helpers de almacenamiento compartidos con terapeutas\n\nCo-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "4ed1c49f2f3376c7c0d752463836e266760873db",
+      "padres": [
+        "13e4254cf0a078a60128ef91ceff1912cd54e1fb"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-10-06T20:13:50-06:00",
+      "asunto": "fix: priorizar existencia y edad antes de duplicados al editar pacientes",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "13e4254cf0a078a60128ef91ceff1912cd54e1fb",
+      "padres": [
+        "d33473b5100f8512eb403d50235b272ab95d4ebd"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-10-06T20:10:29-06:00",
+      "asunto": "fix: manejar conflictos UNIQUE desconocidos en pacientes",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "d33473b5100f8512eb403d50235b272ab95d4ebd",
+      "padres": [
+        "9f1c5fa3b9ba594f0e6f5835f32c14513e9c0fc8"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-10-06T20:01:51-06:00",
+      "asunto": "fix: validar cuerpos no objeto en solicitudes de pacientes",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "9f1c5fa3b9ba594f0e6f5835f32c14513e9c0fc8",
+      "padres": [
+        "13d4aae1fc931358692c0436dd0abdf405e921e5"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-10-06T20:00:49-06:00",
+      "asunto": "fix: responder 400 seguro ante errores de parseo JSON",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "13d4aae1fc931358692c0436dd0abdf405e921e5",
+      "padres": [
+        "7dfdfaf9d657742e77e2a0d6d28798062de57702"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-10-06T19:44:36-06:00",
+      "asunto": "fix: validar edad minima de pacientes al crear y editar",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "7dfdfaf9d657742e77e2a0d6d28798062de57702",
+      "padres": [
+        "6ddf305e51a771170845482a294949ac90784213"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-10-06T19:43:09-06:00",
+      "asunto": "test: usar fechas relativas y verificar edad al editar pacientes",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "6ddf305e51a771170845482a294949ac90784213",
+      "padres": [
+        "87ae0160a45a71aff4e5eb84b7d19f586144dc3d"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-10-06T19:37:16-06:00",
+      "asunto": "test: agregar pruebas de edicion, unicidad y edad de pacientes",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "62bfed7bf3fb6048368d9e4b41688a54396aeb81",
+      "padres": [
+        "87ae0160a45a71aff4e5eb84b7d19f586144dc3d"
+      ],
+      "autor": "Emiliano",
+      "correo": "a19204003@alumnos.uady.mx",
+      "fecha": "2026-10-05T19:05:16-06:00",
+      "asunto": "feat(pacientes): PG-REQ-001 agregar búsqueda y validación de CURP",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "87ae0160a45a71aff4e5eb84b7d19f586144dc3d",
+      "padres": [
+        "9cf353b67b8ac88fe08db9d62d0ee9fbe8a487fc",
+        "f4b666fcb1a46f53ee306b70df0bb36813c97bce"
+      ],
+      "autor": "Israel Cruz Morales",
+      "correo": "isracruzm@hotmail.com",
+      "fecha": "2026-10-05T12:18:07-06:00",
+      "asunto": "Merge pull request #13 from AlejandroRH2002/feature/editar-pacientes",
+      "cuerpo": "Feature/editar pacientes",
+      "esMerge": true,
+      "formato": null,
+      "trazable": false
+    },
+    {
+      "hash": "f4b666fcb1a46f53ee306b70df0bb36813c97bce",
+      "padres": [
+        "6fe2851c00039dd87e0d9fa063af08337d97a3d8"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.mx",
+      "fecha": "2026-10-05T00:33:40-06:00",
+      "asunto": "feat(frontend): integrar AppLayout, validaciones de edicion y centro de notificaciones",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "6fe2851c00039dd87e0d9fa063af08337d97a3d8",
+      "padres": [
+        "d5825cb5b53c7083b98b98db1dfbb0b400275a87"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.mx",
+      "fecha": "2026-10-05T00:32:55-06:00",
+      "asunto": "feat(pacientes): implementar edicion de pacientes, soporte multipart y centro de notificaciones",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "d5825cb5b53c7083b98b98db1dfbb0b400275a87",
+      "padres": [
+        "16998052d2391efc9675e63693018c9e8de46453",
+        "9cf353b67b8ac88fe08db9d62d0ee9fbe8a487fc"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.mx",
+      "fecha": "2026-10-04T21:49:00-06:00",
+      "asunto": "Merge branch 'main' into feature/editar-pacientes",
+      "cuerpo": "",
+      "esMerge": true,
+      "formato": null,
+      "trazable": false
+    },
+    {
+      "hash": "9cf353b67b8ac88fe08db9d62d0ee9fbe8a487fc",
+      "padres": [
+        "90a9067897c5a5669e163196ed5bb62d4a7c3bd4",
+        "a589aa31faa9436d2f9bbd3b83543e17b5a66b94"
+      ],
+      "autor": "Israel Cruz Morales",
+      "correo": "isracruzm@hotmail.com",
+      "fecha": "2026-10-02T13:57:06-06:00",
+      "asunto": "Merge pull request #12 from AlejandroRH2002/feature/creacion-pacientes",
+      "cuerpo": "Feature/creacion pacientes",
+      "esMerge": true,
+      "formato": null,
+      "trazable": false
+    },
+    {
+      "hash": "a589aa31faa9436d2f9bbd3b83543e17b5a66b94",
+      "padres": [
+        "dcff711a628eaa9ea75a8d0e72c319dc76d5a9a8",
+        "90a9067897c5a5669e163196ed5bb62d4a7c3bd4"
+      ],
+      "autor": "Israel Cruz Morales",
+      "correo": "isracruzm@hotmail.com",
+      "fecha": "2026-10-02T13:43:01-06:00",
+      "asunto": "Merge branch 'main' into feature/creacion-pacientes",
+      "cuerpo": "",
+      "esMerge": true,
+      "formato": null,
+      "trazable": false
+    },
+    {
+      "hash": "90a9067897c5a5669e163196ed5bb62d4a7c3bd4",
+      "padres": [
+        "53641823a3079c41bfe9cabb0ce9860e7392b6aa",
+        "242d54847d182af9bc13431b4fcf5a823bf494c0"
+      ],
+      "autor": "VictorHugoRok",
+      "correo": "142284911+VictorHugoRok@users.noreply.github.com",
+      "fecha": "2026-10-02T13:29:06-06:00",
+      "asunto": "Merge pull request #6 from AlejandroRH2002/feature/migraciones-pacientes-terapeutas",
+      "cuerpo": "feat: agregar migraciones de base de datos para terapeutas y pacientes",
+      "esMerge": true,
+      "formato": null,
+      "trazable": false
+    },
+    {
+      "hash": "242d54847d182af9bc13431b4fcf5a823bf494c0",
+      "padres": [
+        "ebdd65d23eec2db00808c1f48e2e4ef3cd0a443c",
+        "53641823a3079c41bfe9cabb0ce9860e7392b6aa"
+      ],
+      "autor": "VictorHugoRok",
+      "correo": "142284911+VictorHugoRok@users.noreply.github.com",
+      "fecha": "2026-10-02T13:28:16-06:00",
+      "asunto": "Merge branch 'main' into feature/migraciones-pacientes-terapeutas",
+      "cuerpo": "",
+      "esMerge": true,
+      "formato": null,
+      "trazable": false
+    },
+    {
+      "hash": "16998052d2391efc9675e63693018c9e8de46453",
+      "padres": [
+        "dcff711a628eaa9ea75a8d0e72c319dc76d5a9a8"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-10-02T09:00:54-06:00",
+      "asunto": "feat(pacientes): add patient list and edit flow",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "53641823a3079c41bfe9cabb0ce9860e7392b6aa",
+      "padres": [
+        "46e30bc921b4a174685d8ba9d13066bc3eba83c0",
+        "94e2396f5c540064a0fa4ca4730846a873e22f78"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "142283435+DanielKao72@users.noreply.github.com",
+      "fecha": "2026-10-01T18:16:26-06:00",
+      "asunto": "Merge pull request #8 from AlejandroRH2002/feature/editar-terapeutas",
+      "cuerpo": "Feature/editar terapeutas",
+      "esMerge": true,
+      "formato": null,
+      "trazable": false
+    },
+    {
+      "hash": "94e2396f5c540064a0fa4ca4730846a873e22f78",
+      "padres": [
+        "f2790cca7a5d6f399f11d1bbe441ab1ffa5c9ebb"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-01T18:08:29-06:00",
+      "asunto": "docs: agregar TEST_DATABASE_URL a .env.example para las pruebas de integración",
+      "cuerpo": "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "f2790cca7a5d6f399f11d1bbe441ab1ffa5c9ebb",
+      "padres": [
+        "71e62301f21bcba34f4b35f57925802e541892af"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-01T17:59:38-06:00",
+      "asunto": "feat: add therapist detail view with loading and error handling",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "71e62301f21bcba34f4b35f57925802e541892af",
+      "padres": [
+        "2975f0dfb84a7f2c744e66ea7ec9f7e8d6b6ea79"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-01T17:58:45-06:00",
+      "asunto": "feat: implement therapist management features including registration, listing, and status updates",
+      "cuerpo": "- Updated `package.json` to set test concurrency to 1.\n- Refactored `terapeuta.controller.js` to modularize form validation and error handling.\n- Added new migration logic in `migraciones.js` for managing schema migrations.\n- Created SQL migration file `004_terapeuta_estado.sql` for logical deletion of therapists.\n- Enhanced `terapeuta.routes.js` to include routes for listing, updating, and changing therapist status.\n- Modified `migrate.js` to utilize new migration functions.\n- Expanded `terapeuta.service.js` to support new functionalities including therapist status management and unique field validation.\n- Added validation functions in `terapeuta.validators.js` for listing parameters and ID parsing.\n- Introduced integration tests in `terapeutas.test.js` to cover registration, listing, editing, and logical deletion of therapists.\n- Created test environment setup in `entorno.js` for integration testing.\n- Updated validator tests in `terapeuta.validators.test.js` to include new validation logic.",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "2975f0dfb84a7f2c744e66ea7ec9f7e8d6b6ea79",
+      "padres": [
+        "495a3e2173db56f83c0af2e3262a90d1c942f031"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-10-01T17:58:10-06:00",
+      "asunto": "feat: implement therapist management features",
+      "cuerpo": "- Enhance the therapist listing page with search and filter functionalities.\n- Add a new therapist registration form component for better code organization.\n- Introduce utility functions for therapist data handling, including formatting and API interactions.\n- Implement client-side validation and error handling in the therapist registration process.",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "dcff711a628eaa9ea75a8d0e72c319dc76d5a9a8",
+      "padres": [
+        "2193a036362a9bd202b9b9783ab9fb3641426002"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.mx",
+      "fecha": "2026-09-30T21:42:48-06:00",
+      "asunto": "feat: implementar vista de registro de pacientes y rutas base según RF 3.1",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": true
+    },
+    {
+      "hash": "2193a036362a9bd202b9b9783ab9fb3641426002",
+      "padres": [
+        "ebdd65d23eec2db00808c1f48e2e4ef3cd0a443c"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.mx",
+      "fecha": "2026-09-30T16:36:19-06:00",
+      "asunto": "feat: implementar modulo de registro de  terapeutas con api, validaciones y vista de registro",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "ebdd65d23eec2db00808c1f48e2e4ef3cd0a443c",
+      "padres": [
+        "46e30bc921b4a174685d8ba9d13066bc3eba83c0"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.mx",
+      "fecha": "2026-09-30T14:04:28-06:00",
+      "asunto": "feat: agregar migraciones de base de datos para terapeutas y pacientes",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "495a3e2173db56f83c0af2e3262a90d1c942f031",
+      "padres": [
+        "c643b5e42a52cc655d8e1f5c8aebf6a4553f1df4"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-09-30T13:38:59-06:00",
+      "asunto": "chore: remove VSCode settings file",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": false,
+        "motivo": "tipo no definido en README (`chore`)"
+      },
+      "trazable": false
+    },
+    {
+      "hash": "c643b5e42a52cc655d8e1f5c8aebf6a4553f1df4",
+      "padres": [
+        "da345861a3cc59e46e278f6b98618821a14b9d12"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-09-30T13:31:38-06:00",
+      "asunto": "feat: add environment setup for unit tests with mock database and email domains",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "da345861a3cc59e46e278f6b98618821a14b9d12",
+      "padres": [
+        "da83e534b06f829b371141312eab5c37a82d73f1"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-09-30T13:30:38-06:00",
+      "asunto": "feat: implement therapist registration functionality with image upload and validation",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "da83e534b06f829b371141312eab5c37a82d73f1",
+      "padres": [
+        "46e30bc921b4a174685d8ba9d13066bc3eba83c0"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-09-30T13:29:02-06:00",
+      "asunto": "feat: add logo and implement new components for therapist registration",
+      "cuerpo": "- Added logo SVG for the application.\n- Created CampoTexto component for input fields with optional character counter and help text.\n- Developed FotoUploader component for profile picture upload with validation.\n- Implemented Sidebar component for navigation with session management.\n- Added TopBar component for page titles and navigation.\n- Updated AppLayout to include Sidebar and TopBar.\n- Created index page for therapist management with redirection after login.\n- Developed new page for listing therapists with a message for successful registration.\n- Implemented new page for registering a therapist with form validation and error handling.\n- Added image validation utility for profile pictures.\n- Enhanced session management utilities for user authentication.",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "46e30bc921b4a174685d8ba9d13066bc3eba83c0",
+      "padres": [
+        "11099fc2cbfc737141d055e4457fcad80d0567d1",
+        "5400ed3be4143e18859b69b42258b69c86fa4778"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "125323622+AlejandroRH2002@users.noreply.github.com",
+      "fecha": "2026-09-23T19:14:25-06:00",
+      "asunto": "Merge pull request #5 from AlejandroRH2002/feature/recuperar-contraseña",
+      "cuerpo": "Feature/recuperar contraseña",
+      "esMerge": true,
+      "formato": null,
+      "trazable": false
+    },
+    {
+      "hash": "5400ed3be4143e18859b69b42258b69c86fa4778",
+      "padres": [
+        "5e41c8e738434d1428ad92a23be6faea81c58715"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-09-23T14:21:54-06:00",
+      "asunto": "feat: add password recovery functionality with email verification and reset process",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "5e41c8e738434d1428ad92a23be6faea81c58715",
+      "padres": [
+        "f7518a9aa8b217d2abac8ab9d922f28a93d029b0"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-09-23T14:21:30-06:00",
+      "asunto": "feat: implement password recovery flow with email verification and new password setup",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "f7518a9aa8b217d2abac8ab9d922f28a93d029b0",
+      "padres": [
+        "ac549842b9f598ba9e66b7ba93c54e9176ea6aa3",
+        "2577a34f3366d08a39f510ac374a61434e5ce216"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-09-22T17:59:58-06:00",
+      "asunto": "Merge branch 'feature/recuperar-contraseña' of github.com:AlejandroRH2002/PsicoGestion into feature/recuperar-contraseña",
+      "cuerpo": "",
+      "esMerge": true,
+      "formato": null,
+      "trazable": false
+    },
+    {
+      "hash": "ac549842b9f598ba9e66b7ba93c54e9176ea6aa3",
+      "padres": [
+        "11099fc2cbfc737141d055e4457fcad80d0567d1"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.com",
+      "fecha": "2026-09-11T16:31:34-06:00",
+      "asunto": "feat: agregar pantalla de recuperación",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "11099fc2cbfc737141d055e4457fcad80d0567d1",
+      "padres": [
+        "b9d025504b19a7a3ddba99e8d18491a2bafcee14",
+        "c97886170f1a52021aa630d6b10b02ebe1839e3c"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "125323622+AlejandroRH2002@users.noreply.github.com",
+      "fecha": "2026-09-22T16:35:24-06:00",
+      "asunto": "Merge pull request #3 from AlejandroRH2002/feature/registro-usuarios",
+      "cuerpo": "Feature/registro usuarios",
+      "esMerge": true,
+      "formato": null,
+      "trazable": false
+    },
+    {
+      "hash": "b9d025504b19a7a3ddba99e8d18491a2bafcee14",
+      "padres": [
+        "3a4776d8b3e88ac22fa76d3b189a725945134735",
+        "dad4c93f8943e2208b9a0439272e81276182931a"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "125323622+AlejandroRH2002@users.noreply.github.com",
+      "fecha": "2026-09-22T16:35:12-06:00",
+      "asunto": "Merge pull request #4 from AlejandroRH2002/feature/base-de-datos",
+      "cuerpo": "Feature/base de datos",
+      "esMerge": true,
+      "formato": null,
+      "trazable": false
+    },
+    {
+      "hash": "c97886170f1a52021aa630d6b10b02ebe1839e3c",
+      "padres": [
+        "309fa641b8f002d583f56b21afd3e37651594c66"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-09-22T12:46:34-06:00",
+      "asunto": "feat: initialize backend with authentication and migration setup",
+      "cuerpo": "- Add package.json for backend dependencies and scripts.\n- Create app.js to set up Express server with middleware and routes.\n- Implement environment configuration in env.js.\n- Develop authentication controller with registration and login functionalities.\n- Set up PostgreSQL connection pool in pool.js.\n- Create error handling middleware.\n- Add SQL migration for secretaria table.\n- Define authentication routes with rate limiting.\n- Implement migration script to handle database schema updates.\n- Set up server entry point in server.js.\n- Create authentication service for user registration and login.\n- Implement JWT utility functions for session management.\n- Add input validation for registration and login processes.",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "309fa641b8f002d583f56b21afd3e37651594c66",
+      "padres": [
+        "ce1da557b7b24f8c0b39bfc595e5c96853bbe0c1"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-09-22T12:44:17-06:00",
+      "asunto": "feat: :construction_worker: add docker-compose configuration for PostgreSQL service",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "ce1da557b7b24f8c0b39bfc595e5c96853bbe0c1",
+      "padres": [
+        "be4f6a6ba3a44b928891174b99c55387e0c5ba09"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-09-22T12:43:11-06:00",
+      "asunto": "build: :arrow_up: add .env.example file for frontend",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": false,
+        "motivo": "tipo no definido en README (`build`)"
+      },
+      "trazable": false
+    },
+    {
+      "hash": "be4f6a6ba3a44b928891174b99c55387e0c5ba09",
+      "padres": [
+        "ec0d79b5db765ff6a88f83cd17c009bfc1e40374"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-09-22T12:42:11-06:00",
+      "asunto": "style: :lipstick: update login/registration pages for PsicoGestión branding",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": false,
+        "motivo": "tipo no definido en README (`style`)"
+      },
+      "trazable": false
+    },
+    {
+      "hash": "dad4c93f8943e2208b9a0439272e81276182931a",
+      "padres": [
+        "b2e07cf3d4b67800441fa4a7eadd3cf410777f37"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "a19201340@alumnos.uady.mx",
+      "fecha": "2026-09-21T13:36:13-06:00",
+      "asunto": "Add database schema for PsicoGestion",
+      "cuerpo": "- Created `BloqueHorario` entity to represent time blocks for appointments.\n- Added `CitaBloque` entity to link appointments with time blocks.\n- Introduced `Cita` entity to manage patient-therapist appointments.\n- Established `DisponibilidadSala` and `DisponibilidadTerapeuta` entities for room and therapist availability.\n- Defined `Paciente` entity to store patient information.\n- Created `Sala` entity for physical spaces where appointments occur.\n- Implemented `Secretaria` and `Terapeuta` entities for managing staff information.\n- Added SQL scripts for creating tables and types in PostgreSQL.\n- Included documentation for each entity detailing structure and design considerations.",
+      "esMerge": false,
+      "formato": {
+        "cumple": false,
+        "motivo": "sin prefijo `tipo: descripción`"
+      },
+      "trazable": false
+    },
+    {
+      "hash": "2577a34f3366d08a39f510ac374a61434e5ce216",
+      "padres": [
+        "ec0d79b5db765ff6a88f83cd17c009bfc1e40374"
+      ],
+      "autor": "Alexandercp7",
+      "correo": "A22216350@alumnos.uady.com",
+      "fecha": "2026-09-11T16:31:34-06:00",
+      "asunto": "feat: agregar pantalla de recuperación",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "ec0d79b5db765ff6a88f83cd17c009bfc1e40374",
+      "padres": [
+        "3a4776d8b3e88ac22fa76d3b189a725945134735"
+      ],
+      "autor": "Tyrone Johnson",
+      "correo": "tyronejjd24@gmail.com",
+      "fecha": "2026-09-11T14:24:31-06:00",
+      "asunto": "feature: agregar páginas de login y registro de usuarios",
+      "cuerpo": "config: inicializar proyecto de ASTRO",
+      "esMerge": false,
+      "formato": {
+        "cumple": false,
+        "motivo": "tipo desconocido (`feature`)"
+      },
+      "trazable": false
+    },
+    {
+      "hash": "b2e07cf3d4b67800441fa4a7eadd3cf410777f37",
+      "padres": [
+        "3a4776d8b3e88ac22fa76d3b189a725945134735"
+      ],
+      "autor": "Emiliano",
+      "correo": "a19204003@alumnos.uady.mx",
+      "fecha": "2026-09-09T18:04:33-06:00",
+      "asunto": "docs(db): agrega diseño y documentación de la entidad secretaria",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "3a4776d8b3e88ac22fa76d3b189a725945134735",
+      "padres": [
+        "00e838562cd1f6c572874e091256fbd527f9a531"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-09-01T10:14:03-06:00",
+      "asunto": "docs: actualizar README y estructura del repositorio según ACS",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "00e838562cd1f6c572874e091256fbd527f9a531",
+      "padres": [
+        "6c275142e86b8e89015145cecb3e05987889341a"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-09-01T09:45:34-06:00",
+      "asunto": "docs: actualización de la descripcion del proyecto",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "6c275142e86b8e89015145cecb3e05987889341a",
+      "padres": [
+        "706f60b2f237d506405929907d081a63a325efe4"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-08-28T13:33:57-06:00",
+      "asunto": "docs: agregar guia de gestion de configuracion con GitHub",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": true,
+        "motivo": ""
+      },
+      "trazable": false
+    },
+    {
+      "hash": "706f60b2f237d506405929907d081a63a325efe4",
+      "padres": [],
+      "autor": "AlejandroRH2002",
+      "correo": "125323622+AlejandroRH2002@users.noreply.github.com",
+      "fecha": "2026-08-20T17:53:49-06:00",
+      "asunto": "Initial commit",
+      "cuerpo": "",
+      "esMerge": false,
+      "formato": {
+        "cumple": false,
+        "motivo": "sin prefijo `tipo: descripción`"
+      },
+      "trazable": false
+    }
+  ],
+  "historialMain": [
+    {
+      "hash": "112b591083cc9d8fc0e1b7e73089b9593377c21a",
+      "padres": [
+        "3a5317cf90d94b3ae7bb073ebd97255a80169495"
+      ],
+      "autor": "Emiliano Antonio Arceo Márquez",
+      "correo": "74621218+EmilianoArceo1@users.noreply.github.com",
+      "fecha": "2026-10-23T17:36:35-06:00",
+      "asunto": "Add files via upload",
+      "cuerpo": "",
+      "esMerge": false,
+      "pr": null,
+      "nota": "subido desde la interfaz web de GitHub"
+    },
+    {
+      "hash": "3a5317cf90d94b3ae7bb073ebd97255a80169495",
+      "padres": [
+        "b19f11c6f418f1f34e6020b5e16b252ebde170a4",
+        "fd458069ca1c2944af79f65100b8ff043f619002"
+      ],
+      "autor": "VictorHugoRok",
+      "correo": "142284911+VictorHugoRok@users.noreply.github.com",
+      "fecha": "2026-10-19T10:28:11-06:00",
+      "asunto": "Merge pull request #19 from AlejandroRH2002/fix/observaciones-fca-02",
+      "cuerpo": "fix: corregir observaciones FCA-02 de salas, citas y agenda (RF 4.2, RF 5.1.14, RF 5.4.2)",
+      "esMerge": true,
+      "pr": 19,
+      "nota": ""
+    },
+    {
+      "hash": "b19f11c6f418f1f34e6020b5e16b252ebde170a4",
+      "padres": [
+        "ecb9b6c47521869a97f689dab1f5cb6d53a2b160",
+        "fde93f10275157437f56ffc51a0316a532b894f7"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "142283435+DanielKao72@users.noreply.github.com",
+      "fecha": "2026-10-13T16:26:48-06:00",
+      "asunto": "Merge pull request #15 from AlejandroRH2002/feature/perfil-baja-pacientes",
+      "cuerpo": "fix(pacientes): perfil, baja lógica, adjuntos y búsqueda por CURP (RF 3.1-3.3)",
+      "esMerge": true,
+      "pr": 15,
+      "nota": ""
+    },
+    {
+      "hash": "ecb9b6c47521869a97f689dab1f5cb6d53a2b160",
+      "padres": [
+        "87ae0160a45a71aff4e5eb84b7d19f586144dc3d",
+        "62bfed7bf3fb6048368d9e4b41688a54396aeb81"
+      ],
+      "autor": "Israel Cruz Morales",
+      "correo": "isracruzm@hotmail.com",
+      "fecha": "2026-10-07T15:39:18-06:00",
+      "asunto": "Merge pull request #14 from AlejandroRH2002/feature/PG-REQ-001-busqueda-pacientes-curp",
+      "cuerpo": "[PG-REQ-001] Búsqueda de pacientes y validación de CURP",
+      "esMerge": true,
+      "pr": 14,
+      "nota": ""
+    },
+    {
+      "hash": "87ae0160a45a71aff4e5eb84b7d19f586144dc3d",
+      "padres": [
+        "9cf353b67b8ac88fe08db9d62d0ee9fbe8a487fc",
+        "f4b666fcb1a46f53ee306b70df0bb36813c97bce"
+      ],
+      "autor": "Israel Cruz Morales",
+      "correo": "isracruzm@hotmail.com",
+      "fecha": "2026-10-05T12:18:07-06:00",
+      "asunto": "Merge pull request #13 from AlejandroRH2002/feature/editar-pacientes",
+      "cuerpo": "Feature/editar pacientes",
+      "esMerge": true,
+      "pr": 13,
+      "nota": ""
+    },
+    {
+      "hash": "9cf353b67b8ac88fe08db9d62d0ee9fbe8a487fc",
+      "padres": [
+        "90a9067897c5a5669e163196ed5bb62d4a7c3bd4",
+        "a589aa31faa9436d2f9bbd3b83543e17b5a66b94"
+      ],
+      "autor": "Israel Cruz Morales",
+      "correo": "isracruzm@hotmail.com",
+      "fecha": "2026-10-02T13:57:06-06:00",
+      "asunto": "Merge pull request #12 from AlejandroRH2002/feature/creacion-pacientes",
+      "cuerpo": "Feature/creacion pacientes",
+      "esMerge": true,
+      "pr": 12,
+      "nota": ""
+    },
+    {
+      "hash": "90a9067897c5a5669e163196ed5bb62d4a7c3bd4",
+      "padres": [
+        "53641823a3079c41bfe9cabb0ce9860e7392b6aa",
+        "242d54847d182af9bc13431b4fcf5a823bf494c0"
+      ],
+      "autor": "VictorHugoRok",
+      "correo": "142284911+VictorHugoRok@users.noreply.github.com",
+      "fecha": "2026-10-02T13:29:06-06:00",
+      "asunto": "Merge pull request #6 from AlejandroRH2002/feature/migraciones-pacientes-terapeutas",
+      "cuerpo": "feat: agregar migraciones de base de datos para terapeutas y pacientes",
+      "esMerge": true,
+      "pr": 6,
+      "nota": ""
+    },
+    {
+      "hash": "53641823a3079c41bfe9cabb0ce9860e7392b6aa",
+      "padres": [
+        "46e30bc921b4a174685d8ba9d13066bc3eba83c0",
+        "94e2396f5c540064a0fa4ca4730846a873e22f78"
+      ],
+      "autor": "Juan Daniel Kao Pech",
+      "correo": "142283435+DanielKao72@users.noreply.github.com",
+      "fecha": "2026-10-01T18:16:26-06:00",
+      "asunto": "Merge pull request #8 from AlejandroRH2002/feature/editar-terapeutas",
+      "cuerpo": "Feature/editar terapeutas",
+      "esMerge": true,
+      "pr": 8,
+      "nota": ""
+    },
+    {
+      "hash": "46e30bc921b4a174685d8ba9d13066bc3eba83c0",
+      "padres": [
+        "11099fc2cbfc737141d055e4457fcad80d0567d1",
+        "5400ed3be4143e18859b69b42258b69c86fa4778"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "125323622+AlejandroRH2002@users.noreply.github.com",
+      "fecha": "2026-09-23T19:14:25-06:00",
+      "asunto": "Merge pull request #5 from AlejandroRH2002/feature/recuperar-contraseña",
+      "cuerpo": "Feature/recuperar contraseña",
+      "esMerge": true,
+      "pr": 5,
+      "nota": ""
+    },
+    {
+      "hash": "11099fc2cbfc737141d055e4457fcad80d0567d1",
+      "padres": [
+        "b9d025504b19a7a3ddba99e8d18491a2bafcee14",
+        "c97886170f1a52021aa630d6b10b02ebe1839e3c"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "125323622+AlejandroRH2002@users.noreply.github.com",
+      "fecha": "2026-09-22T16:35:24-06:00",
+      "asunto": "Merge pull request #3 from AlejandroRH2002/feature/registro-usuarios",
+      "cuerpo": "Feature/registro usuarios",
+      "esMerge": true,
+      "pr": 3,
+      "nota": ""
+    },
+    {
+      "hash": "b9d025504b19a7a3ddba99e8d18491a2bafcee14",
+      "padres": [
+        "3a4776d8b3e88ac22fa76d3b189a725945134735",
+        "dad4c93f8943e2208b9a0439272e81276182931a"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "125323622+AlejandroRH2002@users.noreply.github.com",
+      "fecha": "2026-09-22T16:35:12-06:00",
+      "asunto": "Merge pull request #4 from AlejandroRH2002/feature/base-de-datos",
+      "cuerpo": "Feature/base de datos",
+      "esMerge": true,
+      "pr": 4,
+      "nota": ""
+    },
+    {
+      "hash": "3a4776d8b3e88ac22fa76d3b189a725945134735",
+      "padres": [
+        "00e838562cd1f6c572874e091256fbd527f9a531"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-09-01T10:14:03-06:00",
+      "asunto": "docs: actualizar README y estructura del repositorio según ACS",
+      "cuerpo": "",
+      "esMerge": false,
+      "pr": null,
+      "nota": ""
+    },
+    {
+      "hash": "00e838562cd1f6c572874e091256fbd527f9a531",
+      "padres": [
+        "6c275142e86b8e89015145cecb3e05987889341a"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-09-01T09:45:34-06:00",
+      "asunto": "docs: actualización de la descripcion del proyecto",
+      "cuerpo": "",
+      "esMerge": false,
+      "pr": null,
+      "nota": ""
+    },
+    {
+      "hash": "6c275142e86b8e89015145cecb3e05987889341a",
+      "padres": [
+        "706f60b2f237d506405929907d081a63a325efe4"
+      ],
+      "autor": "AlejandroRH2002",
+      "correo": "alejandro.ramayo2015@gmail.com",
+      "fecha": "2026-08-28T13:33:57-06:00",
+      "asunto": "docs: agregar guia de gestion de configuracion con GitHub",
+      "cuerpo": "",
+      "esMerge": false,
+      "pr": null,
+      "nota": "configuración inicial (antes o igual a la guía de GitHub)"
+    },
+    {
+      "hash": "706f60b2f237d506405929907d081a63a325efe4",
+      "padres": [],
+      "autor": "AlejandroRH2002",
+      "correo": "125323622+AlejandroRH2002@users.noreply.github.com",
+      "fecha": "2026-08-20T17:53:49-06:00",
+      "asunto": "Initial commit",
+      "cuerpo": "",
+      "esMerge": false,
+      "pr": null,
+      "nota": "configuración inicial (antes o igual a la guía de GitHub)"
+    }
+  ],
+  "ramas": [
+    {
+      "nombre": "docs",
+      "ultimoCommit": "2026-08-20T17:53:49-06:00",
+      "autor": "AlejandroRH2002",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/PG-REQ-001-busqueda-pacientes-curp",
+      "ultimoCommit": "2026-10-05T19:05:16-06:00",
+      "autor": "Emiliano",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/agenda-citas",
+      "ultimoCommit": "2026-10-09T13:25:02-06:00",
+      "autor": "Tyrone Johnson",
+      "fusionada": false,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/agenda-inicio",
+      "ultimoCommit": "2026-10-14T00:08:53-06:00",
+      "autor": "Juan Daniel Kao Pech",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/base-de-datos",
+      "ultimoCommit": "2026-09-21T13:36:13-06:00",
+      "autor": "Juan Daniel Kao Pech",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/corregir-errores-auditoria",
+      "ultimoCommit": "2026-10-16T02:06:09-06:00",
+      "autor": "Tyrone J",
+      "fusionada": false,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/creacion-pacientes",
+      "ultimoCommit": "2026-10-02T13:43:01-06:00",
+      "autor": "Israel Cruz Morales",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/editar-pacientes",
+      "ultimoCommit": "2026-10-05T00:33:40-06:00",
+      "autor": "Alexandercp7",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/editar-terapeutas",
+      "ultimoCommit": "2026-10-01T18:08:29-06:00",
+      "autor": "Juan Daniel Kao Pech",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/gestion-citas",
+      "ultimoCommit": "2026-10-09T14:30:06-06:00",
+      "autor": "Alexandercp7",
+      "fusionada": false,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/gestion-citas-v2",
+      "ultimoCommit": "2026-10-13T21:41:26-06:00",
+      "autor": "Juan Daniel Kao Pech",
+      "fusionada": true,
+      "sufijoVersion": true
+    },
+    {
+      "nombre": "feature/gestion-terapeutas",
+      "ultimoCommit": "2026-09-30T16:36:19-06:00",
+      "autor": "Alexandercp7",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/manual-tecnico-v0.2.0",
+      "ultimoCommit": "2026-10-28T20:41:13-06:00",
+      "autor": "Emiliano Antonio Arceo Márquez",
+      "fusionada": false,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/perfil-baja-pacientes",
+      "ultimoCommit": "2026-10-07T13:24:31-06:00",
+      "autor": "Juan Daniel Kao Pech",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/recuperar-contraseña",
+      "ultimoCommit": "2026-09-23T14:21:54-06:00",
+      "autor": "Juan Daniel Kao Pech",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/registro-disponibilidad-salas",
+      "ultimoCommit": "2026-10-13T19:19:55-06:00",
+      "autor": "Emiliano",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/registro-terapeutas",
+      "ultimoCommit": "2026-09-30T13:38:59-06:00",
+      "autor": "Juan Daniel Kao Pech",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/registro-usuarios",
+      "ultimoCommit": "2026-09-22T12:46:34-06:00",
+      "autor": "Juan Daniel Kao Pech",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "feature/validacion-cedula-profesional",
+      "ultimoCommit": "2026-10-01T18:16:26-06:00",
+      "autor": "Juan Daniel Kao Pech",
+      "fusionada": true,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "fix/validaciones-pacientes",
+      "ultimoCommit": "2026-10-06T20:13:50-06:00",
+      "autor": "AlejandroRH2002",
+      "fusionada": false,
+      "sufijoVersion": false
+    },
+    {
+      "nombre": "manual",
+      "ultimoCommit": "2026-10-23T16:40:07-06:00",
+      "autor": "Emiliano Antonio Arceo Márquez",
+      "fusionada": false,
+      "sufijoVersion": false
+    }
+  ],
+  "evaluacionRamas": [
+    {
+      "nombre": "docs",
+      "fuentes": [
+        "remoto"
+      ],
+      "cumple": false,
+      "estilo": false
+    },
+    {
+      "nombre": "feature/PG-REQ-001-busqueda-pacientes-curp",
+      "fuentes": [
+        "remoto",
+        "PR #14"
+      ],
+      "cumple": true,
+      "estilo": false
+    },
+    {
+      "nombre": "feature/agenda-citas",
+      "fuentes": [
+        "remoto"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/agenda-inicio",
+      "fuentes": [
+        "remoto",
+        "PR #18"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/base-de-datos",
+      "fuentes": [
+        "remoto",
+        "PR #4"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/corregir-errores-auditoria",
+      "fuentes": [
+        "remoto"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/creacion-pacientes",
+      "fuentes": [
+        "remoto",
+        "PR #12"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/editar-pacientes",
+      "fuentes": [
+        "remoto",
+        "PR #10",
+        "PR #13"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/editar-terapeutas",
+      "fuentes": [
+        "remoto",
+        "PR #8"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/gestion-citas",
+      "fuentes": [
+        "remoto"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/gestion-citas-v2",
+      "fuentes": [
+        "remoto",
+        "PR #17"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/gestion-terapeutas",
+      "fuentes": [
+        "remoto"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/manual-tecnico-v0.2.0",
+      "fuentes": [
+        "remoto",
+        "PR #21"
+      ],
+      "cumple": true,
+      "estilo": false
+    },
+    {
+      "nombre": "feature/perfil-baja-pacientes",
+      "fuentes": [
+        "remoto",
+        "PR #15"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/recuperar-contraseña",
+      "fuentes": [
+        "remoto",
+        "PR #2",
+        "PR #5"
+      ],
+      "cumple": true,
+      "estilo": false
+    },
+    {
+      "nombre": "feature/registro-disponibilidad-salas",
+      "fuentes": [
+        "remoto",
+        "PR #16"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/registro-terapeutas",
+      "fuentes": [
+        "remoto",
+        "PR #7"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/registro-usuarios",
+      "fuentes": [
+        "remoto",
+        "PR #3"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "feature/validacion-cedula-profesional",
+      "fuentes": [
+        "remoto"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "fix/validaciones-pacientes",
+      "fuentes": [
+        "remoto"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "manual",
+      "fuentes": [
+        "remoto",
+        "PR #20"
+      ],
+      "cumple": false,
+      "estilo": false
+    },
+    {
+      "nombre": "frontend-feature-registro",
+      "fuentes": [
+        "PR #1"
+      ],
+      "cumple": false,
+      "estilo": false
+    },
+    {
+      "nombre": "feature/migraciones-pacientes-terapeutas",
+      "fuentes": [
+        "PR #6"
+      ],
+      "cumple": true,
+      "estilo": true
+    },
+    {
+      "nombre": "fix/observaciones-fca-02",
+      "fuentes": [
+        "PR #19"
+      ],
+      "cumple": true,
+      "estilo": true
+    }
+  ],
+  "prs": [
+    {
+      "numero": 1,
+      "titulo": "Sync: Incluir frontend a main",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/1",
+      "autor": "TyJhnsnD",
+      "rama": "frontend-feature-registro",
+      "base": "main",
+      "estado": "CLOSED",
+      "creado": "2026-09-11T20:26:38Z",
+      "fusionado": null,
+      "fusionadoPor": null,
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": [
+          "descripción",
+          "cambios",
+          "módulos",
+          "pruebas",
+          "requerimiento"
+        ]
+      }
+    },
+    {
+      "numero": 2,
+      "titulo": "Feature/recuperar contraseña",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/2",
+      "autor": "Alexandercp7",
+      "rama": "feature/recuperar-contraseña",
+      "base": "main",
+      "estado": "CLOSED",
+      "creado": "2026-09-11T22:42:17Z",
+      "fusionado": null,
+      "fusionadoPor": null,
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": [
+          "módulos",
+          "requerimiento"
+        ]
+      }
+    },
+    {
+      "numero": 3,
+      "titulo": "Feature/registro usuarios",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/3",
+      "autor": "DanielKao72",
+      "rama": "feature/registro-usuarios",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-09-22T18:50:14Z",
+      "fusionado": "2026-09-22T22:35:24Z",
+      "fusionadoPor": "AlejandroRH2002",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": true,
+        "faltantes": [
+          "descripción",
+          "cambios",
+          "módulos",
+          "pruebas",
+          "requerimiento"
+        ]
+      }
+    },
+    {
+      "numero": 4,
+      "titulo": "Feature/base de datos",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/4",
+      "autor": "DanielKao72",
+      "rama": "feature/base-de-datos",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-09-22T21:07:26Z",
+      "fusionado": "2026-09-22T22:35:12Z",
+      "fusionadoPor": "AlejandroRH2002",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": true,
+        "faltantes": [
+          "descripción",
+          "cambios",
+          "módulos",
+          "pruebas",
+          "requerimiento"
+        ]
+      }
+    },
+    {
+      "numero": 5,
+      "titulo": "Feature/recuperar contraseña",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/5",
+      "autor": "DanielKao72",
+      "rama": "feature/recuperar-contraseña",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-09-23T20:24:37Z",
+      "fusionado": "2026-09-24T01:14:25Z",
+      "fusionadoPor": "AlejandroRH2002",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": true,
+        "faltantes": [
+          "descripción",
+          "cambios",
+          "módulos",
+          "pruebas",
+          "requerimiento"
+        ]
+      }
+    },
+    {
+      "numero": 6,
+      "titulo": "feat: agregar migraciones de base de datos para terapeutas y pacientes",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/6",
+      "autor": "Alexandercp7",
+      "rama": "feature/migraciones-pacientes-terapeutas",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-09-30T20:07:29Z",
+      "fusionado": "2026-10-02T19:29:07Z",
+      "fusionadoPor": "VictorHugoRok",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": [
+          "módulos"
+        ]
+      }
+    },
+    {
+      "numero": 7,
+      "titulo": "Feature/registro terapeutas",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/7",
+      "autor": "DanielKao72",
+      "rama": "feature/registro-terapeutas",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-09-30T21:40:42Z",
+      "fusionado": "2026-10-02T00:16:27Z",
+      "fusionadoPor": "DanielKao72",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": [
+          "descripción"
+        ]
+      }
+    },
+    {
+      "numero": 8,
+      "titulo": "Feature/editar terapeutas",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/8",
+      "autor": "DanielKao72",
+      "rama": "feature/editar-terapeutas",
+      "base": "feature/registro-terapeutas",
+      "estado": "MERGED",
+      "creado": "2026-10-02T00:12:31Z",
+      "fusionado": "2026-10-02T00:16:28Z",
+      "fusionadoPor": "DanielKao72",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": [
+          "descripción",
+          "módulos"
+        ]
+      }
+    },
+    {
+      "numero": 10,
+      "titulo": "Feature/editar pacientes",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/10",
+      "autor": "AlejandroRH2002",
+      "rama": "feature/editar-pacientes",
+      "base": "main",
+      "estado": "CLOSED",
+      "creado": "2026-10-02T15:23:23Z",
+      "fusionado": null,
+      "fusionadoPor": null,
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": true,
+        "faltantes": [
+          "descripción",
+          "cambios",
+          "módulos",
+          "pruebas",
+          "requerimiento"
+        ]
+      }
+    },
+    {
+      "numero": 12,
+      "titulo": "Feature/creacion pacientes",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/12",
+      "autor": "Alexandercp7",
+      "rama": "feature/creacion-pacientes",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-10-02T18:50:01Z",
+      "fusionado": "2026-10-02T19:57:07Z",
+      "fusionadoPor": "VanillaICe-jpg",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": []
+      }
+    },
+    {
+      "numero": 13,
+      "titulo": "Feature/editar pacientes",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/13",
+      "autor": "Alexandercp7",
+      "rama": "feature/editar-pacientes",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-10-05T06:44:06Z",
+      "fusionado": "2026-10-05T18:18:07Z",
+      "fusionadoPor": "VanillaICe-jpg",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": [
+          "módulos",
+          "requerimiento"
+        ]
+      }
+    },
+    {
+      "numero": 14,
+      "titulo": "[PG-REQ-001] Búsqueda de pacientes y validación de CURP",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/14",
+      "autor": "EmilianoArceo1",
+      "rama": "feature/PG-REQ-001-busqueda-pacientes-curp",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-10-06T01:06:46Z",
+      "fusionado": "2026-10-07T21:39:19Z",
+      "fusionadoPor": "VanillaICe-jpg",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": [
+          "descripción",
+          "cambios",
+          "módulos"
+        ]
+      }
+    },
+    {
+      "numero": 15,
+      "titulo": "fix(pacientes): perfil, baja lógica, adjuntos y búsqueda por CURP (RF 3.1-3.3)",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/15",
+      "autor": "DanielKao72",
+      "rama": "feature/perfil-baja-pacientes",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-10-13T22:24:22Z",
+      "fusionado": "2026-10-13T22:26:48Z",
+      "fusionadoPor": "DanielKao72",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": []
+      }
+    },
+    {
+      "numero": 16,
+      "titulo": "feat(salas): implementar registro y consulta de disponibilidad",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/16",
+      "autor": "EmilianoArceo1",
+      "rama": "feature/registro-disponibilidad-salas",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-10-14T01:20:07Z",
+      "fusionado": "2026-10-19T16:28:13Z",
+      "fusionadoPor": "VictorHugoRok",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": [
+          "cambios",
+          "módulos"
+        ]
+      }
+    },
+    {
+      "numero": 17,
+      "titulo": "feat(citas): agendar, visualizar, modificar y cancelar citas (RF 5.1–5.4)",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/17",
+      "autor": "DanielKao72",
+      "rama": "feature/gestion-citas-v2",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-10-14T05:48:23Z",
+      "fusionado": "2026-10-19T16:28:13Z",
+      "fusionadoPor": "VictorHugoRok",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": []
+      }
+    },
+    {
+      "numero": 18,
+      "titulo": "feat(agenda): pantalla de inicio con agenda diaria, semanal, mensual e impresión (RF 6.1–6.2, 7.1–7.2)",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/18",
+      "autor": "DanielKao72",
+      "rama": "feature/agenda-inicio",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-10-14T06:27:53Z",
+      "fusionado": "2026-10-19T16:28:13Z",
+      "fusionadoPor": "VictorHugoRok",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": []
+      }
+    },
+    {
+      "numero": 19,
+      "titulo": "fix: corregir observaciones FCA-02 de salas, citas y agenda (RF 4.2, RF 5.1.14, RF 5.4.2)",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/19",
+      "autor": "DanielKao72",
+      "rama": "fix/observaciones-fca-02",
+      "base": "main",
+      "estado": "MERGED",
+      "creado": "2026-10-18T06:22:16Z",
+      "fusionado": "2026-10-19T16:28:11Z",
+      "fusionadoPor": "VictorHugoRok",
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": []
+      }
+    },
+    {
+      "numero": 20,
+      "titulo": "agregar manual de usuario PsicoGestión v0.2.0",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/20",
+      "autor": "EmilianoArceo1",
+      "rama": "manual",
+      "base": "main",
+      "estado": "CLOSED",
+      "creado": "2026-10-23T22:40:20Z",
+      "fusionado": null,
+      "fusionadoPor": null,
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": true,
+        "faltantes": [
+          "descripción",
+          "cambios",
+          "módulos",
+          "pruebas",
+          "requerimiento"
+        ]
+      }
+    },
+    {
+      "numero": 21,
+      "titulo": "docs: actualizar manual técnico v0.2.0",
+      "url": "https://github.com/AlejandroRH2002/PsicoGestion/pull/21",
+      "autor": "EmilianoArceo1",
+      "rama": "feature/manual-tecnico-v0.2.0",
+      "base": "main",
+      "estado": "OPEN",
+      "creado": "2026-10-29T02:42:33Z",
+      "fusionado": null,
+      "fusionadoPor": null,
+      "reviews": [],
+      "aprobadores": [],
+      "plantilla": {
+        "vacia": false,
+        "faltantes": [
+          "cambios",
+          "módulos",
+          "pruebas",
+          "requerimiento"
+        ]
+      }
+    }
+  ],
+  "proteccionMain": {
+    "verificable": false,
+    "detalle": "no verificable con los permisos actuales (gh: Not Found (HTTP 404)). Capturar Settings → Branches."
+  },
+  "personas": {
+    "identidades": [
+      {
+        "nombre": "Juan Daniel Kao Pech",
+        "correos": [
+          "a19201340@alumnos.uady.mx",
+          "142283435+danielkao72@users.noreply.github.com"
+        ],
+        "commits": 34,
+        "merges": 3
+      },
+      {
+        "nombre": "AlejandroRH2002",
+        "correos": [
+          "alejandro.ramayo2015@gmail.com",
+          "125323622+alejandrorh2002@users.noreply.github.com"
+        ],
+        "commits": 12,
+        "merges": 3
+      },
+      {
+        "nombre": "Alexandercp7",
+        "correos": [
+          "a22216350@alumnos.uady.mx",
+          "a22216350@alumnos.uady.com"
+        ],
+        "commits": 11,
+        "merges": 2
+      },
+      {
+        "nombre": "Emiliano",
+        "correos": [
+          "a19204003@alumnos.uady.mx"
+        ],
+        "commits": 6,
+        "merges": 0
+      },
+      {
+        "nombre": "Emiliano Antonio Arceo Márquez",
+        "correos": [
+          "74621218+emilianoarceo1@users.noreply.github.com"
+        ],
+        "commits": 3,
+        "merges": 0
+      },
+      {
+        "nombre": "Tyrone Johnson",
+        "correos": [
+          "tyronejjd24@gmail.com"
+        ],
+        "commits": 2,
+        "merges": 0
+      },
+      {
+        "nombre": "Tyrone J",
+        "correos": [
+          "tyronejjd24@gmail.com"
+        ],
+        "commits": 1,
+        "merges": 0
+      },
+      {
+        "nombre": "VictorHugoRok",
+        "correos": [
+          "142284911+victorhugorok@users.noreply.github.com"
+        ],
+        "commits": 0,
+        "merges": 3
+      },
+      {
+        "nombre": "Israel Cruz Morales",
+        "correos": [
+          "isracruzm@hotmail.com"
+        ],
+        "commits": 0,
+        "merges": 4
+      }
+    ],
+    "cuentas": [
+      {
+        "login": "DanielKao72",
+        "abiertos": 9,
+        "fusionados": 9,
+        "fusionadosPorEl": 3,
+        "reviews": 0,
+        "aprobaciones": 0
+      },
+      {
+        "login": "Alexandercp7",
+        "abiertos": 4,
+        "fusionados": 3,
+        "fusionadosPorEl": 0,
+        "reviews": 0,
+        "aprobaciones": 0
+      },
+      {
+        "login": "EmilianoArceo1",
+        "abiertos": 4,
+        "fusionados": 2,
+        "fusionadosPorEl": 0,
+        "reviews": 0,
+        "aprobaciones": 0
+      },
+      {
+        "login": "TyJhnsnD",
+        "abiertos": 1,
+        "fusionados": 0,
+        "fusionadosPorEl": 0,
+        "reviews": 0,
+        "aprobaciones": 0
+      },
+      {
+        "login": "AlejandroRH2002",
+        "abiertos": 1,
+        "fusionados": 0,
+        "fusionadosPorEl": 3,
+        "reviews": 0,
+        "aprobaciones": 0
+      },
+      {
+        "login": "VictorHugoRok",
+        "abiertos": 0,
+        "fusionados": 0,
+        "fusionadosPorEl": 5,
+        "reviews": 0,
+        "aprobaciones": 0
+      },
+      {
+        "login": "VanillaICe-jpg",
+        "abiertos": 0,
+        "fusionados": 0,
+        "fusionadosPorEl": 3,
+        "reviews": 0,
+        "aprobaciones": 0
+      }
+    ]
+  }
+}
